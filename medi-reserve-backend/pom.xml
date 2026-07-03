@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承 Spring Boot 父依赖（管理版本号） -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.medireserve</groupId>
+    <artifactId>medi-reserve</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>   <!-- 父工程必须是 pom -->
+
+    <!-- 声明所有子模块 -->
+    <modules>
+        <module>medi-common</module>
+        <module>medi-patient</module>
+        <module>medi-doctor</module>
+        <module>medi-admin</module>
+        <module>medi-websocket</module>
+    </modules>
+
+    <!-- 统一属性配置（JDK版本、字符集） -->
+    <properties>
+        <java.version>17</java.version>   <!-- 如果你用JDK11就写11 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mybatis-spring-boot.version>3.0.3</mybatis-spring-boot.version>
+        <jwt.version>0.12.5</jwt.version>
+        <oss.version>3.17.4</oss.version>
+    </properties>
+
+    <!-- 4. 依赖版本锁定（子模块继承，无需再写版本号） -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- MyBatis Starter (纯 MyBatis，支持 Spring Boot 3) -->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis-spring-boot.version}</version>
+            </dependency>
+            <!-- JJWT（新版本包名变更，但依然可用） -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <!-- 阿里云 OSS -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${oss.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
