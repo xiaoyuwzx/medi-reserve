@@ -1,5 +1,7 @@
 package com.medireserve.common.interceptor;
 
+import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.StatusCodeConstant;
 import com.medireserve.common.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,9 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * JWT 校验拦截器：验证请求头中的 Authorization 令牌
- */
 @Slf4j
 @Component
 public class JwtTokenInterceptor implements HandlerInterceptor {
@@ -21,42 +20,33 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 1. 从请求头获取 token
         String token = request.getHeader("Authorization");
         if (token == null || token.isEmpty()) {
             log.warn("请求路径 {} 未携带 token", request.getRequestURI());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(StatusCodeConstant.UNAUTHORIZED);
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"code\":401,\"msg\":\"未登录，请先登录\"}");
+            response.getWriter().write("{\"code\":" + StatusCodeConstant.UNAUTHORIZED + ",\"msg\":\"" + MessageConstant.TOKEN_MISSING + "\"}");
             return false;
         }
 
-        // 2. 去掉 "Bearer " 前缀（如果有）
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
 
         try {
-            // 3. 解析令牌
             Claims claims = jwtUtil.parseToken(token);
+            request.setAttribute("userId", claims.get("userId"));
+            request.setAttribute("username", claims.get("username"));
+            request.setAttribute("role", claims.get("role"));
 
-            // 4. 提取用户信息存入 request 属性（后续 Controller 可用 @RequestAttribute 获取）
-            Long userId = claims.get("userId", Long.class);
-            String username = claims.get("username", String.class);
-            String role = claims.get("role", String.class);
-
-            request.setAttribute("userId", userId);
-            request.setAttribute("username", username);
-            request.setAttribute("role", role);
-
-            log.info("JWT 校验通过，用户: {}，角色: {}，ID: {}", username, role, userId);
+            log.debug("JWT 校验通过，用户: {}，角色: {}", claims.get("username"), claims.get("role"));
             return true;
 
         } catch (Exception e) {
             log.error("JWT 校验失败: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(StatusCodeConstant.UNAUTHORIZED);
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"code\":401,\"msg\":\"Token 无效或已过期\"}");
+            response.getWriter().write("{\"code\":" + StatusCodeConstant.UNAUTHORIZED + ",\"msg\":\"" + MessageConstant.TOKEN_INVALID + "\"}");
             return false;
         }
     }
