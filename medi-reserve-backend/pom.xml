@@ -29,7 +29,9 @@
 
     <!-- 统一属性配置（JDK版本、字符集） -->
     <properties>
-        <java.version>17</java.version>   <!-- 如果你用JDK11就写11 -->
+        <java.version>17</java.version>
+        <knife4j.version>4.5.0</knife4j.version>
+        <lombok.version>1.18.34</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mybatis-spring-boot.version>3.0.3</mybatis-spring-boot.version>
         <jwt.version>0.12.5</jwt.version>
@@ -39,6 +41,18 @@
     <!-- 4. 依赖版本锁定（子模块继承，无需再写版本号） -->
     <dependencyManagement>
         <dependencies>
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <!-- Knife4j：Spring Boot 3 专用 Jakarta 版本 -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
             <!-- MyBatis Starter (纯 MyBatis，支持 Spring Boot 3) -->
             <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>

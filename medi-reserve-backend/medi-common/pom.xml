@@ -41,6 +41,11 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Knife4j 接口文档（Spring Boot 3 + OpenAPI3 规范） -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+        </dependency>
         <!-- Hutool 工具库（文件、日期、字符串处理） -->
         <dependency>
             <groupId>cn.hutool</groupId>

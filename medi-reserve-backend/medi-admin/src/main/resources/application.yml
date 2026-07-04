@@ -1,0 +1,31 @@
+server:
+  port: 8083
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/medi_reserve?useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.medireserve.common.entity,com.medireserve.admin.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  interceptor:
+    enabled: true   # 不写也行，因为默认就是 true
+    exclude-paths:  # 覆盖默认路径
+      - /admin/login
+      - /admin/register
+      - /test/ping
+      - /error
+  secret: "your-256-bit-secret-key-must-be-long-enough-1234567890"  # 生产环境请使用复杂字符串，至少32位
+  expiration: 7200000   # 2小时，单位毫秒

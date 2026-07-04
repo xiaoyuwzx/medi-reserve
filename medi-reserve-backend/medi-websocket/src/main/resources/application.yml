@@ -1,0 +1,11 @@
+server:
+  port: 8084
+
+spring:
+  # WebSocket 主要依赖 Redis 存会话，如果不需要直接连 DB，可以只配 Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# 如果不连数据库，可以把 datasource 配置注释掉，或者保留（后面扩展用）
