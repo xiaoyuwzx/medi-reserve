@@ -1,0 +1,71 @@
+package com.medireserve.common.handler;
+
+import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.StatusCodeConstant;
+import com.medireserve.common.exception.BusinessException;
+import com.medireserve.common.result.Result;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.util.stream.Collectors;
+
+/**
+ * 全局异常处理器
+ * 统一处理 Controller 层抛出的异常，返回规范的 Result 格式
+ */
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // ==================== 业务异常 ====================
+    @ExceptionHandler(BusinessException.class)
+    public Result<Void> handleBusinessException(BusinessException e) {
+        log.warn("业务异常：{}", e.getMessage());
+        // 如果有自定义 code 就用，否则使用默认错误码
+        Integer code = e.getCode() != null ? e.getCode() : StatusCodeConstant.ERROR;
+        return Result.error(code, e.getMessage());
+    }
+
+    // ==================== 参数校验异常（@Valid 校验失败） ====================
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleValidationException(MethodArgumentNotValidException e) {
+        String errorMsg = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining("；"));
+        log.warn("参数校验失败：{}", errorMsg);
+        return Result.error(StatusCodeConstant.PARAM_ERROR, errorMsg);
+    }
+
+    // ==================== 参数格式异常（类型转换错误） ====================
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        log.warn("参数类型错误：{}", e.getMessage());
+        return Result.error(StatusCodeConstant.PARAM_ERROR, "参数格式错误");
+    }
+
+    // ==================== JSON 解析异常 ====================
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.warn("请求体解析失败：{}", e.getMessage());
+        return Result.error(StatusCodeConstant.PARAM_ERROR, "请求参数格式错误");
+    }
+
+    // ==================== 其他未知异常（兜底） ====================
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result<Void> handleException(Exception e) {
+        log.error("系统异常：", e);
+        return Result.error(StatusCodeConstant.SERVER_ERROR, MessageConstant.UNKNOWN_ERROR);
+    }
+}

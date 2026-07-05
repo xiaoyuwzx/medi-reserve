@@ -12,8 +12,8 @@ import java.io.Serializable;
 @Data
 public class Result<T> implements Serializable {
 
-    private Integer code;   // 状态码
-    private String msg;     // 提示信息
+    private Integer code;   // 状态码：1成功，0和其它数字为失败
+    private String msg;     // 提示信息：错误信息
     private T data;         // 返回数据
 
     // -------- 成功（无数据） ----------

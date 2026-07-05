@@ -17,8 +17,8 @@ jwt:
   interceptor:
     enabled: true
     exclude-paths:
-      - /auth/login
-      - /auth/register
+      - /admin/login
+      - /admin/register
       - /test/ping
       - /error
       - /doc.html

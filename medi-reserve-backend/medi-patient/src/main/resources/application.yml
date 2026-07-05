@@ -18,8 +18,8 @@ jwt:
   interceptor:
     enabled: true
     exclude-paths:
-      - /auth/login
-      - /auth/register
+      - /patient/login
+      - /patient/register
       - /test/ping
       - /error
       - /doc.html      # 放行 Knife4j 页面

@@ -21,4 +21,5 @@ public class StatusCodeConstant {
     public static final Integer USERNAME_EXISTS = 1005;    // 用户名已存在
     public static final Integer AUDIT_PENDING = 1006;      // 审核中
     public static final Integer AUDIT_REJECTED = 1007;     // 审核驳回
+    public static final Integer PARAM_ERROR = 1008;     // 参数校验失败
 }

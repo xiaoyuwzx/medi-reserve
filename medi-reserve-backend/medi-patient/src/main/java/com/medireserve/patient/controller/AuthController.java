@@ -1,55 +1,94 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.RoleConstant;
+import com.medireserve.common.dto.LoginDTO;
+import com.medireserve.common.dto.PatientRegisterDTO;
+import com.medireserve.common.entity.Patient;
+import com.medireserve.common.result.Result;
 import com.medireserve.common.utils.JwtUtil;
+import com.medireserve.patient.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *  患者端认证：登录、注册
+ */
 @Slf4j
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/patient")
+@Tag(name = "患者端 - 认证管理", description = "患者登录、注册相关接口")
 public class AuthController {
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private AuthService authService;
 
-    // 模拟登录：校验用户名密码，成功后返回令牌
-    @PostMapping("/login")
-    public Map<String, Object> login(@RequestParam String username,
-                                     @RequestParam String password) {
-        Map<String, Object> result = new HashMap<>();
+    /**
+     * 患者注册
+     * @param registerDTO
+     * @return
+     */
+    @PostMapping("/register")
+    @Operation(summary = "患者注册", description = "填写个人信息注册患者账号")
+    public Result<Map<String, Object>> register(@RequestBody @Valid PatientRegisterDTO registerDTO){
 
-        // TODO: 此处应改为查询数据库验证账号密码
-        if ("admin".equals(username) && "123456".equals(password)) {
-            // 假设用户 ID 为 1，角色为 PATIENT（实际应从数据库中查询）
-            Long userId = 1L;
-            String role = "PATIENT";
+        log.info("患者注册中...：{}", registerDTO.getPhone());
 
-            // 生成令牌（传入 id、name、role）
-            String token = jwtUtil.createToken(userId, username, role);
+        // 直接调用 Service，如果出错会抛出异常，由全局处理器统一处理
+        Patient patient = authService.register(registerDTO);
 
-            log.info("用户 {} 登录成功，生成令牌", username);
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", patient.getId());
+        map.put("name", patient.getName());
+        map.put("phone", patient.getPhone());
 
-            result.put("code", 200);
-            result.put("msg", "登录成功");
-            result.put("token", token);
-            // 可选：同时返回用户信息，方便前端使用
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("userId", userId);
-            userInfo.put("username", username);
-            userInfo.put("role", role);
-            result.put("userInfo", userInfo);
-        } else {
-            log.warn("登录失败，用户名或密码错误: {}", username);
-            result.put("code", 401);
-            result.put("msg", "用户名或密码错误");
-        }
-        return result;
+        log.info("患者账号注册成功：{}", map);
+
+        return Result.success(MessageConstant.REGISTER_SUCCESS, map);
+
     }
+
+    /**
+     * 患者登录
+     * @param loginDTO
+     * @return
+     */
+    @PostMapping("/login")
+    @Operation(summary = "患者登录", description = "手机号 + 密码，成功登录后返回 JWT 令牌")
+    public Result<Map<String, Object>> login(@RequestBody @Valid LoginDTO loginDTO){
+
+        log.info("患者登录中...：{}", loginDTO.getUsername());
+
+        // 直接调用 Service，如果出错会抛出异常，由全局处理器统一处理
+        Patient patient = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+
+        //登录成功，生成 JWT 令牌
+        String token = JwtUtil.createToken(
+                patient.getId(),
+                patient.getPhone(),
+                RoleConstant.PATIENT
+        );
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", token);
+        map.put("id", patient.getId());
+        map.put("name", patient.getName());
+        map.put("phone", patient.getPhone());
+
+        log.info("患者登录成功：{}", map);
+
+        return Result.success(MessageConstant.LOGIN_SUCCESS, map);
+
+    }
+
 }

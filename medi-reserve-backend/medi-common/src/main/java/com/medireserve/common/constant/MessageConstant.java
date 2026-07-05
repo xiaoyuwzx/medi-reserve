@@ -18,7 +18,7 @@ public class MessageConstant {
     public static final String ACCOUNT_NOT_FOUND = "账号不存在";
     public static final String ACCOUNT_DISABLED = "账号已被禁用，请联系管理员";
     public static final String ACCOUNT_LOCKED = "账号被锁定，请稍后重试";
-    public static final String PHONE_EXISTS = "手机号已被注册，请直接登录";
+    public static final String PHONE_EXISTS = "手机号已被注册";
     public static final String USERNAME_EXISTS = "用户名已被占用";
     public static final String REGISTER_SUCCESS = "注册成功，请登录";
     public static final String REGISTER_FAILED = "注册失败";

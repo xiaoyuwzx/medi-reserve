@@ -7,7 +7,6 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -15,11 +14,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class JwtTokenInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 1. 从请求头获取 token
         String token = request.getHeader("Authorization");
         if (token == null || token.isEmpty()) {
             log.warn("请求路径 {} 未携带 token", request.getRequestURI());
@@ -29,12 +26,16 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 2. 去掉 "Bearer " 前缀
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
 
         try {
-            Claims claims = jwtUtil.parseToken(token);
+            // 3. 解析令牌（静态调用）
+            Claims claims = JwtUtil.parseToken(token);
+
+            // 4. 提取用户信息存入 request 属性
             request.setAttribute("userId", claims.get("userId"));
             request.setAttribute("username", claims.get("username"));
             request.setAttribute("role", claims.get("role"));
