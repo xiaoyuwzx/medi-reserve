@@ -11,7 +11,6 @@ spring:
     host: localhost
     port: 6379
 
-# ========== JWT 配置 ==========
 jwt:
   secret: "your-256-bit-secret-key-must-be-long-enough-1234567890"
   expiration: 7200000
@@ -22,48 +21,25 @@ jwt:
       - /patient/register
       - /test/ping
       - /error
-      - /doc.html      # 放行 Knife4j 页面
-      - /webjars/**    # 放行静态资源
-      - /v3/api-docs/** # 放行 API 文档 JSON
-      - /swagger-ui/** # 放行 Swagger UI
+      - /doc.html
+      - /webjars/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
 
-# ========== SpringDoc / Knife4j 配置 ==========
 springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
   group-configs:
-    - group: '患者端'
-      paths-to-match: '/**'
+    - group: 患者端
       packages-to-scan: com.medireserve.patient.controller
-    - group: '医生端'
       paths-to-match: '/**'
-      packages-to-scan: com.medireserve.doctor.controller
-    - group: '管理端'
-      paths-to-match: '/**'
-      packages-to-scan: com.medireserve.admin.controller
 
-# Knife4j 聚合配置（让 8081 端口拉取其他端的文档）
+# knife4j基础配置
 knife4j:
   enable: true
   setting:
     language: zh_cn
-    enable-swagger-models: true
-    enable-document-manage: true
-    enable-group: true
-  # 核心：聚合外部服务的 OpenAPI 文档
-  documents:
-    - group: 患者端
-      name: 患者端接口
-      location: http://localhost:8081/v3/api-docs
-    - group: 医生端
-      name: 医生端接口
-      location: http://localhost:8082/v3/api-docs
-    - group: 管理端
-      name: 管理端接口
-      location: http://localhost:8083/v3/api-docs
 
 mybatis:
   mapper-locations: classpath*:mapper/**/*.xml

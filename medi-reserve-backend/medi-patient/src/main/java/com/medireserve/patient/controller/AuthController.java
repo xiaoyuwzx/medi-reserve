@@ -42,7 +42,7 @@ public class AuthController {
     @Operation(summary = "患者注册", description = "填写个人信息注册患者账号")
     public Result<Map<String, Object>> register(@RequestBody @Valid PatientRegisterDTO registerDTO){
 
-        log.info("患者注册中...：{}", registerDTO.getPhone());
+        log.info("患者注册中... 手机号：{}", registerDTO.getPhone());
 
         // 直接调用 Service，如果出错会抛出异常，由全局处理器统一处理
         Patient patient = authService.register(registerDTO);
@@ -54,7 +54,7 @@ public class AuthController {
 
         log.info("患者账号注册成功：{}", map);
 
-        return Result.success(MessageConstant.REGISTER_SUCCESS, map);
+        return Result.success(MessageConstant.DOCTOR_REGISTER_PENDING, map);
 
     }
 

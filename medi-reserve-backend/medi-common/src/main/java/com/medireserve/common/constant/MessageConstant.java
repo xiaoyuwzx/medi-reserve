@@ -46,10 +46,10 @@ public class MessageConstant {
     public static final String VALIDATION_USERNAME_FORMAT = "用户名需为4-20位字母数字下划线组合";
 
     // ========== 医生审核 ==========
-    public static final String AUDIT_PENDING_MSG = "医生账号待审核，请耐心等待";
-    public static final String AUDIT_REJECTED_MSG = "审核未通过，请查看备注信息";
-    public static final String AUDIT_SUCCESS = "审核通过";
-    public static final String AUDIT_FAILED = "审核操作失败";
+    public static final String DOCTOR_REGISTER_PENDING = "注册成功，请等待管理员审核";
+    public static final String DOCTOR_AUDIT_PENDING = "待审核";
+    public static final String DOCTOR_AUDIT_APPROVED = "审核通过";
+    public static final String DOCTOR_AUDIT_REJECTED = "审核驳回";
 
     // ========== 业务操作 ==========
     public static final String NOT_FOUND = "数据不存在";

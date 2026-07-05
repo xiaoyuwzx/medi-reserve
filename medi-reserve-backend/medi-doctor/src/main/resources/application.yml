@@ -30,7 +30,12 @@ springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
+  group-configs:
+    - group: 医生端
+      packages-to-scan: com.medireserve.doctor.controller
+      paths-to-match: '/**'
 
+# knife4j基础配置
 knife4j:
   enable: true
   setting:

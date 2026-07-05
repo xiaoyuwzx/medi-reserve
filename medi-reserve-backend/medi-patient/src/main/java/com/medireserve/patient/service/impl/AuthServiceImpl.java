@@ -1,7 +1,6 @@
 package com.medireserve.patient.service.impl;
 
 import com.medireserve.common.constant.StatusConstant;
-import com.medireserve.common.dto.LoginDTO;
 import com.medireserve.common.dto.PatientRegisterDTO;
 import com.medireserve.common.entity.Patient;
 import com.medireserve.common.exception.AccountDisabledException;

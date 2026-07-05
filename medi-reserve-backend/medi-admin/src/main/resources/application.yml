@@ -18,7 +18,6 @@ jwt:
     enabled: true
     exclude-paths:
       - /admin/login
-      - /admin/register
       - /test/ping
       - /error
       - /doc.html
@@ -30,7 +29,12 @@ springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
+  group-configs:
+    - group: 管理端
+      packages-to-scan: com.medireserve.admin.controller
+      paths-to-match: '/**'
 
+# knife4j基础配置
 knife4j:
   enable: true
   setting:
