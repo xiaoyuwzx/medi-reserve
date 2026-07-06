@@ -19,12 +19,14 @@ jwt:
     exclude-paths:
       - /doctor/login
       - /doctor/register
-      - /test/ping
-      - /error
       - /doc.html
+      - /css/**
+      - /js/**
+      - /favicon.ico
       - /webjars/**
       - /v3/api-docs/**
       - /swagger-ui/**
+      - /error
 
 springdoc:
   api-docs:

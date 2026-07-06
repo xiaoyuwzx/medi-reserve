@@ -4,10 +4,7 @@ import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DoctorRegisterDTO;
 import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.DoctorAudit;
-import com.medireserve.common.exception.AccountDisabledException;
-import com.medireserve.common.exception.AccountNotFoundException;
-import com.medireserve.common.exception.PasswordErrorException;
-import com.medireserve.common.exception.PhoneAlreadyExistsException;
+import com.medireserve.common.exception.*;
 import com.medireserve.common.utils.PasswordUtil;
 import com.medireserve.doctor.mapper.AuthMapper;
 import com.medireserve.doctor.mapper.DoctorAuditMapper;
@@ -66,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
         //插入医生审核数据
         doctorAuditMapper.insert(doctorAudit);
 
-        log.info("医生注册成功，ID：{}，手机号：{}", doctor.getId(), doctor.getPhone());
+        log.info("医生注册成功，ID：{}，手机号：{}，等待审核", doctor.getId(), doctor.getPhone());
 
         return doctor;
 
@@ -81,8 +78,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Doctor login(String username, String password) {
 
-        //查询手机号判断是否被注册
         Doctor doctor = authMapper.findByPhone(username);
+
+        //查询手机号判断是否被注册
         if (doctor == null){
             log.warn("医生登录失败，手机号未注册：{}", username);
             throw new AccountNotFoundException();
@@ -98,6 +96,23 @@ public class AuthServiceImpl implements AuthService {
         if(StatusConstant.ACCOUNT_DISABLED.equals(doctor.getStatus())){
             log.warn("医生登录失败，账号已被禁用，手机号：{}", username);
             throw new AccountDisabledException();
+        }
+
+        //校验审核状态
+        DoctorAudit doctorAudit = doctorAuditMapper.findByDoctorId(doctor.getId());
+        if (doctorAudit == null) {
+            // 理论上不会发生（注册时已创建），但做防御性处理
+            log.error("医生审核数据不存在，医生ID：{}", doctor.getId());
+            throw new BusinessException("审核数据异常，请联系管理员");
+        }
+        // 判断审核状态
+        if (StatusConstant.AUDIT_PENDING.equals(doctorAudit.getAuditStatus())) {
+            log.warn("医生登录失败，账号审核中，手机号：{}", username);
+            throw new AuditPendingException();
+        }
+        if (StatusConstant.AUDIT_REJECTED.equals(doctorAudit.getAuditStatus())) {
+            log.warn("医生登录失败，账号审核未通过，手机号：{}", username);
+            throw new AuditRejectedException();
         }
 
         log.info("医生登录成功，手机号：{}", username);

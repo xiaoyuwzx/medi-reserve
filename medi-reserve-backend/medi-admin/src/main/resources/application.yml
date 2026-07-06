@@ -18,12 +18,14 @@ jwt:
     enabled: true
     exclude-paths:
       - /admin/login
-      - /test/ping
-      - /error
       - /doc.html
+      - /css/**
+      - /js/**
+      - /favicon.ico
       - /webjars/**
       - /v3/api-docs/**
       - /swagger-ui/**
+      - /error
 
 springdoc:
   api-docs:

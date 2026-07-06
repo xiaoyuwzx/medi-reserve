@@ -54,7 +54,7 @@ public class AuthController {
 
         log.info("患者账号注册成功：{}", map);
 
-        return Result.success(MessageConstant.DOCTOR_REGISTER_PENDING, map);
+        return Result.success(MessageConstant.REGISTER_SUCCESS, map);
 
     }
 

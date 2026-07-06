@@ -30,6 +30,7 @@ public class MessageConstant {
 
     // ========== 权限 ==========
     public static final String PERMISSION_DENIED = "您没有权限执行此操作";
+    public static final String PERMISSION_CREATE_ADMIN = "只有超级管理员才可以创建管理员账号";
 
     // ========== 参数校验（DTO中使用） ==========
     public static final String VALIDATION_ACCOUNT_NOT_EMPTY = "账号不能为空";
@@ -50,6 +51,8 @@ public class MessageConstant {
     public static final String DOCTOR_AUDIT_PENDING = "待审核";
     public static final String DOCTOR_AUDIT_APPROVED = "审核通过";
     public static final String DOCTOR_AUDIT_REJECTED = "审核驳回";
+    public static final String AUDIT_PENDING_MSG = "账号正在审核中，请耐心等待管理员审核";
+    public static final String AUDIT_REJECTED_MSG = "账号审核未通过，请查看管理员备注信息";
 
     // ========== 业务操作 ==========
     public static final String NOT_FOUND = "数据不存在";

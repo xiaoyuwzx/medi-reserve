@@ -29,6 +29,7 @@
 
     <!-- 统一属性配置（JDK版本、字符集） -->
     <properties>
+        <spring-security-crypto.version>6.3.5</spring-security-crypto.version>
         <java.version>17</java.version>
         <knife4j.version>4.5.0</knife4j.version>
         <lombok.version>1.18.34</lombok.version>
@@ -36,6 +37,7 @@
         <mybatis-spring-boot.version>3.0.3</mybatis-spring-boot.version>
         <jwt.version>0.12.5</jwt.version>
         <oss.version>3.17.4</oss.version>
+        <hutool.version>5.8.26</hutool.version>
     </properties>
 
     <!-- 4. 依赖版本锁定（子模块继承，无需再写版本号） -->
@@ -83,7 +85,13 @@
                 <artifactId>aliyun-sdk-oss</artifactId>
                 <version>${oss.version}</version>
             </dependency>
+            <!--hutool-all-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
         </dependencies>
-    </dependencyManagement>
 
+    </dependencyManagement>
 </project>

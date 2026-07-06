@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
 
         //密码校验
         if(!PasswordUtil.matches(password, patient.getPassword())){
-            log.warn("患者登录失败，密码错误：{}", password);
+            log.warn("患者登录失败，密码错误：{}", phone);
             throw new PasswordErrorException();
         }
 

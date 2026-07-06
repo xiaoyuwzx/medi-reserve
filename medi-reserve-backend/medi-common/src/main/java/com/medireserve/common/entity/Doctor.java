@@ -15,7 +15,7 @@ public class Doctor {
     private LocalDate birthDate;    //出生日期
     private String department;  //科室
     private String title;   //职称：主任医师/副主任医师/主治医师/住院医师
-    private Integer status;    // 状态：0待审核 1审核通过(正常) 2审核驳回 3禁用
+    private Integer status;    // 状态：0禁用 1正常
     private LocalDateTime createdAt;    //注册时间
     private LocalDateTime updatedAt;    //更新时间
 }

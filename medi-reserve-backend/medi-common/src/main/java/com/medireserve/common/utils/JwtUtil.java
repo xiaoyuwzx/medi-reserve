@@ -51,15 +51,15 @@ public class JwtUtil {
 
     /**
      * 创建令牌，存储用户 id、name、role
-     * @param id   用户ID
-     * @param phone 用户名
+     * @param userId   用户ID
+     * @param username 用户名
      * @param role     角色（如 PATIENT、DOCTOR、ADMIN）
      * @return JWT 字符串
      */
-    public static String createToken(Long id, String phone, String role) {
+    public static String createToken(Long userId, String username, String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("id", id);
-        claims.put("phone", phone);
+        claims.put("userId", userId);
+        claims.put("username", username);
         claims.put("role", role);
 
         String token = Jwts.builder()
@@ -69,7 +69,7 @@ public class JwtUtil {
                 .signWith(getSignKey())
                 .compact();
 
-        log.debug("生成令牌成功，用户：{}，角色：{}", phone, role);
+        log.debug("生成令牌成功，用户：{}，角色：{}", username, role);
         return token;
     }
 
@@ -104,4 +104,5 @@ public class JwtUtil {
     public static String getRole(String token) {
         return parseToken(token).get("role", String.class);
     }
+
 }

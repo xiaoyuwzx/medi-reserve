@@ -1,0 +1,102 @@
+package com.medireserve.admin.controller;
+
+import com.medireserve.admin.service.AuthService;
+import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.RoleConstant;
+import com.medireserve.common.dto.AdminRegisterDTO;
+import com.medireserve.common.dto.LoginDTO;
+import com.medireserve.common.entity.Admin;
+import com.medireserve.common.result.Result;
+import com.medireserve.common.utils.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 管理端认证：登录
+ */
+@Slf4j
+@RestController
+@RequestMapping("/admin")
+@Tag(name = "管理员 - 认证管理", description = "管理员登录、注册相关接口")
+public class AuthController {
+
+    @Autowired
+    AuthService authService;
+
+    /**
+     * 管理员注册
+     * @param registerDTO
+     * @param currentRole
+     * @return
+     */
+    @PostMapping("/register")
+    @Operation(summary = "管理员注册", description = "创建管理员账号（仅限超级管理员操作）")
+    public Result<Map<String, Object>> register(
+            @RequestBody @Valid AdminRegisterDTO registerDTO,
+            @RequestAttribute("role") String currentRole
+    ){
+
+        log.info("管理员注册请求，当前操作者：{} , 目标用户名：{}", currentRole, registerDTO.getUsername());
+
+        // 调用 Service，传入当前用户角色进行校验
+        Admin admin = authService.register(registerDTO, currentRole);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", admin.getId());
+        map.put("username", admin.getUsername());
+        map.put("phone", admin.getPhone());
+        map.put("name", admin.getName());
+        map.put("role", admin.getRole());
+
+        log.info("管理员注册成功，用户名：{}，ID：{}", admin.getUsername(), admin.getId());
+
+        return Result.success(MessageConstant.REGISTER_SUCCESS, map);
+
+    }
+
+    /**
+     * 管理员登录
+     * @param loginDTO
+     * @return
+     */
+    @PostMapping("/login")
+    @Operation(summary = "管理员登录", description = "用户名 + 密码登录，成功后返回 JWT 令牌")
+    public Result<Map<String, Object>> login(@RequestBody @Valid LoginDTO loginDTO){
+
+        log.info("管理员登录中... , 用户名：{}", loginDTO.getUsername());
+
+        // 调用 Service，进行校验
+        Admin admin = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+
+        //生成角色名称
+        String roleName = RoleConstant.getRoleName(admin.getRole());
+
+        //生成 JWT 令牌
+        String token = JwtUtil.createToken(
+                admin.getId(),
+                admin.getUsername(),
+                roleName
+        );
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", token);
+        map.put("id", admin.getId());
+        map.put("name", admin.getName());
+        map.put("username", admin.getUsername());
+        map.put("phone", admin.getPhone());
+        map.put("role", admin.getRole());
+
+        log.info("管理员登录成功，用户名：{}，角色：{}", admin.getUsername(), roleName);
+
+        return Result.success(MessageConstant.LOGIN_SUCCESS, map);
+
+    }
+
+}
