@@ -58,4 +58,16 @@ public class MessageConstant {
     public static final String NOT_FOUND = "数据不存在";
     public static final String OPERATION_FAILED = "操作失败，请重试";
     public static final String AlREADY_EXISTS = "数据已存在";
+
+    // ========== 排班管理相关 ==========
+    public static final String SCHEDULE_CREATE_SUCCESS = "排班创建成功";
+    public static final String SCHEDULE_UPDATE_SUCCESS = "排班更新成功";
+    public static final String SCHEDULE_DELETE_SUCCESS = "排班删除成功";
+    public static final String SCHEDULE_NOT_FOUND = "排班记录不存在";
+    public static final String SCHEDULE_DUPLICATE = "该医生在该日此时段已有排班，请勿重复添加";
+    public static final String SCHEDULE_HAS_APPOINTMENTS = "该排班下存在预约记录，无法删除";
+    public static final String SCHEDULE_STOP_SUCCESS = "停诊操作成功";
+    public static final String SCHEDULE_RESUME_SUCCESS = "恢复接诊操作成功";
+    public static final String SCHEDULE_ALREADY_FULL = "当前排班号源已满，请选择其他时段";
+    public static final String SCHEDULE_INVALID_PERIOD = "时段参数错误（必须为1或2）";
 }
