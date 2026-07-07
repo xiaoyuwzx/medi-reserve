@@ -2,10 +2,7 @@ package com.medireserve.doctor.mapper;
 
 import com.medireserve.common.entity.Schedule;
 import io.swagger.v3.oas.annotations.Operation;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,5 +42,21 @@ public interface ScheduleMapper {
      * @return
      */
     List<Schedule> findByDoctorIdAndDateRange(Long doctorId, LocalDate startDate, LocalDate endDate);
-    
+
+    /**
+     * 根据排班ID查询单条排班记录
+     * @param id
+     * @return
+     */
+    @Select("select * from schedule where id = #{id}")
+    Schedule findById(Long id);
+
+    /**
+     * 更新排班状态：停诊/恢复
+     * @param id
+     * @param status
+     */
+    @Update("update schedule set status = #{status} where id = #{id}")
+    void updateStatus(Long id, int status);
+
 }

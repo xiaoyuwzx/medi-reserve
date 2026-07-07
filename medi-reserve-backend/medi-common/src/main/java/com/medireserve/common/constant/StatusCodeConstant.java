@@ -22,4 +22,11 @@ public class StatusCodeConstant {
     public static final Integer AUDIT_PENDING = 1006;      // 审核中
     public static final Integer AUDIT_REJECTED = 1007;     // 审核驳回
     public static final Integer PARAM_ERROR = 1008;     // 参数校验失败
+
+    // ========== 排班管理状态码 ==========
+    public static final Integer SCHEDULE_DUPLICATE = 2001;        // 排班冲突（同一时段已有排班）
+    public static final Integer SCHEDULE_NOT_FOUND = 2002;        // 排班不存在
+    public static final Integer SCHEDULE_STATUS_INVALID = 2003;   // 目标状态不合法
+    public static final Integer SCHEDULE_FULL = 2004;             // 排班号源已满，无法停诊
+
 }

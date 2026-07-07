@@ -5,7 +5,7 @@ import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
 import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
-import com.medireserve.common.exception.BusinessException;
+import com.medireserve.common.exception.*;
 import com.medireserve.doctor.mapper.ScheduleMapper;
 import com.medireserve.doctor.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +46,104 @@ public class ScheduleServiceImpl implements ScheduleService {
         return recommended;
 
     }
+
+    /**
+     * 新增排班
+     * @param scheduleCreateDTO
+     * @return
+     */
+    @Override
+    @Transactional  //事务管理
+    public Schedule createSchedule(ScheduleCreateDTO scheduleCreateDTO) {
+
+        log.info("开始新增排班，医生ID：{}，日期：{}，时段：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
+
+        //防重校验：检查同一时间段是否已有排班
+        int count = scheduleMapper.countByDoctorDatePeriod(scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
+        if(count > 0){
+            log.warn("排班重复，医生ID：{}，日期：{}，时段：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
+            throw new ScheduleDuplicateException();
+        }
+
+        //构建排班实体
+        Schedule schedule = new Schedule();
+        BeanUtils.copyProperties(scheduleCreateDTO, schedule);
+        schedule.setMaxCount(scheduleCreateDTO.getMaxCount());
+        schedule.setRemainingCount(scheduleCreateDTO.getMaxCount());    //初始值 == 最大值
+        schedule.setStatus(StatusConstant.SCHEDULE_NORMAL); //状态初始为正常
+
+        //保存进数据库
+        scheduleMapper.insert(schedule);
+
+        log.info("排班创建成功，ID：{}，号源数：{}", schedule.getId(), schedule.getMaxCount());
+
+        return schedule;
+
+    }
+
+    /**
+     * 查询医生排班列表
+     * @param doctorId
+     * @param scheduleQueryDTO
+     * @return
+     */
+    @Override
+    public List<Schedule> listSchedule(Long doctorId, ScheduleQueryDTO scheduleQueryDTO) {
+
+        log.info("查询医生排班，医生ID：{}，日期范围：{} ~ {}", doctorId, scheduleQueryDTO.getStartDate(), scheduleQueryDTO.getEndDate());
+
+        return scheduleMapper.findByDoctorIdAndDateRange(
+                doctorId,
+                scheduleQueryDTO.getStartDate(),
+                scheduleQueryDTO.getEndDate()
+        );
+
+    }
+
+    /**
+     * 更新排班状态：停诊/恢复
+     * @param scheduleId
+     * @param targetStatus
+     */
+    @Override
+    @Transactional  //事务管理
+    public void updateScheduleStatus(Long scheduleId, int targetStatus) {
+
+        log.info("更新排班状态，排班ID：{}，目标状态：{}", scheduleId, targetStatus);
+
+        //检验目标状态是否合法（只能为 1 或 2 ）
+        if(!StatusConstant.SCHEDULE_NORMAL.equals(targetStatus) && !StatusConstant.SCHEDULE_STOPPED.equals(targetStatus)){
+            log.warn("更新失败，目标状态不合法，排班ID：{}，目标状态：{}", scheduleId, targetStatus);
+            throw new ScheduleStatusInvalidException();
+        }
+
+        //查询排班是否存在
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+        if(schedule == null){
+            log.warn("排班不存在，排班ID：{}", scheduleId);
+            throw new ScheduleNotFoundException();
+        }
+
+        //若排班状态以满，不允许手动停诊
+        if(StatusConstant.SCHEDULE_FULL.equals(schedule.getStatus())){
+            log.warn("当前排班号源已满，无法停诊，请先处理已挂号患者，排班ID：{}", scheduleId);
+            throw new ScheduleFullException();
+        }
+
+        //更新数据库
+        scheduleMapper.updateStatus(scheduleId, targetStatus);
+
+        String actionMsg = StatusConstant.SCHEDULE_STOPPED.equals(targetStatus)
+                ? MessageConstant.SCHEDULE_STOP_SUCCESS
+                : MessageConstant.SCHEDULE_RESUME_SUCCESS;
+
+        log.info("排班状态更新成功，ID：{}，{}", scheduleId, actionMsg);
+
+    }
+
+
+
+    /*===================================================================  特有方法  ================================================================*/
 
     /**
      * 智能推荐初始号源数算法（基于历史就诊热度）
@@ -91,63 +189,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     }
 
-    /**
-     * 新增排班
-     * @param scheduleCreateDTO
-     * @return
-     */
-    @Override
-    @Transactional  //事务管理
-    public Schedule createSchedule(ScheduleCreateDTO scheduleCreateDTO) {
-
-        log.info("开始新增排班，医生ID：{}，日期：{}，时段：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
-
-        //防重校验：检查同一时间段是否已有排班
-        int count = scheduleMapper.countByDoctorDatePeriod(scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
-        if(count > 0){
-            log.warn("排班重复，医生ID：{}，日期：{}，时段：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
-            // TODO : 增加已有排班异常类
-            throw new BusinessException(MessageConstant.SCHEDULE_DUPLICATE);
-        }
-
-        //构建排班实体
-        Schedule schedule = new Schedule();
-        BeanUtils.copyProperties(scheduleCreateDTO, schedule);
-        schedule.setMaxCount(scheduleCreateDTO.getMaxCount());
-        schedule.setRemainingCount(scheduleCreateDTO.getMaxCount());    //初始值 == 最大值
-        schedule.setStatus(StatusConstant.SCHEDULE_NORMAL); //状态初始为正常
-
-        //保存进数据库
-        scheduleMapper.insert(schedule);
-
-        log.info("排班创建成功，ID：{}，号源数：{}", schedule.getId(), schedule.getMaxCount());
-
-        return schedule;
-
-    }
-
-    /**
-     * 查询医生排班列表
-     * @param doctorId
-     * @param scheduleQueryDTO
-     * @return
-     */
-    @Override
-    public List<Schedule> listSchedule(Long doctorId, ScheduleQueryDTO scheduleQueryDTO) {
-
-        log.info("查询医生排班，医生ID：{}，日期范围：{} ~ {}", doctorId, scheduleQueryDTO.getStartDate(), scheduleQueryDTO.getEndDate());
-
-        return scheduleMapper.findByDoctorIdAndDateRange(
-                doctorId,
-                scheduleQueryDTO.getStartDate(),
-                scheduleQueryDTO.getEndDate()
-        );
-
-    }
-
-
-
-    /*===================================================================  特有方法  ================================================================*/
 
     /**
      * 模拟历史就诊率（供演示）

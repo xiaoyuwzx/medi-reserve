@@ -37,4 +37,11 @@ public interface  ScheduleService {
      */
     List<Schedule> listSchedule(Long doctorId, @Valid ScheduleQueryDTO scheduleQueryDTO);
 
+    /**
+     * 修改排班状态：停诊/恢复
+     * @param scheduleId
+     * @param targetStatus
+     */
+    void updateScheduleStatus(Long scheduleId, int targetStatus);
+
 }

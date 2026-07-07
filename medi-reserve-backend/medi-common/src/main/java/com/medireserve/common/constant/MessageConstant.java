@@ -70,4 +70,6 @@ public class MessageConstant {
     public static final String SCHEDULE_RESUME_SUCCESS = "恢复接诊操作成功";
     public static final String SCHEDULE_ALREADY_FULL = "当前排班号源已满，请选择其他时段";
     public static final String SCHEDULE_INVALID_PERIOD = "时段参数错误（必须为1或2）";
+    public static final String SCHEDULE_STATUS_INVALID = "目标状态不合法，只能为 1（正常）或 2（停诊）";
+    public static final String SCHEDULE_FULL_STOP_ERROR = "该排班号源已满，无法停诊，请先处理已挂号患者";
 }

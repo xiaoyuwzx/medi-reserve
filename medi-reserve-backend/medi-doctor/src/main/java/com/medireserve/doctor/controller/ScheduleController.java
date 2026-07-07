@@ -1,6 +1,7 @@
 package com.medireserve.doctor.controller;
 
 import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
 import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
@@ -111,6 +112,28 @@ public class ScheduleController {
         List<Schedule> list = scheduleService.listSchedule(doctorId, scheduleQueryDTO);
 
         return Result.success(list);
+
+    }
+
+    /**
+     * 修改排班状态：停诊/恢复
+     * @param id
+     * @param status
+     * @return
+     */
+    @PatchMapping("/schedules/{id}/status")
+    @Operation(summary = "停诊/恢复排班", description = "传入 status=2 停诊，status=1 恢复")
+    public Result<String> updateScheduleStatus(@PathVariable Long id, @RequestParam int status){
+
+        log.info("更改排班状态，排班ID：{}，目标状态：{}", id, status);
+
+        scheduleService.updateScheduleStatus(id, status);
+
+        String msg = StatusConstant.SCHEDULE_STOPPED.equals(status)
+                        ? MessageConstant.SCHEDULE_STOP_SUCCESS
+                        : MessageConstant.SCHEDULE_RESUME_SUCCESS;
+
+        return Result.success(msg);
 
     }
 
