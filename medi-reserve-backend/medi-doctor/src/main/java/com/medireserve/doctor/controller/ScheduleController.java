@@ -2,6 +2,7 @@ package com.medireserve.doctor.controller;
 
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
+import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.result.Result;
 import com.medireserve.doctor.service.ScheduleService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -91,6 +93,24 @@ public class ScheduleController {
         log.info("新增排班成功：{}", map);
 
         return Result.success(MessageConstant.SCHEDULE_CREATE_SUCCESS, map);
+
+    }
+
+    /**
+     * 查询医生排班列表
+     * @param doctorId
+     * @param scheduleQueryDTO
+     * @return
+     */
+    @GetMapping("/schedules")
+    @Operation(summary = "查询我的排班", description = "医生查看自己的排班列表，支持按日期范围筛选")
+    public Result<List<Schedule>> listSchedules(@RequestParam Long doctorId, @Valid ScheduleQueryDTO scheduleQueryDTO){
+
+        log.info("获取医生排班，医生ID：{}", doctorId);
+
+        List<Schedule> list = scheduleService.listSchedule(doctorId, scheduleQueryDTO);
+
+        return Result.success(list);
 
     }
 

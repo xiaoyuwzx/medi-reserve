@@ -3,13 +3,11 @@ package com.medireserve.doctor.service.impl;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
+import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.BusinessException;
 import com.medireserve.doctor.mapper.ScheduleMapper;
 import com.medireserve.doctor.service.ScheduleService;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 排班管理业务接口
@@ -45,6 +44,50 @@ public class ScheduleServiceImpl implements ScheduleService {
         log.info("推荐号源数：{}（基准值：{}）", recommended, userInputMax);
 
         return recommended;
+
+    }
+
+    /**
+     * 智能推荐初始号源数算法（基于历史就诊热度）
+     * @param doctorId
+     * @param scheduleDate
+     * @param userRequestedMax
+     * @return
+     */
+    private int recommendMaxCount(Long doctorId, LocalDate scheduleDate, Integer userRequestedMax) {
+        /*
+         *
+         * 查询该医生过去四周同一天的历史就诊数据，计算出平均就诊率 historicalOccupancyRate
+         * 根据 平均就诊率 计算推荐值 recommended
+         * historicalOccupancyRate <= 40%     减号20%
+         * historicalOccupancyRate >= 85%     加好20%
+         *     40%  < 正常范围 < 85%          保持不变
+         *
+         * */
+
+        //获取当前时间是星期几
+        int dayOfWeek = scheduleDate.getDayOfWeek().getValue();
+
+        double historicalOccupancyRate = simulateHistoricalOccupancyRate(doctorId, dayOfWeek);
+
+        //根据就诊率动态调整推荐值
+        int recommended;
+        if (historicalOccupancyRate >= 0.85) {
+            // 就诊率超过85%，建议加号（增加20%）
+            recommended = (int) Math.ceil(userRequestedMax * 1.2);
+            log.debug("历史就诊率高（{}%），建议加号至：{}", (int)(historicalOccupancyRate * 100), recommended);
+        } else if (historicalOccupancyRate <= 0.40) {
+            // 就诊率低于40%，建议减号（减少20%）
+            recommended = (int) Math.ceil(userRequestedMax * 0.8);
+            log.debug("历史就诊率低（{}%），建议减号至：{}", (int)(historicalOccupancyRate * 100), recommended);
+        } else {
+            // 正常范围，保持用户请求的值
+            recommended = userRequestedMax;
+            log.debug("历史就诊率正常（{}%），保持原值：{}", (int)(historicalOccupancyRate * 100), recommended);
+        }
+
+        // 边界保护：号源数至少为1，最多100
+        return Math.max(1, Math.min(100, recommended));
 
     }
 
@@ -84,48 +127,27 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     /**
-     * 智能推荐初始号源数算法（基于历史就诊热度）
+     * 查询医生排班列表
      * @param doctorId
-     * @param scheduleDate
-     * @param userRequestedMax
+     * @param scheduleQueryDTO
      * @return
      */
-    private int recommendMaxCount(Long doctorId, LocalDate scheduleDate, Integer userRequestedMax) {
-        /*
-        *
-        * 查询该医生过去四周同一天的历史就诊数据，计算出平均就诊率 historicalOccupancyRate
-        * 根据 平均就诊率 计算推荐值 recommended
-        * historicalOccupancyRate <= 40%     减号20%
-        * historicalOccupancyRate >= 85%     加好20%
-        *     40%  < 正常范围 < 85%          保持不变
-        *
-        * */
+    @Override
+    public List<Schedule> listSchedule(Long doctorId, ScheduleQueryDTO scheduleQueryDTO) {
 
-        //获取当前时间是星期几
-        int dayOfWeek = scheduleDate.getDayOfWeek().getValue();
+        log.info("查询医生排班，医生ID：{}，日期范围：{} ~ {}", doctorId, scheduleQueryDTO.getStartDate(), scheduleQueryDTO.getEndDate());
 
-        double historicalOccupancyRate = simulateHistoricalOccupancyRate(doctorId, dayOfWeek);
-
-        //根据就诊率动态调整推荐值
-        int recommended;
-        if (historicalOccupancyRate >= 0.85) {
-            // 就诊率超过85%，建议加号（增加20%）
-            recommended = (int) Math.ceil(userRequestedMax * 1.2);
-            log.debug("历史就诊率高（{}%），建议加号至：{}", (int)(historicalOccupancyRate * 100), recommended);
-        } else if (historicalOccupancyRate <= 0.40) {
-            // 就诊率低于40%，建议减号（减少20%）
-            recommended = (int) Math.ceil(userRequestedMax * 0.8);
-            log.debug("历史就诊率低（{}%），建议减号至：{}", (int)(historicalOccupancyRate * 100), recommended);
-        } else {
-            // 正常范围，保持用户请求的值
-            recommended = userRequestedMax;
-            log.debug("历史就诊率正常（{}%），保持原值：{}", (int)(historicalOccupancyRate * 100), recommended);
-        }
-
-        // 边界保护：号源数至少为1，最多100
-        return Math.max(1, Math.min(100, recommended));
+        return scheduleMapper.findByDoctorIdAndDateRange(
+                doctorId,
+                scheduleQueryDTO.getStartDate(),
+                scheduleQueryDTO.getEndDate()
+        );
 
     }
+
+
+
+    /*===================================================================  特有方法  ================================================================*/
 
     /**
      * 模拟历史就诊率（供演示）

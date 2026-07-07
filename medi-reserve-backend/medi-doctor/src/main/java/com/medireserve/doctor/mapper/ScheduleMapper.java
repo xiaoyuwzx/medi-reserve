@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 排班管理业务接口
@@ -36,4 +37,13 @@ public interface ScheduleMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Schedule schedule);
 
+    /**
+     * 根据医生ID查询排班列表
+     * @param doctorId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<Schedule> findByDoctorIdAndDateRange(Long doctorId, LocalDate startDate, LocalDate endDate);
+    
 }
