@@ -16,8 +16,8 @@ import java.time.LocalDate;
 @Data
 public class ScheduleCreateDTO {
 
-    @NotNull(message = "医生ID不能为空")
-    private Long doctorId;
+    /*@NotNull(message = "医生ID不能为空")
+    private Long doctorId;*/
 
     @NotNull(message = "排班日期不能为空")
     @DateTimeFormat(pattern = "yyyy-MM-dd")

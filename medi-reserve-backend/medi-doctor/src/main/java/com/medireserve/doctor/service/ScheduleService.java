@@ -24,10 +24,11 @@ public interface  ScheduleService {
 
     /**
      * 新增排班
+     * @param doctorId
      * @param scheduleCreateDTO
      * @return
      */
-    Schedule createSchedule(ScheduleCreateDTO scheduleCreateDTO);
+    Schedule createSchedule(Long doctorId, ScheduleCreateDTO scheduleCreateDTO);
 
     /**
      * 查询医生排班列表
@@ -38,10 +39,25 @@ public interface  ScheduleService {
     List<Schedule> listSchedule(Long doctorId, @Valid ScheduleQueryDTO scheduleQueryDTO);
 
     /**
+     * 根据排班ID查询排班数据
+     * @param scheduleId
+     * @return
+     */
+    Schedule getScheduleById(Long scheduleId);
+
+    /**
      * 修改排班状态：停诊/恢复
      * @param scheduleId
      * @param targetStatus
+     * @param currentDoctorId
      */
-    void updateScheduleStatus(Long scheduleId, int targetStatus);
+    void updateScheduleStatus(Long scheduleId, int targetStatus, Long currentDoctorId);
+
+    /**
+     * 删除排班
+     * @param scheduleId
+     * @param currentDoctorId
+     */
+    void deleteSchedule(Long scheduleId, Long currentDoctorId);
 
 }

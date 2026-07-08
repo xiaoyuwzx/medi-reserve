@@ -2,9 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.medireserve.doctor.mapper.ScheduleMapper">
 
-    <!-- ========================================================= -->
-    <!-- 3. 根据医生ID和日期范围查询排班列表（动态SQL） -->
-    <!-- ========================================================= -->
+    <!-- 根据医生ID和日期范围查询排班列表（动态SQL） -->
     <select id="findByDoctorIdAndDateRange" resultType="Schedule">
         select *
         from schedule where doctor_id = #{doctorId}
@@ -14,7 +12,25 @@
         <if test="endDate != null">
             and schedule_date &lt;= #{endDate}
         </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
         order by schedule_date asc , period asc
+    </select>
+
+    <!-- 获取历史就诊率（过去4周同一天） -->
+    <select id="getHistoricalOccupancyRate" resultType="java.lang.Double">
+        select
+            ifnull(sum(a.cnt), 0) / nullif(sum(s.max_count), 0) as occupancy_rate from schedule s
+        left join (
+            select schedule_id, count(*) as cnt from appointment
+            where status in (1, 2)  <!-- 1=已支付, 2=已就诊（有效挂号） -->
+            group by schedule_id
+        ) a on s.id = a.schedule_id
+        where s.doctor_id = #{doctorId}
+        <!-- Java: 1=周一, 7=周日; MySQL: WEEKDAY: 0=周一, 6=周日 -->
+        and weekday(s.schedule_date) = (#{dayOfWeek} - 1)
+        and s.schedule_date between date_sub(#{targetDate}, interval 4 week) and date_sub(#{targetDate}, interval 1 day)
     </select>
 
 </mapper>

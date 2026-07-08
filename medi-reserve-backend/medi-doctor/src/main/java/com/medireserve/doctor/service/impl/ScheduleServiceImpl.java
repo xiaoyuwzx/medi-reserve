@@ -49,26 +49,28 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     /**
      * 新增排班
+     * @param doctorId
      * @param scheduleCreateDTO
      * @return
      */
     @Override
     @Transactional  //事务管理
-    public Schedule createSchedule(ScheduleCreateDTO scheduleCreateDTO) {
+    public Schedule createSchedule(Long doctorId, ScheduleCreateDTO scheduleCreateDTO) {
 
-        log.info("开始新增排班，医生ID：{}，日期：{}，时段：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
+        log.info("开始新增排班，医生ID：{}，日期：{}，时段：{}", doctorId, scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
 
         //防重校验：检查同一时间段是否已有排班
-        int count = scheduleMapper.countByDoctorDatePeriod(scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
+        int count = scheduleMapper.countByDoctorDatePeriod(doctorId, scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
         if(count > 0){
-            log.warn("排班重复，医生ID：{}，日期：{}，时段：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
+            log.warn("排班重复，医生ID：{}，日期：{}，时段：{}", doctorId, scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
             throw new ScheduleDuplicateException();
         }
 
         //构建排班实体
         Schedule schedule = new Schedule();
         BeanUtils.copyProperties(scheduleCreateDTO, schedule);
-        schedule.setMaxCount(scheduleCreateDTO.getMaxCount());
+        schedule.setDoctorId(doctorId);
+        //schedule.setMaxCount(scheduleCreateDTO.getMaxCount());
         schedule.setRemainingCount(scheduleCreateDTO.getMaxCount());    //初始值 == 最大值
         schedule.setStatus(StatusConstant.SCHEDULE_NORMAL); //状态初始为正常
 
@@ -90,32 +92,53 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public List<Schedule> listSchedule(Long doctorId, ScheduleQueryDTO scheduleQueryDTO) {
 
-        log.info("查询医生排班，医生ID：{}，日期范围：{} ~ {}", doctorId, scheduleQueryDTO.getStartDate(), scheduleQueryDTO.getEndDate());
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+        Integer status = null;
+        if (scheduleQueryDTO != null) {
+            startDate = scheduleQueryDTO.getStartDate();
+            endDate = scheduleQueryDTO.getEndDate();
+            status = scheduleQueryDTO.getStatus();
+        }
 
-        return scheduleMapper.findByDoctorIdAndDateRange(
-                doctorId,
-                scheduleQueryDTO.getStartDate(),
-                scheduleQueryDTO.getEndDate()
-        );
+        log.info("查询医生排班，医生ID：{}，日期范围：{} ~ {}，状态：{}", doctorId, startDate, endDate, status);
+
+        return scheduleMapper.findByDoctorIdAndDateRange(doctorId, startDate, endDate, status);
 
     }
 
     /**
-     * 更新排班状态：停诊/恢复
+     * 根据排班ID查询排班数据
+     * @param scheduleId
+     * @return
+     */
+    @Override
+    public Schedule getScheduleById(Long scheduleId) {
+
+        log.info("根据ID查询排班数据中... , 排班ID：{}", scheduleId);
+
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+
+        if (schedule == null) {
+            log.warn("排班记录不存在，排班ID：{}", scheduleId);
+            throw new ScheduleNotFoundException();
+        }
+
+        return schedule;
+
+    }
+
+    /**
+     * 修改排班状态：停诊/恢复
      * @param scheduleId
      * @param targetStatus
+     * @param currentDoctorId
      */
     @Override
     @Transactional  //事务管理
-    public void updateScheduleStatus(Long scheduleId, int targetStatus) {
+    public void updateScheduleStatus(Long scheduleId, int targetStatus, Long currentDoctorId) {
 
         log.info("更新排班状态，排班ID：{}，目标状态：{}", scheduleId, targetStatus);
-
-        //检验目标状态是否合法（只能为 1 或 2 ）
-        if(!StatusConstant.SCHEDULE_NORMAL.equals(targetStatus) && !StatusConstant.SCHEDULE_STOPPED.equals(targetStatus)){
-            log.warn("更新失败，目标状态不合法，排班ID：{}，目标状态：{}", scheduleId, targetStatus);
-            throw new ScheduleStatusInvalidException();
-        }
 
         //查询排班是否存在
         Schedule schedule = scheduleMapper.findById(scheduleId);
@@ -123,6 +146,19 @@ public class ScheduleServiceImpl implements ScheduleService {
             log.warn("排班不存在，排班ID：{}", scheduleId);
             throw new ScheduleNotFoundException();
         }
+
+        // 校验权限
+        if (!schedule.getDoctorId().equals(currentDoctorId)) {
+            log.warn("医生ID不匹配，无权操作此排班，医生ID：{}，排班ID：{}", currentDoctorId, scheduleId);
+            throw new PermissionDeniedException("您无权操作此排班");
+        }
+
+        //检验目标状态是否合法（只能为 1 或 2 ）
+        if(!StatusConstant.SCHEDULE_NORMAL.equals(targetStatus) && !StatusConstant.SCHEDULE_STOPPED.equals(targetStatus)){
+            log.warn("更新失败，目标状态不合法，排班ID：{}，目标状态：{}", scheduleId, targetStatus);
+            throw new ScheduleStatusInvalidException();
+        }
+
 
         //若排班状态以满，不允许手动停诊
         if(StatusConstant.SCHEDULE_FULL.equals(schedule.getStatus())){
@@ -138,6 +174,44 @@ public class ScheduleServiceImpl implements ScheduleService {
                 : MessageConstant.SCHEDULE_RESUME_SUCCESS;
 
         log.info("排班状态更新成功，ID：{}，{}", scheduleId, actionMsg);
+
+    }
+
+    /**
+     * 删除排班
+     * @param scheduleId
+     * @param currentDoctorId
+     */
+    @Override
+    @Transactional
+    public void deleteSchedule(Long scheduleId, Long currentDoctorId) {
+
+        log.info("删除排班，排班ID：{}", scheduleId);
+
+        //校验排班是否存在
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+        if(schedule == null){
+            log.warn("删除排班失败，排班记录不存在，排班ID：{}", scheduleId);
+            throw new ScheduleNotFoundException();
+        }
+
+        // 校验权限
+        if (!schedule.getDoctorId().equals(currentDoctorId)) {
+            log.warn("医生ID不匹配，无权操作此排班，医生ID：{}，排班ID：{}", currentDoctorId, scheduleId);
+            throw new PermissionDeniedException("您无权操作此排班");
+        }
+
+        //校验排班下是否有预约记录
+        int appointmentCount = scheduleMapper.countAppointmentsByScheduleId(scheduleId);
+        if(appointmentCount > 0){
+            log.warn("排班下存在预约记录，禁止删除，排班ID：{}，预约数：{}", scheduleId, appointmentCount);
+            throw new ScheduleHasAppointmentsException();
+        }
+
+        //删除排班
+        scheduleMapper.deleteById(scheduleId);
+
+        log.info("排班删除成功，排班ID：{}", scheduleId);
 
     }
 
@@ -166,7 +240,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         //获取当前时间是星期几
         int dayOfWeek = scheduleDate.getDayOfWeek().getValue();
 
-        double historicalOccupancyRate = simulateHistoricalOccupancyRate(doctorId, dayOfWeek);
+        Double historicalOccupancyRate = scheduleMapper.getHistoricalOccupancyRate(doctorId, dayOfWeek ,scheduleDate);
+
+        //如果没有历史数据(新医生或者首次排班), 返回用户输入值
+        if(historicalOccupancyRate == null || historicalOccupancyRate == 0.0){
+            log.info("该医生无历史就诊数据，保持用户输入值：{}", userRequestedMax);
+            return userRequestedMax;
+        }
 
         //根据就诊率动态调整推荐值
         int recommended;
@@ -192,9 +272,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     /**
      * 模拟历史就诊率（供演示）
-     * TODO: 替换为真实数据库查询
+     * 替换为真实数据库查询
      */
-    private double simulateHistoricalOccupancyRate(Long doctorId, int dayOfWeek) {
+    /*private double simulateHistoricalOccupancyRate(Long doctorId, int dayOfWeek) {
         // 模拟不同医生的数据，让推荐效果更明显
         if (doctorId == 1 && dayOfWeek == 3) { // 医生1周三就诊率高
             return 0.92;
@@ -203,6 +283,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         } else {
             return 0.65; // 默认中等
         }
-    }
+    }*/
 
 }

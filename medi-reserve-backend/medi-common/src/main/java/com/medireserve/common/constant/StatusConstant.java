@@ -34,4 +34,5 @@ public class StatusConstant {
     // ========== 时段（schedule.period / appointment.period） ==========
     public static final Integer PERIOD_MORNING = 1;   // 上午
     public static final Integer PERIOD_AFTERNOON = 2; // 下午
+
 }

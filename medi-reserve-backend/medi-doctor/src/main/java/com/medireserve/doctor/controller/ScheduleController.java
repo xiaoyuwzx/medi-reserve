@@ -5,6 +5,7 @@ import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
 import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
+import com.medireserve.common.exception.PermissionDeniedException;
 import com.medireserve.common.result.Result;
 import com.medireserve.doctor.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +35,7 @@ public class ScheduleController {
 
     /**
      * 获取推荐号源数
-     * @param doctorId
+     * @param currentDoctorId
      * @param scheduleDate
      * @param userInputMax
      * @return
@@ -42,15 +43,15 @@ public class ScheduleController {
     @GetMapping("/schedules/recommend")
     @Operation(summary = "获取推荐号源数", description = "基于历史就诊数据，智能推荐号源数量（仅做参考，用户可自行修改）")
     public Result<Map<String, Object>> getRecommendedMaxCount(
-            @RequestParam Long doctorId,
+            @RequestAttribute("userId") Long currentDoctorId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate scheduleDate,
             @RequestParam(required = false, defaultValue = "20") int userInputMax   //非必须参数，默认值为20
     ){
 
-        log.info("获取推荐号源数，医生ID：{}，日期：{}，用户基准值：{}", doctorId, scheduleDate, userInputMax);
+        log.info("获取推荐号源数，医生ID：{}，日期：{}，用户基准值：{}", currentDoctorId, scheduleDate, userInputMax);
 
         // 调用 Service 计算推荐值
-        Integer recommended = scheduleService.getRecommendedMaxCount(doctorId, scheduleDate, userInputMax);
+        Integer recommended = scheduleService.getRecommendedMaxCount(currentDoctorId, scheduleDate, userInputMax);
 
         Map<String, Object> map = new HashMap<>();
         map.put("userInputMax", userInputMax);  //用户输入的基准值
@@ -71,16 +72,19 @@ public class ScheduleController {
     /**
      * 新增排班
      * @param scheduleCreateDTO
+     * @param currentDoctorId
      * @return
      */
     @PostMapping("/schedules")
     @Operation(summary = "新增排班", description = "医生选择日期和时段，设置最大挂号数（系统会基于历史数据智能推荐）")
-    public Result<Map<String, Object>> createSchedule(@RequestBody @Valid ScheduleCreateDTO scheduleCreateDTO){
+    public Result<Map<String, Object>> createSchedule(
+            @RequestBody @Valid ScheduleCreateDTO scheduleCreateDTO,
+            @RequestAttribute("userId") Long currentDoctorId){
 
-        log.info("接收新增排班请求，医生ID：{}，日期：{}", scheduleCreateDTO.getDoctorId(), scheduleCreateDTO.getScheduleDate());
+        log.info("接收新增排班请求，医生ID：{}，日期：{}", currentDoctorId, scheduleCreateDTO.getScheduleDate());
 
         // 直接调用 Service，如果出错会抛出异常，由全局处理器统一处理
-        Schedule schedule = scheduleService.createSchedule(scheduleCreateDTO);
+        Schedule schedule = scheduleService.createSchedule(currentDoctorId, scheduleCreateDTO);
 
         Map<String, Object> map = new HashMap<>();
         map.put("scheduleID", schedule.getId());
@@ -99,17 +103,19 @@ public class ScheduleController {
 
     /**
      * 查询医生排班列表
-     * @param doctorId
+     * @param currentDoctorId
      * @param scheduleQueryDTO
      * @return
      */
     @GetMapping("/schedules")
     @Operation(summary = "查询我的排班", description = "医生查看自己的排班列表，支持按日期范围筛选")
-    public Result<List<Schedule>> listSchedules(@RequestParam Long doctorId, @Valid ScheduleQueryDTO scheduleQueryDTO){
+    public Result<List<Schedule>> listSchedules(
+            @RequestAttribute("userId") Long currentDoctorId,
+            @Valid ScheduleQueryDTO scheduleQueryDTO){
 
-        log.info("获取医生排班，医生ID：{}", doctorId);
+        log.info("获取医生排班，医生ID：{}", currentDoctorId);
 
-        List<Schedule> list = scheduleService.listSchedule(doctorId, scheduleQueryDTO);
+        List<Schedule> list = scheduleService.listSchedule(currentDoctorId, scheduleQueryDTO);
 
         return Result.success(list);
 
@@ -119,21 +125,47 @@ public class ScheduleController {
      * 修改排班状态：停诊/恢复
      * @param id
      * @param status
+     * @param currentDoctorId
      * @return
      */
     @PatchMapping("/schedules/{id}/status")
     @Operation(summary = "停诊/恢复排班", description = "传入 status=2 停诊，status=1 恢复")
-    public Result<String> updateScheduleStatus(@PathVariable Long id, @RequestParam int status){
+    public Result<String> updateScheduleStatus(
+            @PathVariable Long id,
+            @RequestParam int status,
+            @RequestAttribute("userId") Long currentDoctorId){
 
         log.info("更改排班状态，排班ID：{}，目标状态：{}", id, status);
 
-        scheduleService.updateScheduleStatus(id, status);
+        // 执行更新
+        scheduleService.updateScheduleStatus(id, status, currentDoctorId);
 
         String msg = StatusConstant.SCHEDULE_STOPPED.equals(status)
                         ? MessageConstant.SCHEDULE_STOP_SUCCESS
                         : MessageConstant.SCHEDULE_RESUME_SUCCESS;
 
         return Result.success(msg);
+
+    }
+
+    /**
+     * 删除排班记录
+     * @param id
+     * @param currentDoctorId
+     * @return
+     */
+    @DeleteMapping("/schedules/{id}")
+    @Operation(summary = "删除排班", description = "物理删除排班（仅当该排班下无预约记录时允许）")
+    public Result<String> deleteSchedule(
+            @PathVariable Long id,
+            @RequestAttribute("userId") Long currentDoctorId){
+
+        log.info("删除排班，排班ID：{}", id);
+
+        //执行删除
+        scheduleService.deleteSchedule(id, currentDoctorId);
+
+        return Result.success(MessageConstant.SCHEDULE_DELETE_SUCCESS);
 
     }
 
