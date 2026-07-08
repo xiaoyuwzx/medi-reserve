@@ -38,6 +38,7 @@
         <jwt.version>0.12.5</jwt.version>
         <oss.version>3.17.4</oss.version>
         <hutool.version>5.8.26</hutool.version>
+        <pagehelper.version>2.1.0</pagehelper.version>
     </properties>
 
     <!-- 4. 依赖版本锁定（子模块继承，无需再写版本号） -->
@@ -90,6 +91,12 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
+            </dependency>
+            <!-- PageHelper 分页插件 -->
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${pagehelper.version}</version>
             </dependency>
         </dependencies>
 

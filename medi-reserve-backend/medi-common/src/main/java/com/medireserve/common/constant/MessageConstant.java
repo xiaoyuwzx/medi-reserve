@@ -53,6 +53,13 @@ public class MessageConstant {
     public static final String DOCTOR_AUDIT_REJECTED = "审核驳回";
     public static final String AUDIT_PENDING_MSG = "账号正在审核中，请耐心等待管理员审核";
     public static final String AUDIT_REJECTED_MSG = "账号审核未通过，请查看管理员备注信息";
+    public static final String DOCTOR_NOT_FOUND = "医生不存在";
+    public static final String DOCTOR_ALREADY_AUDITED = "该医生已审核，请勿重复操作";
+    public static final String DOCTOR_AUDIT_APPROVE_SUCCESS = "审核通过成功";
+    public static final String DOCTOR_AUDIT_REJECT_SUCCESS = "审核驳回成功";
+    public static final String DOCTOR_AUDIT_REJECT_REASON_EMPTY = "驳回原因不能为空";
+    public static final String DOCTOR_AUDIT_NOT_FOUND = "该医生的审核数据不存在";
+    public static final String AUDIT_OPERATION_FAILED = "审核操作失败，请重试";
 
     // ========== 业务操作 ==========
     public static final String NOT_FOUND = "数据不存在";

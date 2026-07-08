@@ -30,4 +30,11 @@ public class StatusCodeConstant {
     public static final Integer SCHEDULE_FULL = 2004;             // 排班号源已满，无法停诊
     public static final Integer SCHEDULE_HAS_APPOINTMENTS = 2005;      // 存在预约记录无法删除
 
+    // ========== 医生审核状态码 ==========
+    public static final Integer DOCTOR_NOT_FOUND = 3001;         // 医生不存在
+    public static final Integer DOCTOR_ALREADY_AUDITED = 3002;   // 医生已审核
+    public static final Integer DOCTOR_AUDIT_REJECT_REASON_EMPTY = 3003;  // 驳回原因不能为空
+    public static final Integer DOCTOR_AUDIT_NOT_FOUND = 3004;                // 医生审核数据不存在
+    public static final Integer AUDIT_OPERATION_FAILED = 3005;                // 审核操作失败
+
 }
