@@ -110,9 +110,13 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
         //校验审核状态
         DoctorAudit doctorAudit = adminAuditMapper.findByDoctorId(doctorId);
-        if(!StatusConstant.AUDIT_PENDING.equals(doctorAudit.getAuditStatus())){
+        if (doctorAudit == null) {
             log.warn("审核通过失败，审核数据不存在，医生ID：{}", doctorId);
             throw new DoctorAuditNotFoundException();
+        }
+        if(!StatusConstant.AUDIT_PENDING.equals(doctorAudit.getAuditStatus())){
+            log.warn("审核通过失败，医生已审核，当前状态：{}，医生ID：{}", doctorAudit.getAuditStatus(), doctorId);
+            throw new DoctorAlreadyAuditedException();
         }
 
         //更新审核状态
