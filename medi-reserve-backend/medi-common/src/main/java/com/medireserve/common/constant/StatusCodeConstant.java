@@ -37,4 +37,11 @@ public class StatusCodeConstant {
     public static final Integer DOCTOR_AUDIT_NOT_FOUND = 3004;                // 医生审核数据不存在
     public static final Integer AUDIT_OPERATION_FAILED = 3005;                // 审核操作失败
 
+    // ========== 预约挂号状态码 ==========
+    public static final Integer APPOINTMENT_DUPLICATE = 4001;      // 重复预约
+    public static final Integer SCHEDULE_DATE_PAST = 4002;         // 排班日期已过
+    public static final Integer APPOINTMENT_NOT_PENDING = 4003;    // 预约不是待支付状态
+    public static final Integer APPOINTMENT_NOT_FOUND = 4004;      // 预约不存在
+    public static final Integer APPOINTMENT_PAY_FAILED = 4005;     // 支付失败
+
 }

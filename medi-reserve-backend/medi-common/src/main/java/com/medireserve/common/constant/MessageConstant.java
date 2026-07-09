@@ -79,4 +79,13 @@ public class MessageConstant {
     public static final String SCHEDULE_INVALID_PERIOD = "时段参数错误（必须为1或2）";
     public static final String SCHEDULE_STATUS_INVALID = "目标状态不合法，只能为 1（正常）或 2（停诊）";
     public static final String SCHEDULE_FULL_STOP_ERROR = "该排班号源已满，无法停诊，请先处理已挂号患者";
+
+    // ========== 预约挂号相关 ==========
+    public static final String APPOINTMENT_DUPLICATE = "您已预约该时段，请勿重复操作";
+    public static final String SCHEDULE_DATE_PAST = "该排班日期已过，无法预约";
+    public static final String APPOINTMENT_NOT_PENDING = "当前预约状态不是待支付，无法支付";
+    public static final String APPOINTMENT_NOT_FOUND = "预约记录不存在";
+    public static final String APPOINTMENT_CREATE_SUCCESS = "预约成功，请尽快支付";
+    public static final String APPOINTMENT_PAY_SUCCESS = "支付成功";
+    public static final String APPOINTMENT_CANCEL_SUCCESS = "预约已取消，号源已释放";
 }

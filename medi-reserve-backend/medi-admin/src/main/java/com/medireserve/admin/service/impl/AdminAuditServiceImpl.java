@@ -4,7 +4,6 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.mapper.AdminAuditMapper;
 import com.medireserve.admin.service.AdminAuditService;
-import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DoctorPendingVO;
 import com.medireserve.common.entity.Doctor;

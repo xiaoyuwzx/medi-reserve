@@ -1,10 +1,8 @@
 package com.medireserve.admin.service;
 
 import com.github.pagehelper.PageInfo;
-import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.dto.DoctorPendingVO;
 import com.medireserve.common.entity.DoctorAudit;
-import jakarta.validation.constraints.NotBlank;
 
 /**
  * 管理员：医生账号审核
