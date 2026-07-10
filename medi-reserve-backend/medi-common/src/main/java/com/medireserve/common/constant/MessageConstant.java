@@ -81,11 +81,19 @@ public class MessageConstant {
     public static final String SCHEDULE_FULL_STOP_ERROR = "该排班号源已满，无法停诊，请先处理已挂号患者";
 
     // ========== 预约挂号相关 ==========
-    public static final String APPOINTMENT_DUPLICATE = "您已预约该时段，请勿重复操作";
-    public static final String SCHEDULE_DATE_PAST = "该排班日期已过，无法预约";
-    public static final String APPOINTMENT_NOT_PENDING = "当前预约状态不是待支付，无法支付";
-    public static final String APPOINTMENT_NOT_FOUND = "预约记录不存在";
     public static final String APPOINTMENT_CREATE_SUCCESS = "预约成功，请尽快支付";
     public static final String APPOINTMENT_PAY_SUCCESS = "支付成功";
+    public static final String APPOINTMENT_PAY_FAILED = "支付失败，请重试";
     public static final String APPOINTMENT_CANCEL_SUCCESS = "预约已取消，号源已释放";
+    public static final String APPOINTMENT_DUPLICATE = "您已预约该时段，请勿重复操作";
+    public static final String APPOINTMENT_NOT_FOUND = "预约记录不存在";
+    public static final String APPOINTMENT_NOT_PENDING = "当前预约状态不是待支付，无法支付";
+    public static final String APPOINTMENT_ALREADY_PAID = "该预约已支付，无需重复支付";
+    public static final String APPOINTMENT_TIMEOUT = "预约已超时，已被自动取消，请重新挂号";
+    public static final String SCHEDULE_DATE_PAST = "该排班日期已过，无法预约";
+    public static final String SCHEDULE_ALREADY_STOPPED = "该排班已停诊，无法预约";
+    public static final String INSUFFICIENT_QUOTA = "号源不足，请选择其他时段";
+    public static final String SYSTEM_BUSY = "系统繁忙，请稍后再试";
+    public static final String SYSTEM_ERROR = "系统异常，请稍后重试";
+
 }

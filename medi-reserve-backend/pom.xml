@@ -102,7 +102,10 @@
             <!-- Netty 提供 HashedWheelTimer -->
             <dependency>
                 <groupId>io.netty</groupId>
-                <artifactId>netty-common</artifactId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.1.115.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <!-- Redisson 分布式锁 -->
             <dependency>

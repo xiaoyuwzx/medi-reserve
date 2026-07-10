@@ -59,7 +59,7 @@ public class AppointmentController {
 
         log.info("创建预约，患者ID：{}，排班ID：{}", patientId, appointmentCreateDTO.getScheduleId());
 
-        Appointment appointment = appointmentService.createAppintment(patientId, appointmentCreateDTO);
+        Appointment appointment = appointmentService.createAppointment(patientId, appointmentCreateDTO);
 
         Map<String, Object> map = new HashMap<>();
         map.put("appointmentId", appointment.getId());
@@ -71,6 +71,20 @@ public class AppointmentController {
         log.info("预约创建成功，预约ID：{}", appointment.getId());
 
         return Result.success(MessageConstant.APPOINTMENT_CREATE_SUCCESS, map);
+
+    }
+
+    @PostMapping("/appointments/{appointmentId}/pay")
+    @Operation(summary = "模拟支付", description = "模拟微信支付回调，将预约状态改为已支付")
+    public Result<String> payAppointment(
+            @PathVariable Long appointmentId,
+            @RequestAttribute("userId") Long patientId){
+
+        log.info("模拟支付，预约ID：{}，患者ID：{}", appointmentId, patientId);
+
+        appointmentService.payAppointment(appointmentId, patientId);
+
+        return Result.success(MessageConstant.APPOINTMENT_PAY_SUCCESS);
 
     }
 

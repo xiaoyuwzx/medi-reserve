@@ -5,6 +5,8 @@ import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.Schedule;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 /**
  * 预约挂号：挂号下单、支付、查询排班等
  */
@@ -17,7 +19,7 @@ public interface AppointmentMapper {
      * @return
      */
     @Select("select * from schedule where id = #{id}")
-    Schedule findByScheduleId(Long id);
+    Schedule findByScheduleId(@Param("id") Long id);
 
     /**
      * 根据医生ID查询医生信息
@@ -34,7 +36,7 @@ public interface AppointmentMapper {
      * @return
      */
     @Select("select count(*) from appointment " +
-            "where schedule_id = #{scheduleId} and patient_id = #{patiendId} and status in (0, 1)")
+            "where schedule_id = #{scheduleId} and patient_id = #{patientId} and status in (0, 1)")
     int countByPatientAndSchedule(@Param("patientId") Long patientId, @Param("scheduleId") Long scheduleId);
 
     /**
@@ -87,4 +89,19 @@ public interface AppointmentMapper {
             "status = 1 " +
             "where id = #{scheduleId}")
     int incrementRemainingCount(@Param("scheduleId") Long scheduleId);
+
+    /**
+     * 根据预约ID查询预约
+     * @param id
+     * @return
+     */
+    @Select("select * from appointment where id = #{id}")
+    Appointment findById(@Param("id") Long id);
+
+    /**
+     * 查询所有超时未支付的预约（服务启动扫描用）
+     * @return 超时预约列表
+     */
+    @Select("select * from appointment where status = 0 and created_at < date_sub(now(), interval 30 minute)")
+    List<Appointment> findAllPendingTimeout();
 }

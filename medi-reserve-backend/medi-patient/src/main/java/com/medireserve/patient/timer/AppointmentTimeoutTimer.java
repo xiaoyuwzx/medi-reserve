@@ -7,6 +7,7 @@ import com.medireserve.patient.mapper.AppointmentMapper;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,6 +35,22 @@ public class AppointmentTimeoutTimer implements DisposableBean {
 
     @Autowired
     private RedissonClient redissonClient;
+
+    /**
+     * 扫描所有超时未支付的预约，自动取消（兜底方案）
+     */
+    @PostConstruct
+    public void init() {
+        log.info("启动时扫描超时未支付的预约...");
+        List<Appointment> timeoutList = appointmentMapper.findAllPendingTimeout();
+        for (Appointment appointment : timeoutList) {
+            // 取消预约 + 回滚号源
+            appointmentMapper.updateStatus(appointment.getId(), StatusConstant.APPOINTMENT_CANCELLED);
+            appointmentMapper.incrementRemainingCount(appointment.getScheduleId());
+            log.info("启动时自动取消超时预约，预约ID：{}", appointment.getId());
+        }
+        log.info("扫描完成，共取消 {} 个超时预约", timeoutList.size());
+    }
 
     /**
      * 为指定预约安排超时取消任务

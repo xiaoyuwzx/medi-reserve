@@ -102,7 +102,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      */
     @Override
     @Transactional//事务控制
-    public Appointment createAppintment(Long patientId, AppointmentCreateDTO appointmentCreateDTO) {
+    public Appointment createAppointment(Long patientId, AppointmentCreateDTO appointmentCreateDTO) {
 
         Long scheduleId = appointmentCreateDTO.getScheduleId();
 
@@ -124,13 +124,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         //校验排班状态
         if(StatusConstant.SCHEDULE_STOPPED.equals(schedule.getStatus())){
             log.warn("排班已停诊，排班ID：{}", scheduleId);
-            // TODO : 新建排班已停诊异常类
-            throw new BusinessException("该排班已停诊，无法预约");
+            throw new ScheduleStoppedException();
         }
         if(StatusConstant.SCHEDULE_FULL.equals(schedule.getStatus())){
             log.warn("排班号源已满，排班ID：{}", scheduleId);
-            // TODO : 新增排班号源已满异常类
-            throw new BusinessException("该排班号源已满，请选择其他时段");
+            throw new ScheduleAlreadyFullException();
         }
 
         //校验是否重复预约
@@ -150,16 +148,14 @@ public class AppointmentServiceImpl implements AppointmentService {
             locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
             if(!locked){
                 log.error("获取分布式锁失败，排班ID：{}", scheduleId);
-                // TODO : 新增系统繁忙异常类
-                throw new BusinessException("系统繁忙，请稍后再试");
+                throw new SystemBusyException();
             }
 
             //扣减号源(数据库乐观锁)
             int rows = appointmentMapper.decrementRemainingCount(scheduleId);
             if(rows == 0){
                 log.warn("扣减号源失败，号源不足，排班ID：{}", scheduleId);
-                // TODO : 新增号源不足异常类
-                throw new BusinessException("号源不足，请选择其他时段");
+                throw new InsufficientQuotaException();
             }
 
             //重新查询排班
@@ -169,8 +165,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
             Thread.currentThread().interrupt();
             log.error("获取分布式锁被中断：", e);
-            // TODO : 新增系统异常异常类
-            throw new BusinessException("系统异常，请稍后重试");
+            throw new SystemException();
 
         } finally {
 
@@ -186,7 +181,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = new Appointment();
         //生成预约单号：APPOINTMENT_ + 时间戳 + 随机四位数
         String appointmentNo = "APPOINTMENT_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
-                                    + String.format("$04d", (int)(Math.random() * 10000));
+                                    + String.format("%04d", (int)(Math.random() * 10000));
         appointment.setAppointmentNo(appointmentNo);
         appointment.setScheduleId(scheduleId);
         appointment.setPatientId(patientId);
@@ -205,6 +200,61 @@ public class AppointmentServiceImpl implements AppointmentService {
         log.info("已启动超时取消倒计时，预约ID：{}，30分钟后执行", appointment.getId());
 
         return appointment;
+
+    }
+
+    /**
+     * 模拟支付
+     * @param appointmentId
+     * @param patientId
+     */
+    @Override
+    @Transactional//事务控制
+    public void payAppointment(Long appointmentId, Long patientId) {
+
+        log.info("模拟支付，预约ID：{}，患者ID：{}",appointmentId, patientId);
+
+        //校验预约是否存在
+        Appointment appointment = appointmentMapper.findById(appointmentId);
+        if(appointment == null){
+            log.warn("预约不存在，预约ID：{}", appointmentId);
+            throw new AppointmentNotFoundException();
+        }
+
+        //校验归属(防止越权支付)
+        if(!appointment.getPatientId().equals(patientId)){
+            log.warn("支付越权，预约ID：{}，当前患者ID：{}，预约归属患者ID：{}", appointmentId,patientId, appointment.getPatientId());
+            throw new PermissionDeniedException("您无权支付该预约");
+        }
+
+        //判断是否已支付预约
+        if(StatusConstant.APPOINTMENT_PAID.equals(appointment.getStatus())){
+            log.info("预约已支付，无需重复操作，预约ID：{}", appointmentId);
+            throw new AppointmentAlreadyPaidException();
+        }
+
+        //校验预约是否超时
+        LocalDateTime deadline = appointment.getCreatedAt().plusMinutes(30);
+        if (LocalDateTime.now().isAfter(deadline)) {
+            log.warn("预约已超时，无法支付，预约ID：{}，创建时间：{}，截止时间：{}",
+                    appointmentId, appointment.getCreatedAt(), deadline);
+            throw new AppointmentTimeoutException();
+        }
+
+        //判断预约状态是否是待支付(0)
+        if(!StatusConstant.APPOINTMENT_PENDING.equals(appointment.getStatus())){
+            log.warn("预约状态不是待支付，当前状态：{}，预约ID：{}", appointment.getStatus(), appointmentId);
+            throw new AppointmentNotPendingException();
+        }
+
+        //更新状态为已支付(1)
+        int rows = appointmentMapper.updateStatus(appointmentId, StatusConstant.APPOINTMENT_PAID);
+        if(rows == 0){
+            log.error("支付失败，更新数据库无影响，预约ID：{}", appointmentId);
+            throw new PaymentFailedException();
+        }
+
+        log.info("支付成功，预约ID：{}", appointmentId);
 
     }
 

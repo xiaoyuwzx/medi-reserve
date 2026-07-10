@@ -23,6 +23,12 @@ public interface AppointmentService {
      * @param appointmentCreateDTO
      * @return
      */
-    Appointment createAppintment(Long patientId, AppointmentCreateDTO appointmentCreateDTO);
+    Appointment createAppointment(Long patientId, AppointmentCreateDTO appointmentCreateDTO);
 
+    /**
+     * 模拟支付
+     * @param appointmentId
+     * @param patientId
+     */
+    void payAppointment(Long appointmentId, Long patientId);
 }

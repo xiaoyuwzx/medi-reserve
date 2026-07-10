@@ -43,5 +43,16 @@ public class StatusCodeConstant {
     public static final Integer APPOINTMENT_NOT_PENDING = 4003;    // 预约不是待支付状态
     public static final Integer APPOINTMENT_NOT_FOUND = 4004;      // 预约不存在
     public static final Integer APPOINTMENT_PAY_FAILED = 4005;     // 支付失败
+    public static final Integer APPOINTMENT_ALREADY_PAID = 4009;       // 预约已支付（幂等场景）
+    public static final Integer APPOINTMENT_TIMEOUT = 4010;            // 预约已超时
+
+    // ========== 排班状态异常 ==========
+    public static final Integer SCHEDULE_STOPPED = 4006;               // 排班已停诊
+    public static final Integer SCHEDULE_ALREADY_FULL = 4007;          // 排班号源已满（挂号场景）
+    public static final Integer INSUFFICIENT_QUOTA = 4008;             // 号源不足
+
+    // ========== 系统级异常 ==========
+    public static final Integer SYSTEM_BUSY = 5001;                    // 系统繁忙
+    public static final Integer SYSTEM_ERROR = 5002;                   // 系统异常
 
 }
