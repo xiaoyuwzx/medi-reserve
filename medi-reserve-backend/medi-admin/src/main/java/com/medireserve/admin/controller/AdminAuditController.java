@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminAuditController {
 
     @Autowired
-    AdminAuditService adminAuditService;
+    private AdminAuditService adminAuditService;
 
     /**
      * 分页查询待审核医生列表

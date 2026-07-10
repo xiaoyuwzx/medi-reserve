@@ -25,7 +25,7 @@ import java.util.List;
 public class AdminAuditServiceImpl implements AdminAuditService {
 
     @Autowired
-    AdminAuditMapper adminAuditMapper;
+    private AdminAuditMapper adminAuditMapper;
 
     /**
      * 分页查询待审核医生列表

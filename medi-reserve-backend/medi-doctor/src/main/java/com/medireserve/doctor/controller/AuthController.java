@@ -32,7 +32,7 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    AuthService authService;
+    private AuthService authService;
 
     /**
      * 医生注册

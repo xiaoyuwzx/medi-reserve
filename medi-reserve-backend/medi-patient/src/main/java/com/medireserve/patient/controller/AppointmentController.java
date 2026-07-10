@@ -1,16 +1,20 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.dto.AppointmentCreateDTO;
 import com.medireserve.common.dto.ScheduleDetailVO;
+import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.result.Result;
 import com.medireserve.patient.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 预约挂号：挂号下单、支付、查询排班等
@@ -22,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppointmentController {
 
     @Autowired
-    AppointmentService appointmentService;
+    private AppointmentService appointmentService;
 
     /**
      * 查询排班详细
@@ -38,6 +42,35 @@ public class AppointmentController {
         ScheduleDetailVO scheduleDetailVO = appointmentService.getScheduleDetail(scheduleId);
 
         return Result.success(scheduleDetailVO);
+
+    }
+
+    /**
+     * 创建预约(下单)
+     * @param appointmentCreateDTO
+     * @param patientId
+     * @return
+     */
+    @PostMapping("/appointments")
+    @Operation(summary = "创建预约(下单)", description = "患者选择排班，扣减号源，生成待支付预约单")
+    public Result<Map<String, Object>> createAppointment(
+            @RequestBody @Valid AppointmentCreateDTO appointmentCreateDTO,
+            @RequestAttribute("userId") Long patientId){
+
+        log.info("创建预约，患者ID：{}，排班ID：{}", patientId, appointmentCreateDTO.getScheduleId());
+
+        Appointment appointment = appointmentService.createAppintment(patientId, appointmentCreateDTO);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("appointmentId", appointment.getId());
+        map.put("appointmentNo", appointment.getAppointmentNo());
+        map.put("status", appointment.getStatus());
+        map.put("statusText", "待支付");
+        map.put("payDeadline", "30分钟内支付有效");
+
+        log.info("预约创建成功，预约ID：{}", appointment.getId());
+
+        return Result.success(MessageConstant.APPOINTMENT_CREATE_SUCCESS, map);
 
     }
 

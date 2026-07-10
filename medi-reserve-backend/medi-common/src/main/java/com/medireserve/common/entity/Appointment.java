@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 public class Appointment {
     private Long id;//预约ID（自增主键）
+    private String appointmentNo;//预约单号
     private Long scheduleId;//排班ID（关联 schedule 表）
     private Long patientId;//患者ID（关联 patient 表）
     private Long doctorId;//医生ID（冗余字段，方便查询，避免连表）

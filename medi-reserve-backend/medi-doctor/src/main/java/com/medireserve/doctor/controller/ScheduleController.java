@@ -5,7 +5,6 @@ import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
 import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
-import com.medireserve.common.exception.PermissionDeniedException;
 import com.medireserve.common.result.Result;
 import com.medireserve.doctor.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +30,7 @@ import java.util.Map;
 public class ScheduleController {
 
     @Autowired
-    ScheduleService scheduleService;
+    private ScheduleService scheduleService;
 
     /**
      * 获取推荐号源数

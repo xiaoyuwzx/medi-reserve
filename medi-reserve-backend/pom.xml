@@ -39,6 +39,7 @@
         <oss.version>3.17.4</oss.version>
         <hutool.version>5.8.26</hutool.version>
         <pagehelper.version>2.1.0</pagehelper.version>
+        <redisson.version>3.27.2</redisson.version>
     </properties>
 
     <!-- 4. 依赖版本锁定（子模块继承，无需再写版本号） -->
@@ -97,6 +98,17 @@
                 <groupId>com.github.pagehelper</groupId>
                 <artifactId>pagehelper-spring-boot-starter</artifactId>
                 <version>${pagehelper.version}</version>
+            </dependency>
+            <!-- Netty 提供 HashedWheelTimer -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-common</artifactId>
+            </dependency>
+            <!-- Redisson 分布式锁 -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
         </dependencies>
 

@@ -25,7 +25,7 @@ import java.util.List;
 public class ScheduleServiceImpl implements ScheduleService {
 
     @Autowired
-    ScheduleMapper scheduleMapper;
+    private ScheduleMapper scheduleMapper;
 
     /**
      * 获取推荐号源数

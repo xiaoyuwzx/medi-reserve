@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     @Autowired
-    AuthMapper authMapper;
+    private AuthMapper authMapper;
 
     /**
      * 管理员注册

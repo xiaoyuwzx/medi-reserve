@@ -28,7 +28,7 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    AuthService authService;
+    private AuthService authService;
 
     /**
      * 管理员注册
