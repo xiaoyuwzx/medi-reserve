@@ -6,7 +6,7 @@ import com.medireserve.common.entity.Admin;
 /**
  * 管理端认证
  */
-public interface AuthService {
+public interface AdminAuthService {
 
     /**
      * 管理员注册

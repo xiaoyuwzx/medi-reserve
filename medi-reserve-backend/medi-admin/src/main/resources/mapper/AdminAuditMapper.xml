@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medireserve.admin.mapper.AdminAuditMapper">
+
+    <!-- 分页查询待审核医生列表（联表查询） -->
+    <select id="findPendingList" resultType="com.medireserve.common.dto.DoctorPendingVO">
+        SELECT
+            d.id AS doctorId,
+            d.name,
+            d.phone,
+            dept.name AS departmentName,
+            t.name AS titleName,
+            d.created_at AS createdAt,
+            da.specialty,
+            da.introduction,
+            da.certificate_url AS certificateUrl,
+            da.qualification_url AS qualificationUrl
+        FROM doctor d
+                 INNER JOIN doctor_audit da ON d.id = da.doctor_id
+                 LEFT JOIN department dept ON d.department_id = dept.id
+                 LEFT JOIN title t ON d.title_id = t.id
+        WHERE da.audit_status = 0
+        ORDER BY d.created_at ASC
+    </select>
+
+</mapper>

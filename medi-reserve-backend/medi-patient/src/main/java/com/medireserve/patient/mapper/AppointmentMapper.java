@@ -22,14 +22,6 @@ public interface AppointmentMapper {
     Schedule findByScheduleId(@Param("id") Long id);
 
     /**
-     * 根据医生ID查询医生信息
-     * @param id
-     * @return
-     */
-    @Select("select * from doctor where id = #{id}")
-    Doctor findByDoctorId(@Param("id") Long id);
-
-    /**
      * 根据患者ID检查是否已经预约了该排班
      * @param patientId
      * @param scheduleId

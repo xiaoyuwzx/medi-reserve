@@ -1,6 +1,6 @@
 package com.medireserve.admin.controller;
 
-import com.medireserve.admin.service.AuthService;
+import com.medireserve.admin.service.AdminAuthService;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.AdminRegisterDTO;
@@ -25,10 +25,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin")
 @Tag(name = "管理员 - 认证管理", description = "管理员登录、注册相关接口")
-public class AuthController {
+public class AdminAuthController {
 
     @Autowired
-    private AuthService authService;
+    private AdminAuthService adminAuthService;
 
     /**
      * 管理员注册
@@ -46,7 +46,7 @@ public class AuthController {
         log.info("管理员注册请求，当前操作者：{} , 目标用户名：{}", currentRole, registerDTO.getUsername());
 
         // 调用 Service，传入当前用户角色进行校验
-        Admin admin = authService.register(registerDTO, currentRole);
+        Admin admin = adminAuthService.register(registerDTO, currentRole);
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", admin.getId());
@@ -73,7 +73,7 @@ public class AuthController {
         log.info("管理员登录中... , 用户名：{}", loginDTO.getUsername());
 
         // 调用 Service，进行校验
-        Admin admin = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        Admin admin = adminAuthService.login(loginDTO.getUsername(), loginDTO.getPassword());
 
         //生成角色名称
         String roleName = RoleConstant.getRoleName(admin.getRole());

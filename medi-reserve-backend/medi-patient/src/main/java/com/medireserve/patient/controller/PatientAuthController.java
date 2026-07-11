@@ -7,7 +7,7 @@ import com.medireserve.common.dto.PatientRegisterDTO;
 import com.medireserve.common.entity.Patient;
 import com.medireserve.common.result.Result;
 import com.medireserve.common.utils.JwtUtil;
-import com.medireserve.patient.service.AuthService;
+import com.medireserve.patient.service.PatientAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,10 +28,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/patient")
 @Tag(name = "患者端 - 认证管理", description = "患者登录、注册相关接口")
-public class AuthController {
+public class PatientAuthController {
 
     @Autowired
-    private AuthService authService;
+    private PatientAuthService patientAuthService;
 
     /**
      * 患者注册
@@ -45,7 +45,7 @@ public class AuthController {
         log.info("患者注册中... 手机号：{}", registerDTO.getPhone());
 
         // 直接调用 Service，如果出错会抛出异常，由全局处理器统一处理
-        Patient patient = authService.register(registerDTO);
+        Patient patient = patientAuthService.register(registerDTO);
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", patient.getId());
@@ -70,7 +70,7 @@ public class AuthController {
         log.info("患者登录中...：{}", loginDTO.getUsername());
 
         // 直接调用 Service，如果出错会抛出异常，由全局处理器统一处理
-        Patient patient = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        Patient patient = patientAuthService.login(loginDTO.getUsername(), loginDTO.getPassword());
 
         //登录成功，生成 JWT 令牌
         String token = JwtUtil.createToken(

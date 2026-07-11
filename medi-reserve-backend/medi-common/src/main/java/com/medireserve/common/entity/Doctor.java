@@ -13,8 +13,10 @@ public class Doctor {
     private String idCard;  //身份证号
     private Integer gender; //性别：0未知 1男 2女
     private LocalDate birthDate;    //出生日期
-    private String department;  //科室
-    private String title;   //职称：主任医师/副主任医师/主治医师/住院医师
+    private Long departmentId;  //科室 (外键)
+    private Long titleId;   //职称 (外键)
+    private String departmentName;  // 瞬态
+    private String titleName;       // 瞬态
     private Integer status;    // 状态：0禁用 1正常
     private LocalDateTime createdAt;    //注册时间
     private LocalDateTime updatedAt;    //更新时间

@@ -1,8 +1,8 @@
 package com.medireserve.common.dto;
 
+
 import com.medireserve.common.constant.MessageConstant;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 /**
@@ -25,16 +25,18 @@ public class DoctorRegisterDTO {
             message = MessageConstant.VALIDATION_PASSWORD_FORMAT)
     private String password;
 
-    @NotBlank(message = MessageConstant.VALIDATION_DEPARTMENT_NOT_EMPTY)
-    private String department;
+    @NotNull(message = MessageConstant.VALIDATION_DEPARTMENT_NOT_EMPTY)
+    private Long departmentId;
 
-    @NotBlank(message = MessageConstant.VALIDATION_TITLE_NOT_EMPTY)
-    private String title;
+    @NotNull(message = MessageConstant.VALIDATION_TITLE_NOT_EMPTY)
+    private Long titleId;
 
     // ========== 可选字段 ==========
     @Pattern(regexp = "^[1-9]\\d{16}[0-9Xx]$", message = MessageConstant.VALIDATION_ID_CARD_FORMAT)
     private String idCard;
 
+    @Min(value = 0, message = "性别参数错误（0=未知，1=男，2=女）")
+    @Max(value = 2, message = "性别参数错误（0=未知，1=男，2=女）")
     private Integer gender;
 
     // ========== 审核资料字段（后续使用） ==========

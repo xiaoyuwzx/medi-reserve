@@ -6,7 +6,7 @@ import com.medireserve.common.entity.Patient;
 /**
  * 患者端认证接口
  */
-public interface AuthService {
+public interface PatientAuthService {
 
     /**
      * 患者注册

@@ -1,6 +1,5 @@
 package com.medireserve.patient.service.impl;
 
-import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.AppointmentCreateDTO;
 import com.medireserve.common.dto.ScheduleDetailVO;
@@ -9,6 +8,7 @@ import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.*;
 import com.medireserve.patient.mapper.AppointmentMapper;
+import com.medireserve.doctor.mapper.DoctorAuthMapper;
 import com.medireserve.patient.service.AppointmentService;
 import com.medireserve.patient.timer.AppointmentTimeoutTimer;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +34,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     private AppointmentMapper appointmentMapper;
 
     @Autowired
+    private DoctorAuthMapper doctorAuthMapper;
+
+    @Autowired
     private RedissonClient redissonClient;// 分布式锁客户端
 
     @Autowired
@@ -57,7 +60,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         //查询医生信息
-        Doctor doctor = appointmentMapper.findByDoctorId(schedule.getDoctorId());
+        Doctor doctor = doctorAuthMapper.findById(schedule.getDoctorId());
         if(doctor == null){
             log.warn("医生不存在，医生ID：{}", schedule.getDoctorId());
             throw new DoctorNotFoundException();
@@ -68,8 +71,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         scheduleDetailVO.setScheduleId(schedule.getId());
         scheduleDetailVO.setDoctorId(doctor.getId());
         scheduleDetailVO.setDoctorName(doctor.getName());
-        scheduleDetailVO.setDepartment(doctor.getDepartment());
-        scheduleDetailVO.setTitle(doctor.getTitle());
+        scheduleDetailVO.setDepartmentName(doctor.getDepartmentName());
+        scheduleDetailVO.setTitleName(doctor.getTitleName());
         scheduleDetailVO.setScheduleDate(schedule.getScheduleDate());
         scheduleDetailVO.setPeriod(schedule.getPeriod());
         scheduleDetailVO.setPeriodText(schedule.getPeriod() == 1 ? "上午" : "下午");

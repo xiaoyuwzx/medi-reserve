@@ -70,7 +70,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         Schedule schedule = new Schedule();
         BeanUtils.copyProperties(scheduleCreateDTO, schedule);
         schedule.setDoctorId(doctorId);
-        //schedule.setMaxCount(scheduleCreateDTO.getMaxCount());
         schedule.setRemainingCount(scheduleCreateDTO.getMaxCount());    //初始值 == 最大值
         schedule.setStatus(StatusConstant.SCHEDULE_NORMAL); //状态初始为正常
 

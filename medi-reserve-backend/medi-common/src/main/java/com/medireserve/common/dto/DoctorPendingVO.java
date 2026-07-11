@@ -15,8 +15,8 @@ public class DoctorPendingVO {
     private Long doctorId;          // 医生ID
     private String name;            // 姓名
     private String phone;           // 手机号
-    private String department;      // 科室
-    private String title;           // 职称
+    private String departmentName;      // 科室
+    private String titleName;           // 职称
     private LocalDateTime createdAt; // 注册时间
 
     // ========== doctor_audit 表字段 ==========

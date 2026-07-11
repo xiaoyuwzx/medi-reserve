@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Select;
  * 患者端认证接口
  */
 @Mapper
-public interface AuthMapper {
+public interface PatientAuthMapper {
 
     /**
      * 根据手机号查询患者账号

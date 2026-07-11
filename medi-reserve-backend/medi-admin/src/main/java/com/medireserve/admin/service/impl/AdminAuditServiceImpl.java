@@ -3,6 +3,7 @@ package com.medireserve.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.mapper.AdminAuditMapper;
+import com.medireserve.doctor.mapper.DoctorAuthMapper;
 import com.medireserve.admin.service.AdminAuditService;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DoctorPendingVO;
@@ -26,6 +27,9 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
     @Autowired
     private AdminAuditMapper adminAuditMapper;
+
+    @Autowired
+    private DoctorAuthMapper doctorAuthMapper;
 
     /**
      * 分页查询待审核医生列表
@@ -64,7 +68,7 @@ public class AdminAuditServiceImpl implements AdminAuditService {
         log.info("查看医生审核详细，医生ID：{}", doctorId);
 
         //校验医生是否存在
-        Doctor doctor = adminAuditMapper.findById(doctorId);
+        Doctor doctor = doctorAuthMapper.findById(doctorId);
         if(doctor == null){
             log.warn("医生不存在，医生ID：{}", doctorId);
             throw new DoctorNotFoundException();
@@ -95,7 +99,7 @@ public class AdminAuditServiceImpl implements AdminAuditService {
         log.info("审核通过，医生ID：{}，审核人：{}", doctorId, auditorId);
 
         //校验医生是否存在
-        Doctor doctor = adminAuditMapper.findById(doctorId);
+        Doctor doctor = doctorAuthMapper.findById(doctorId);
         if(doctor == null){
             log.warn("审核通过失败，医生不存在，医生ID：{}", doctorId);
             throw new DoctorNotFoundException();
@@ -155,7 +159,7 @@ public class AdminAuditServiceImpl implements AdminAuditService {
         }
 
         //校验医生是否存在
-        Doctor doctor = adminAuditMapper.findById(doctorId);
+        Doctor doctor = doctorAuthMapper.findById(doctorId);
         if (doctor == null) {
             log.warn("审核驳回失败，医生不存在，医生ID：{}", doctorId);
             throw new DoctorNotFoundException();

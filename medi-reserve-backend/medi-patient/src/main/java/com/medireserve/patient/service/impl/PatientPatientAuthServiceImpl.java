@@ -8,8 +8,8 @@ import com.medireserve.common.exception.AccountNotFoundException;
 import com.medireserve.common.exception.PasswordErrorException;
 import com.medireserve.common.exception.PhoneAlreadyExistsException;
 import com.medireserve.common.utils.PasswordUtil;
-import com.medireserve.patient.mapper.AuthMapper;
-import com.medireserve.patient.service.AuthService;
+import com.medireserve.patient.mapper.PatientAuthMapper;
+import com.medireserve.patient.service.PatientAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +20,10 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class AuthServiceImpl implements AuthService {
+public class PatientPatientAuthServiceImpl implements PatientAuthService {
 
     @Autowired
-    private AuthMapper authMapper;
+    private PatientAuthMapper patientAuthMapper;
 
     /**
      * 患者注册
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     public Patient register(PatientRegisterDTO registerDTO) {
 
         //判断手机号是否被注册
-        Patient existing = authMapper.findByPhone(registerDTO.getPhone());
+        Patient existing = patientAuthMapper.findByPhone(registerDTO.getPhone());
         if(existing != null) {
             log.warn("患者注册失败，手机号已存在：{}", registerDTO.getPhone());
             throw new PhoneAlreadyExistsException();
@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
         //设置账号状态
         patient.setStatus(StatusConstant.ACCOUNT_NORMAL);
         //保存到数据库中
-        authMapper.insert(patient);
+        patientAuthMapper.insert(patient);
 
         log.info("患者注册成功，ID：{}，手机号：{}", patient.getId(), patient.getPhone());
 
@@ -60,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
     public Patient login(String phone, String password) {
 
         //判断用户是否存在
-        Patient patient = authMapper.findByPhone(phone);
+        Patient patient = patientAuthMapper.findByPhone(phone);
         if(patient == null){
             log.warn("患者登录失败，手机号未注册：{}", phone);
             throw new AccountNotFoundException();

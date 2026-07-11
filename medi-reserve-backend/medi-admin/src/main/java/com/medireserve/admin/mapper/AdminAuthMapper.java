@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Select;
  * 管理端认证
  */
 @Mapper
-public interface AuthMapper {
+public interface AdminAuthMapper {
 
     @Select("select * from admin where username = #{username}")
     Admin findByUsername(String username);

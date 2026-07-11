@@ -1,7 +1,7 @@
 package com.medireserve.admin.service.impl;
 
-import com.medireserve.admin.mapper.AuthMapper;
-import com.medireserve.admin.service.AuthService;
+import com.medireserve.admin.mapper.AdminAuthMapper;
+import com.medireserve.admin.service.AdminAuthService;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.constant.StatusConstant;
@@ -19,10 +19,10 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class AuthServiceImpl implements AuthService {
+public class AdminAdminAuthServiceImpl implements AdminAuthService {
 
     @Autowired
-    private AuthMapper authMapper;
+    private AdminAuthMapper adminAuthMapper;
 
     /**
      * 管理员注册
@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //检查用户名是否被注册
-        Admin existingByUsername = authMapper.findByUsername(registerDTO.getUsername());
+        Admin existingByUsername = adminAuthMapper.findByUsername(registerDTO.getUsername());
         if(existingByUsername != null){
             log.warn("管理员注册失败，用户名已被占用：{}", registerDTO.getUsername());
             throw new UsernameAlreadyExistsException();
@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 
         //检查手机号是否被注册
         if(registerDTO.getPhone() != null && !registerDTO.getPhone().isEmpty()){
-            Admin existingByPhone = authMapper.findByPhone(registerDTO.getPhone());
+            Admin existingByPhone = adminAuthMapper.findByPhone(registerDTO.getPhone());
             if(existingByPhone != null){
                 log.warn("管理员注册失败，手机号已被占用：{}", registerDTO.getPhone());
                 throw new PhoneAlreadyExistsException();
@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
         admin.setStatus(StatusConstant.ACCOUNT_NORMAL);
 
         //保存进数据库中
-        authMapper.insert(admin);
+        adminAuthMapper.insert(admin);
 
         log.info("管理员注册成功，用户名：{}，ID：{}，角色：{}", admin.getUsername(), admin.getId(), admin.getRole());
 
@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Admin login(String username, String password) {
 
-        Admin admin = authMapper.findByUsername(username);
+        Admin admin = adminAuthMapper.findByUsername(username);
 
         //判断账号是否注册
         if(admin == null){

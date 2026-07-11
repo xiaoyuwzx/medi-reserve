@@ -6,7 +6,7 @@ import com.medireserve.common.entity.Doctor;
 /**
  * 医生端认证
  */
-public interface AuthService {
+public interface DoctorAuthService {
 
     /**
      * 医生注册
