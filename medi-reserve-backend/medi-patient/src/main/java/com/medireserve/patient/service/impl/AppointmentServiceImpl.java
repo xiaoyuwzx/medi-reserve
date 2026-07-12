@@ -10,6 +10,7 @@ import com.medireserve.common.exception.*;
 import com.medireserve.patient.mapper.AppointmentMapper;
 import com.medireserve.doctor.mapper.DoctorAuthMapper;
 import com.medireserve.patient.service.AppointmentService;
+import com.medireserve.patient.service.PatientDoctorService;
 import com.medireserve.patient.timer.AppointmentTimeoutTimer;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -41,6 +42,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private AppointmentTimeoutTimer timeoutTimer;// 时间轮工具
+
+    @Autowired
+    private PatientDoctorService patientDoctorService;
 
     /**
      * 查询排班详细
@@ -195,6 +199,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentMapper.insert(appointment);
 
         log.info("预约记录插入成功，预约ID：{}，预约单号：{}", appointment.getId(), appointment.getAppointmentNo());
+
+        // 清除该医生的排班缓存（确保患者看到的剩余号源是最新的）
+        patientDoctorService.clearScheduleCache(schedule.getDoctorId());
+        log.info("已清除医生排班缓存，医生ID：{}", schedule.getDoctorId());
 
         //启动超时取消倒计时
         //30分钟后检查该预约是否仍为待支付，如果是则取消并回滚号源
