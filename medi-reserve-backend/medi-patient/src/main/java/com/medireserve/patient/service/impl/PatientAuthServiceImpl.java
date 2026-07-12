@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class PatientPatientAuthServiceImpl implements PatientAuthService {
+public class PatientAuthServiceImpl implements PatientAuthService {
 
     @Autowired
     private PatientAuthMapper patientAuthMapper;

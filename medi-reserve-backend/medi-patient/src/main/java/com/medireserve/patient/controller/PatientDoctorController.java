@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.medireserve.common.dto.DepartmentVO;
 import com.medireserve.common.dto.DoctorListQueryDTO;
 import com.medireserve.common.dto.DoctorListVO;
+import com.medireserve.common.dto.ScheduleCalendarVO;
 import com.medireserve.common.result.Result;
 import com.medireserve.patient.service.PatientDoctorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,6 +71,18 @@ public class PatientDoctorController {
         PageInfo<DoctorListVO> pageInfo = patientDoctorService.getDoctorList(doctorListQueryDTO);
 
         return Result.success(pageInfo);
+
+    }
+
+    @GetMapping("/doctors/{doctorId}/schedules")
+    @Operation(summary = "获取医生排班日历", description = "查看某医生未来7天的排班号源情况")
+    public Result<List<ScheduleCalendarVO>> getScheduleCalendar(@PathVariable Long doctorId){
+
+        log.info("获取医生排班日历，医生ID：{}", doctorId);
+
+        List<ScheduleCalendarVO> calendarList = patientDoctorService.getScheduleCalendar(doctorId);
+
+        return Result.success(calendarList);
 
     }
 

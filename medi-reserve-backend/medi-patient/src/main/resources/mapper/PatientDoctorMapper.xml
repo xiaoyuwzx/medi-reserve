@@ -35,4 +35,20 @@
         ORDER BY t.weight DESC, d.created_at DESC
     </select>
 
+    <!-- 统计符合条件的医生总数（用于分页）                           -->
+    <select id="countDoctorList" resultType="int">
+        SELECT COUNT(*)
+        FROM doctor d
+        INNER JOIN doctor_audit da ON d.id = da.doctor_id
+        LEFT JOIN department dept ON d.department_id = dept.id
+        WHERE d.status = 1 AND da.audit_status = 1
+        <if test="department != null and department != ''">
+            AND dept.name = #{department}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (d.name LIKE CONCAT('%', #{keyword}, '%')
+            OR da.specialty LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
 </mapper>

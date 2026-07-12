@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.medireserve.patient.mapper.PatientScheduleMapper">
+
+    <!-- 查询某医生在未来日期范围内的排班日历                        -->
+    <!-- 用于患者端查看排班号源                                       -->
+    <select id="findSchedulesByDoctorIdAndDateRange"
+            resultType="com.medireserve.common.dto.ScheduleCalendarVO">
+        SELECT
+            s.id AS scheduleId,
+            s.schedule_date AS scheduleDate,
+            s.period,
+            CASE WHEN s.period = 1 THEN '上午' ELSE '下午' END AS periodText,
+            s.remaining_count AS remainingCount,
+            s.status,
+            CASE
+                WHEN s.status = 1 THEN '正常'
+                WHEN s.status = 2 THEN '已停诊'
+                WHEN s.status = 3 THEN '已满'
+                ELSE '未知'
+                END AS statusText
+        FROM schedule s
+        WHERE s.doctor_id = #{doctorId}
+          AND s.schedule_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY s.schedule_date ASC, s.period ASC
+    </select>
+
+</mapper>

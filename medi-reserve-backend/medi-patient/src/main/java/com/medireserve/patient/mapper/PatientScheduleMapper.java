@@ -1,6 +1,12 @@
 package com.medireserve.patient.mapper;
 
+import com.medireserve.common.dto.ScheduleCalendarVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 患者端 - 排班查询 Mapper
@@ -10,6 +16,15 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface PatientScheduleMapper {
 
-
-
+    /**
+     * 查询某医生在未来日期范围内的排班日历
+     * @param doctorId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<ScheduleCalendarVO> findSchedulesByDoctorIdAndDateRange(
+            @Param("doctorId") Long doctorId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

@@ -38,4 +38,11 @@ public interface PatientDoctorMapper {
      */
     List<DoctorListVO> findDoctorList(@Param("department") String department,
                                       @Param("keyword") String keyword);
+
+    /**
+     * 统计符合条件的医生总数（用于分页）
+     */
+    int countDoctorList(@Param("department") String department,
+                        @Param("keyword") String keyword);
+
 }
