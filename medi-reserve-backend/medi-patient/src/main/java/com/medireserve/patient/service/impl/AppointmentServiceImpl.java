@@ -1,5 +1,6 @@
 package com.medireserve.patient.service.impl;
 
+import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.AppointmentCreateDTO;
 import com.medireserve.common.dto.ScheduleDetailVO;
@@ -8,7 +9,7 @@ import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.*;
 import com.medireserve.patient.mapper.AppointmentMapper;
-import com.medireserve.doctor.mapper.DoctorAuthMapper;
+import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.patient.service.AppointmentService;
 import com.medireserve.patient.service.PatientDoctorService;
 import com.medireserve.patient.timer.AppointmentTimeoutTimer;
@@ -79,19 +80,19 @@ public class AppointmentServiceImpl implements AppointmentService {
         scheduleDetailVO.setTitleName(doctor.getTitleName());
         scheduleDetailVO.setScheduleDate(schedule.getScheduleDate());
         scheduleDetailVO.setPeriod(schedule.getPeriod());
-        scheduleDetailVO.setPeriodText(schedule.getPeriod() == 1 ? "上午" : "下午");
+        scheduleDetailVO.setPeriodText(schedule.getPeriod() == 1 ? MessageConstant.PERIOD_MORNING_TEXT : MessageConstant.PERIOD_AFTERNOON_TEXT);
         scheduleDetailVO.setRemainingCount(schedule.getRemainingCount());
         scheduleDetailVO.setStatus(schedule.getStatus());
         //文本状态
         String statusText;
         if(schedule.getStatus() == 1){
-            statusText = "正常";
+            statusText = MessageConstant.STATUS_NORMAL_TEXT;
         }else if(schedule.getStatus() == 2){
-            statusText = "已停诊";
+            statusText = MessageConstant.STATUS_STOPPED_TEXT;
         }else if(schedule.getStatus() == 3){
-            statusText = "已满";
+            statusText = MessageConstant.STATUS_FULL_TEXT;
         }else{
-            statusText = "未知";
+            statusText = MessageConstant.STATUS_UNKNOWN_TEXT;
         }
         scheduleDetailVO.setStatusText(statusText);
 
@@ -220,31 +221,32 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param patientId
      */
     @Override
-    @Transactional//事务控制
+    @Transactional //事务控制
     public void payAppointment(Long appointmentId, Long patientId) {
 
-        log.info("模拟支付，预约ID：{}，患者ID：{}",appointmentId, patientId);
+        log.info("模拟支付，预约ID：{}，患者ID：{}", appointmentId, patientId);
 
-        //校验预约是否存在
+        // 1. 校验预约是否存在
         Appointment appointment = appointmentMapper.findById(appointmentId);
-        if(appointment == null){
+        if (appointment == null) {
             log.warn("预约不存在，预约ID：{}", appointmentId);
             throw new AppointmentNotFoundException();
         }
 
-        //校验归属(防止越权支付)
-        if(!appointment.getPatientId().equals(patientId)){
-            log.warn("支付越权，预约ID：{}，当前患者ID：{}，预约归属患者ID：{}", appointmentId,patientId, appointment.getPatientId());
+        // 2. 校验归属
+        if (!appointment.getPatientId().equals(patientId)) {
+            log.warn("支付越权，预约ID：{}，当前患者ID：{}，预约归属患者ID：{}",
+                    appointmentId, patientId, appointment.getPatientId());
             throw new PermissionDeniedException("您无权支付该预约");
         }
 
-        //判断是否已支付预约
-        if(StatusConstant.APPOINTMENT_PAID.equals(appointment.getStatus())){
-            log.info("预约已支付，无需重复操作，预约ID：{}", appointmentId);
+        // 3. 已支付 → 抛异常
+        if (StatusConstant.APPOINTMENT_PAID.equals(appointment.getStatus())) {
+            log.info("预约已支付，预约ID：{}", appointmentId);
             throw new AppointmentAlreadyPaidException();
         }
 
-        //校验预约是否超时
+        // 4. 校验是否超时（只校验，不修改数据）
         LocalDateTime deadline = appointment.getCreatedAt().plusMinutes(30);
         if (LocalDateTime.now().isAfter(deadline)) {
             log.warn("预约已超时，无法支付，预约ID：{}，创建时间：{}，截止时间：{}",
@@ -252,21 +254,21 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AppointmentTimeoutException();
         }
 
-        //判断预约状态是否是待支付(0)
-        if(!StatusConstant.APPOINTMENT_PENDING.equals(appointment.getStatus())){
+        // 5. 判断预约状态是否是待支付(0)
+        if (!StatusConstant.APPOINTMENT_PENDING.equals(appointment.getStatus())) {
             log.warn("预约状态不是待支付，当前状态：{}，预约ID：{}", appointment.getStatus(), appointmentId);
             throw new AppointmentNotPendingException();
         }
 
-        //更新状态为已支付(1)
+        // 6. 使用乐观锁更新状态（仅当状态为0时更新成功）
         int rows = appointmentMapper.updateStatus(appointmentId, StatusConstant.APPOINTMENT_PAID);
-        if(rows == 0){
-            log.error("支付失败，更新数据库无影响，预约ID：{}", appointmentId);
+        if (rows == 0) {
+            // 并发情况：可能已被支付或已取消
+            log.warn("支付失败，预约状态已变更，预约ID：{}", appointmentId);
             throw new PaymentFailedException();
         }
 
         log.info("支付成功，预约ID：{}", appointmentId);
-
     }
 
 }

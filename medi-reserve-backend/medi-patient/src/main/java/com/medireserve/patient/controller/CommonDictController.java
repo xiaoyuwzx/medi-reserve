@@ -1,8 +1,7 @@
 package com.medireserve.patient.controller;
 
 import com.medireserve.common.result.Result;
-import com.medireserve.doctor.mapper.DepartmentMapper;
-import com.medireserve.doctor.mapper.TitleMapper;
+import com.medireserve.patient.service.PatientDoctorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -21,29 +20,26 @@ import java.util.Map;
 public class CommonDictController {
 
     @Autowired
-    private DepartmentMapper departmentMapper;
-
-    @Autowired
-    private TitleMapper titleMapper;
+    private PatientDoctorService patientDoctorService;
 
     @GetMapping("/departments")
     @Operation(summary = "获取科室列表")
     public Result<?> getDepartments() {
-        return Result.success(departmentMapper.findAll());
+        return Result.success(patientDoctorService.getAllDepartments());
     }
 
     @GetMapping("/titles")
     @Operation(summary = "获取职称列表")
     public Result<?> getTitles() {
-        return Result.success(titleMapper.findAll());
+        return Result.success(patientDoctorService.getAllTitles());
     }
 
     @GetMapping("/all")
     @Operation(summary = "获取所有字典数据：获取科室、职称列表")
     public Result<Map<String, Object>> getAll() {
         Map<String, Object> data = new HashMap<>();
-        data.put("departments", departmentMapper.findAll());
-        data.put("titles", titleMapper.findAll());
+        data.put("departments", patientDoctorService.getAllDepartments());
+        data.put("titles", patientDoctorService.getAllTitles());
         return Result.success(data);
     }
 }

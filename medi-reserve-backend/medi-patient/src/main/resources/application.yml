@@ -10,6 +10,14 @@ spring:
   redis:
     host: localhost
     port: 6379
+    password: ${REDIS_PASSWORD:}    # 支持环境变量，默认为空
+    database: 0
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
 
 jwt:
   secret: "your-256-bit-secret-key-must-be-long-enough-1234567890"
@@ -17,8 +25,15 @@ jwt:
   interceptor:
     enabled: true
     exclude-paths:
+      # ===== 患者端认证接口 =====
       - /patient/login
       - /patient/register
+      # ===== 患者端公开浏览接口（号源展示）=====
+      - /patient/dict/**          # 科室/职称字典
+      - /patient/departments      # 科室列表
+      - /patient/doctors          # 医生列表
+      - /patient/doctors/**       # 医生排班日历
+      # ===== Swagger/Knife4j 静态资源 =====
       - /doc.html
       - /css/**
       - /js/**

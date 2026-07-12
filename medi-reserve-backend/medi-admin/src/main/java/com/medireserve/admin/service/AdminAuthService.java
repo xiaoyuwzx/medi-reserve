@@ -11,10 +11,9 @@ public interface AdminAuthService {
     /**
      * 管理员注册
      * @param registerDTO
-     * @param currentRole
      * @return
      */
-    Admin register(AdminRegisterDTO registerDTO, String currentRole);
+    Admin register(AdminRegisterDTO registerDTO);
 
     /**
      * 管理员登录

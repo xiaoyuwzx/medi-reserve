@@ -1,4 +1,4 @@
-package com.medireserve.doctor.mapper;
+package com.medireserve.common.mapper;
 
 import com.medireserve.common.entity.Doctor;
 import org.apache.ibatis.annotations.*;

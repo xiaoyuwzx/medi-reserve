@@ -26,12 +26,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.medireserve</groupId>
-            <artifactId>medi-doctor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- 引入 Knife4j，让该模块启动时自动加载 Swagger UI -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>

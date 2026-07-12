@@ -54,5 +54,7 @@ public class StatusCodeConstant {
     // ========== 系统级异常 ==========
     public static final Integer SYSTEM_BUSY = 5001;                    // 系统繁忙
     public static final Integer SYSTEM_ERROR = 5002;                   // 系统异常
+    public static final Integer DEPARTMENT_NOT_FOUND = 5003;
+    public static final Integer TITLE_NOT_FOUND = 5004;
 
 }

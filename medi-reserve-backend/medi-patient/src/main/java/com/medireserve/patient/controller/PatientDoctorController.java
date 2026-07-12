@@ -12,10 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -38,7 +35,7 @@ public class PatientDoctorController {
      */
     @GetMapping("/departments")
     @Operation(summary = "获取科室列表", description = "获取所有科室及医生数量，用于前端下拉筛选")
-    public Result<List<DepartmentVO>> gatAllDepartments(){
+    public Result<List<DepartmentVO>> getAllDepartments(){
 
         log.info("获取科室列表");
 
@@ -74,6 +71,11 @@ public class PatientDoctorController {
 
     }
 
+    /**
+     * 获取医生排班日历
+     * @param doctorId
+     * @return
+     */
     @GetMapping("/doctors/{doctorId}/schedules")
     @Operation(summary = "获取医生排班日历", description = "查看某医生未来7天的排班号源情况")
     public Result<List<ScheduleCalendarVO>> getScheduleCalendar(@PathVariable Long doctorId){

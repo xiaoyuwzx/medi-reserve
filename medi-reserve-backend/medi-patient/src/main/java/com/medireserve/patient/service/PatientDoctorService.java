@@ -5,6 +5,7 @@ import com.medireserve.common.dto.DepartmentVO;
 import com.medireserve.common.dto.DoctorListQueryDTO;
 import com.medireserve.common.dto.DoctorListVO;
 import com.medireserve.common.dto.ScheduleCalendarVO;
+import com.medireserve.common.entity.Title;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -20,6 +21,12 @@ public interface PatientDoctorService {
      * @return
      */
     List<DepartmentVO> getAllDepartments();
+
+    /**
+     * 获取所有职称列表
+     * @return 职称列表
+     */
+    List<Title> getAllTitles();
 
     /**
      * 分页查询医生列表

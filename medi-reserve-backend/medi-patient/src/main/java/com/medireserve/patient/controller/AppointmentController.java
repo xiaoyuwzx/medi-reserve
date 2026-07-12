@@ -1,6 +1,8 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.AppointmentCreateDTO;
 import com.medireserve.common.dto.ScheduleDetailVO;
 import com.medireserve.common.entity.Appointment;
@@ -52,6 +54,7 @@ public class AppointmentController {
      * @return
      */
     @PostMapping("/appointments")
+    @RequireRole(RoleConstant.PATIENT)
     @Operation(summary = "创建预约(下单)", description = "患者选择排班，扣减号源，生成待支付预约单")
     public Result<Map<String, Object>> createAppointment(
             @RequestBody @Valid AppointmentCreateDTO appointmentCreateDTO,
@@ -65,8 +68,8 @@ public class AppointmentController {
         map.put("appointmentId", appointment.getId());
         map.put("appointmentNo", appointment.getAppointmentNo());
         map.put("status", appointment.getStatus());
-        map.put("statusText", "待支付");
-        map.put("payDeadline", "30分钟内支付有效");
+        map.put("statusText", MessageConstant.STATUS_PENDING_PAY);
+        map.put("payDeadline", MessageConstant.PAY_DEADLINE_TEXT);
 
         log.info("预约创建成功，预约ID：{}", appointment.getId());
 
@@ -75,6 +78,7 @@ public class AppointmentController {
     }
 
     @PostMapping("/appointments/{appointmentId}/pay")
+    @RequireRole(RoleConstant.PATIENT)
     @Operation(summary = "模拟支付", description = "模拟微信支付回调，将预约状态改为已支付")
     public Result<String> payAppointment(
             @PathVariable Long appointmentId,

@@ -1,6 +1,7 @@
 package com.medireserve.admin.controller;
 
 import com.medireserve.admin.service.AdminAuthService;
+import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.AdminRegisterDTO;
@@ -37,6 +38,7 @@ public class AdminAuthController {
      * @return
      */
     @PostMapping("/register")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
     @Operation(summary = "管理员注册", description = "创建管理员账号（仅限超级管理员操作）")
     public Result<Map<String, Object>> register(
             @RequestBody @Valid AdminRegisterDTO registerDTO,
@@ -46,7 +48,7 @@ public class AdminAuthController {
         log.info("管理员注册请求，当前操作者：{} , 目标用户名：{}", currentRole, registerDTO.getUsername());
 
         // 调用 Service，传入当前用户角色进行校验
-        Admin admin = adminAuthService.register(registerDTO, currentRole);
+        Admin admin = adminAuthService.register(registerDTO);
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", admin.getId());

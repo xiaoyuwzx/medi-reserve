@@ -77,4 +77,15 @@ public class GlobalExceptionHandler {
         log.warn("静态资源未找到: {}", e.getMessage());
         return Result.error(StatusCodeConstant.NOT_FOUND, "资源不存在");
     }
+
+    // ==================== 处理 @Validated 参数校验异常 ====================
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleConstraintViolationException(ConstraintViolationException e) {
+        String errorMsg = e.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .collect(Collectors.joining("；"));
+        log.warn("参数校验失败：{}", errorMsg);
+        return Result.error(StatusCodeConstant.PARAM_ERROR, errorMsg);
+    }
 }

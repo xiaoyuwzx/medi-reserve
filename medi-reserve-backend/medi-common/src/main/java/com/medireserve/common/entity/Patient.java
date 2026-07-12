@@ -1,5 +1,6 @@
 package com.medireserve.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ public class Patient {
     private Long id;    // 患者ID
     private String name;    //姓名
     private String phone;   // 手机号（登录账号）
+    @JsonIgnore
     private String password;   // 密码（BCrypt加密）
     private String idCard;  // 身份证号
     private Integer gender; // 性别：0未知 1男 2女

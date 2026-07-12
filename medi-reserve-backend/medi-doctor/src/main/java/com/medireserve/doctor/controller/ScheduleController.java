@@ -1,6 +1,8 @@
 package com.medireserve.doctor.controller;
 
+import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
+import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
 import com.medireserve.common.dto.ScheduleQueryDTO;
@@ -26,6 +28,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/doctor")
+@RequireRole(RoleConstant.DOCTOR)
 @Tag(name = "医生端 - 排班管理", description = "医生设置排班、查询、停诊、删除")
 public class ScheduleController {
 
@@ -86,7 +89,7 @@ public class ScheduleController {
         Schedule schedule = scheduleService.createSchedule(currentDoctorId, scheduleCreateDTO);
 
         Map<String, Object> map = new HashMap<>();
-        map.put("scheduleID", schedule.getId());
+        map.put("scheduleId", schedule.getId());
         map.put("doctorId", schedule.getDoctorId());
         map.put("scheduleDate", schedule.getScheduleDate());
         map.put("period", schedule.getPeriod());

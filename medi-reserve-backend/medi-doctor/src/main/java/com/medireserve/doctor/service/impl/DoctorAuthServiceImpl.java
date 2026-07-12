@@ -8,10 +8,10 @@ import com.medireserve.common.entity.DoctorAudit;
 import com.medireserve.common.entity.Title;
 import com.medireserve.common.exception.*;
 import com.medireserve.common.utils.PasswordUtil;
-import com.medireserve.doctor.mapper.DepartmentMapper;
-import com.medireserve.doctor.mapper.DoctorAuthMapper;
-import com.medireserve.doctor.mapper.DoctorAuditMapper;
-import com.medireserve.doctor.mapper.TitleMapper;
+import com.medireserve.common.mapper.DepartmentMapper;
+import com.medireserve.common.mapper.DoctorAuthMapper;
+import com.medireserve.common.mapper.DoctorAuditMapper;
+import com.medireserve.common.mapper.TitleMapper;
 import com.medireserve.doctor.service.DoctorAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -33,10 +33,10 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
     private DoctorAuditMapper doctorAuditMapper;
 
     @Autowired
-    DepartmentMapper departmentMapper;
+    private DepartmentMapper departmentMapper;
 
     @Autowired
-    TitleMapper titleMapper;
+    private TitleMapper titleMapper;
 
     /**
      * 医生注册
@@ -58,14 +58,14 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
         Department department = departmentMapper.findById(registerDTO.getDepartmentId());
         if (department == null) {
             log.warn("医生注册失败，所选科室不存在：{}", registerDTO.getPhone());
-            throw new BusinessException("所选科室不存在，请重新选择");
+            throw new DepartmentNotFoundException();
         }
 
         //校验职称是否存在
         Title title = titleMapper.findById(registerDTO.getTitleId());
         if (title == null) {
             log.warn("医生注册失败，所选职称不存在：{}", registerDTO.getPhone());
-            throw new BusinessException("所选职称不存在，请重新选择");
+            throw new TitleNotFoundException();
         }
 
         //注册

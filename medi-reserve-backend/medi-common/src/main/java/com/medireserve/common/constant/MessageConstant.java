@@ -64,7 +64,7 @@ public class MessageConstant {
     // ========== 业务操作 ==========
     public static final String NOT_FOUND = "数据不存在";
     public static final String OPERATION_FAILED = "操作失败，请重试";
-    public static final String AlREADY_EXISTS = "数据已存在";
+    public static final String ALREADY_EXISTS = "数据已存在";
 
     // ========== 排班管理相关 ==========
     public static final String SCHEDULE_CREATE_SUCCESS = "排班创建成功";
@@ -95,5 +95,17 @@ public class MessageConstant {
     public static final String INSUFFICIENT_QUOTA = "号源不足，请选择其他时段";
     public static final String SYSTEM_BUSY = "系统繁忙，请稍后再试";
     public static final String SYSTEM_ERROR = "系统异常，请稍后重试";
+    public static final String DEPARTMENT_NOT_FOUND = "所选科室不存在，请重新选择";
+    public static final String TITLE_NOT_FOUND = "所选职称不存在，请重新选择";
+
+    // ========== 展示文本 ==========
+    public static final String STATUS_PENDING_PAY = "待支付";
+    public static final String PAY_DEADLINE_TEXT = "30分钟内支付有效";
+    public static final String PERIOD_MORNING_TEXT = "上午";
+    public static final String PERIOD_AFTERNOON_TEXT = "下午";
+    public static final String STATUS_NORMAL_TEXT = "正常";
+    public static final String STATUS_STOPPED_TEXT = "已停诊";
+    public static final String STATUS_FULL_TEXT = "已满";
+    public static final String STATUS_UNKNOWN_TEXT = "未知";
 
 }

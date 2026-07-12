@@ -2,13 +2,18 @@ package com.medireserve.patient.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DepartmentVO;
 import com.medireserve.common.dto.DoctorListQueryDTO;
 import com.medireserve.common.dto.DoctorListVO;
 import com.medireserve.common.dto.ScheduleCalendarVO;
 import com.medireserve.common.entity.Doctor;
+import com.medireserve.common.entity.DoctorAudit;
+import com.medireserve.common.entity.Title;
 import com.medireserve.common.exception.DoctorNotFoundException;
-import com.medireserve.doctor.mapper.DoctorAuthMapper;
+import com.medireserve.common.mapper.DoctorAuditMapper;
+import com.medireserve.common.mapper.DoctorAuthMapper;
+import com.medireserve.common.mapper.TitleMapper;
 import com.medireserve.patient.mapper.PatientDoctorMapper;
 import com.medireserve.patient.mapper.PatientScheduleMapper;
 import com.medireserve.patient.service.PatientDoctorService;
@@ -41,17 +46,33 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
     @Autowired
     private PatientScheduleMapper patientScheduleMapper;
 
+    @Autowired
+    private TitleMapper titleMapper;
+
+    @Autowired
+    private DoctorAuditMapper doctorAuditMapper;
+
     /**
      * 获取所有科室列表(缓存一个小时减小数据库压力)
      * @return
      */
     @Override
-    @Cacheable(value = "departments", unless = "#result == null || #result.isEmpty()")
+    @Cacheable(value = "departments")
     public List<DepartmentVO> getAllDepartments() {
 
         log.info("查询所有科室列表");
 
         return patientDoctorMapper.findAllDepartments();
+
+    }
+
+    @Override
+    @Cacheable(value = "titles")
+    public List<Title> getAllTitles() {
+
+        log.info("查询所有职称列表");
+
+        return titleMapper.findAll();
 
     }
 
@@ -61,8 +82,6 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
      * @return
      */
     @Override
-    @Cacheable(value = "doctors", key = "#doctorListQueryDTO.department + '_' + #doctorListQueryDTO.keyword + '_' + #doctorListQueryDTO.page + '_' + #doctorListQueryDTO.size",
-            unless = "#result == null")
     public PageInfo<DoctorListVO> getDoctorList(DoctorListQueryDTO doctorListQueryDTO) {
 
         log.info("查询医生列表，科室：{}，关键词：{}，页码：{}，每页：{}",
@@ -92,8 +111,7 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
      * @return
      */
     @Override
-    @Cacheable(value = "schedules", key = "#doctorId + '_' + T(java.time.LocalDate).now().format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd'))",
-            unless = "#result == null || #result.isEmpty()")
+    @Cacheable(value = "schedules", key = "#doctorId + '_' + T(java.time.LocalDate).now().format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd'))")
     public List<ScheduleCalendarVO> getScheduleCalendar(Long doctorId) {
 
         log.info("查询医生排班日历，医生ID：{}", doctorId);
@@ -103,6 +121,13 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
         if(doctor == null){
             log.warn("医生不存在，医生ID：{}", doctorId);
             throw new DoctorNotFoundException();
+        }
+
+        // 校验审核状态
+        DoctorAudit audit = doctorAuditMapper.findByDoctorId(doctorId);
+        if (audit == null || !StatusConstant.AUDIT_APPROVED.equals(audit.getAuditStatus())) {
+            log.warn("医生未审核或审核未通过，医生ID：{}", doctorId);
+            throw new DoctorNotFoundException();  // 复用相同异常，避免透露具体原因
         }
 
         //定义日期范围

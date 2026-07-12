@@ -3,7 +3,7 @@ package com.medireserve.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.mapper.AdminAuditMapper;
-import com.medireserve.doctor.mapper.DoctorAuthMapper;
+import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.admin.service.AdminAuditService;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DoctorPendingVO;

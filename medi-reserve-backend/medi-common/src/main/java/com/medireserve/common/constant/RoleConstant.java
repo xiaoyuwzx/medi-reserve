@@ -1,6 +1,6 @@
 package com.medireserve.common.constant;
 
-import com.medireserve.common.exception.BusinessException;
+import com.medireserve.common.exception.SystemException;
 
 /**
  * 角色常量
@@ -26,7 +26,7 @@ public class RoleConstant {
         } else if (ADMIN_NORMAL.equals(roleId)) {
             return NORMAL_ADMIN;
         }
-        throw new BusinessException("未知的管理员角色: " + roleId);
+        throw new SystemException("未知的管理员角色: " + roleId);
     }
 
 }

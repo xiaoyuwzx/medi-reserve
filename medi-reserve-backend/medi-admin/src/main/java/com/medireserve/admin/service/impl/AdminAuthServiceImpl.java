@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class AdminAdminAuthServiceImpl implements AdminAuthService {
+public class AdminAuthServiceImpl implements AdminAuthService {
 
     @Autowired
     private AdminAuthMapper adminAuthMapper;
@@ -27,17 +27,13 @@ public class AdminAdminAuthServiceImpl implements AdminAuthService {
     /**
      * 管理员注册
      * @param registerDTO
-     * @param currentRole
      * @return
      */
     @Override
-    public Admin register(AdminRegisterDTO registerDTO, String currentRole) {
+    public Admin register(AdminRegisterDTO registerDTO) {
 
         //校验权限（只有超级管理员才可以操作）
-        if(!RoleConstant.SUPER_ADMIN.equals(currentRole)){
-            log.warn("权限不足：用户 {} 尝试创建管理员账号，但当前角色为 {}", registerDTO.getUsername(), currentRole);
-            throw new PermissionDeniedException(MessageConstant.PERMISSION_CREATE_ADMIN);
-        }
+        //移除 currentRole 参数和角色校验，由拦截器统一处理
 
         //检查用户名是否被注册
         Admin existingByUsername = adminAuthMapper.findByUsername(registerDTO.getUsername());

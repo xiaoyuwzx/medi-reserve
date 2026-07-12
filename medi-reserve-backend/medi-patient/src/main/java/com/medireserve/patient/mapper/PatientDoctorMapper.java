@@ -2,6 +2,7 @@ package com.medireserve.patient.mapper;
 
 import com.medireserve.common.dto.DepartmentVO;
 import com.medireserve.common.dto.DoctorListVO;
+import com.medireserve.common.entity.Title;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -44,5 +45,4 @@ public interface PatientDoctorMapper {
      */
     int countDoctorList(@Param("department") String department,
                         @Param("keyword") String keyword);
-
 }

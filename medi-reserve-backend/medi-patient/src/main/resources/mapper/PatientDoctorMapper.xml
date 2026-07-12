@@ -12,7 +12,7 @@
         d.name,
         dept.name AS department,
         t.name AS title,
-        t.weight AS titleWeight,
+        t.sort_order AS titleWeight,   <!-- 修改此处 -->
         da.specialty,
         EXISTS (
         SELECT 1 FROM schedule s
@@ -32,7 +32,7 @@
             AND (d.name LIKE CONCAT('%', #{keyword}, '%')
             OR da.specialty LIKE CONCAT('%', #{keyword}, '%'))
         </if>
-        ORDER BY t.weight DESC, d.created_at DESC
+        ORDER BY t.sort_order DESC, d.created_at DESC   <!-- 修改此处 -->
     </select>
 
     <!-- 统计符合条件的医生总数（用于分页）                           -->

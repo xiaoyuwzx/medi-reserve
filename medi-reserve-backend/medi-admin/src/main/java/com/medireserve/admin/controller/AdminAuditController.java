@@ -2,6 +2,7 @@ package com.medireserve.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.service.AdminAuditService;
+import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.AuditRejectDTO;
@@ -78,6 +79,7 @@ public class AdminAuditController {
      * @return
      */
     @PatchMapping("/doctors/{id}/approve")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
     @Operation(summary = "审核通过", description = "管理员审核医生注册申请(仅限超级管理员)")
     public Result<String> approve(
             @PathVariable Long id,
@@ -107,6 +109,7 @@ public class AdminAuditController {
      * @return
      */
     @PatchMapping("/doctors/{id}/reject")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
     @Operation(summary = "审核驳回", description = "管理员审核驳回医生注册申请，需填写驳回原因(仅限超级管理员)")
     public Result<String> reject(
             @PathVariable Long id,
