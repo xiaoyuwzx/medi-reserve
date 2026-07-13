@@ -59,3 +59,21 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 阿里云 OSS 与 STS 配置
+aliyun:
+  oss:
+    endpoint: oss-cn-wuhan-lr.aliyuncs.com       # 你的 OSS Endpoint（内外网需区分）
+    bucket: medi-reserve-files                   # 你的 Bucket 名称
+    # 注意：STS 的 Endpoint 通常为 sts.aliyuncs.com，如果是专有云请替换
+    sts-endpoint: sts.aliyuncs.com
+    # 以下为 RAM 子账号的 AccessKey（建议只给 AssumeRole 权限）
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
+    # RAM 角色 ARN（在 RAM 控制台 -> 角色管理 中获取）
+    # 格式：acs:ram::{主账号ID}:role/{角色名称}
+    role-arn: acs:ram::1353664742775914:role/medi-oss-role
+    # 临时凭证有效期（单位：秒），建议 1800（30分钟）
+    timeout: 1800
+    # 上传根目录（可选，默认不填则为 Bucket 根目录，我建议填 'medi'）
+    base-dir: medi
