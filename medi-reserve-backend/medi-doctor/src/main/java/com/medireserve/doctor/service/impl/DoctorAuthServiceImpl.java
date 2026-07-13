@@ -7,6 +7,7 @@ import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.DoctorAudit;
 import com.medireserve.common.entity.Title;
 import com.medireserve.common.exception.*;
+import com.medireserve.common.service.LoginAttemptService;
 import com.medireserve.common.utils.PasswordUtil;
 import com.medireserve.common.mapper.DepartmentMapper;
 import com.medireserve.common.mapper.DoctorAuthMapper;
@@ -37,6 +38,9 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
 
     @Autowired
     private TitleMapper titleMapper;
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     /**
      * 医生注册
@@ -102,17 +106,22 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
     @Override
     public Doctor login(String username, String password) {
 
+        // 检查是否已被锁定（登录前检查）
+        loginAttemptService.checkAttempts(username);
+
         Doctor doctor = doctorAuthMapper.findByPhone(username);
 
         //查询手机号判断是否被注册
         if (doctor == null){
             log.warn("医生登录失败，手机号未注册：{}", username);
+            loginAttemptService.loginFailed(username);
             throw new AccountNotFoundException();
         }
 
         //校验密码
         if(!PasswordUtil.matches(password, doctor.getPassword())){
             log.warn("医生登录失败，密码错误，手机号：{}", username);
+            loginAttemptService.loginFailed(username);
             throw  new PasswordErrorException();
         }
 
@@ -140,6 +149,9 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
         }
 
         log.info("医生登录成功，手机号：{}", username);
+
+        // 登录成功，清除失败计数
+        loginAttemptService.loginSucceeded(username);
 
         return doctor;
 

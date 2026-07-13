@@ -58,9 +58,9 @@ public class CacheConfig {
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(createCacheConfig(Duration.ofMinutes(10), false))
                 // 科室列表：变化极少，缓存1小时
-                .withCacheConfiguration("departments", createCacheConfig(Duration.ofHours(1), false))
+                .withCacheConfiguration("departments", createCacheConfig(Duration.ofHours(1), true))
                 // 职称列表：变化极少，缓存1小时
-                .withCacheConfiguration("titles", createCacheConfig(Duration.ofHours(1), false))
+                .withCacheConfiguration("titles", createCacheConfig(Duration.ofHours(1), true))
                 // 医生列表：变化较少，缓存5分钟
                 .withCacheConfiguration("doctors", createCacheConfig(Duration.ofMinutes(5), false))
                 // 排班日历：允许缓存空值5分钟，防止缓存穿透

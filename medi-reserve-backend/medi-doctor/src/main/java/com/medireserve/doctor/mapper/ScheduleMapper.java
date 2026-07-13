@@ -89,4 +89,7 @@ public interface ScheduleMapper {
     Double getHistoricalOccupancyRate(@Param("doctorId") Long doctorId,
                                       @Param("dayOfWeek")int dayOfWeek,
                                       @Param("targetDate") LocalDate scheduleDate);
+
+    @Update("UPDATE schedule SET status = 1 WHERE remaining_count > 0 AND status = 3")
+    int fixInconsistentStatus();
 }

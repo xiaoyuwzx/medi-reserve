@@ -20,6 +20,12 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService {
 
+    /**
+     * 自注入当前 Service 的代理对象（通过 @Lazy 避免循环依赖）。
+     * 原因：Spring 的 @Transactional 通过代理生效，若在 cancelWithLock() 中
+     * 直接调用 this.cancelExpiredAppointment()，事务注解将失效。
+     * 通过 self.cancelExpiredAppointment() 调用，确保走代理链路，事务正常开启。
+     */
     @Autowired
     @Lazy
     private AppointmentTimeoutService self;

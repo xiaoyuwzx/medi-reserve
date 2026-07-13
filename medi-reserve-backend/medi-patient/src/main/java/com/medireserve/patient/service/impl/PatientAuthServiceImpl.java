@@ -7,6 +7,7 @@ import com.medireserve.common.exception.AccountDisabledException;
 import com.medireserve.common.exception.AccountNotFoundException;
 import com.medireserve.common.exception.PasswordErrorException;
 import com.medireserve.common.exception.PhoneAlreadyExistsException;
+import com.medireserve.common.service.LoginAttemptService;
 import com.medireserve.common.utils.PasswordUtil;
 import com.medireserve.patient.mapper.PatientAuthMapper;
 import com.medireserve.patient.service.PatientAuthService;
@@ -24,6 +25,9 @@ public class PatientAuthServiceImpl implements PatientAuthService {
 
     @Autowired
     private PatientAuthMapper patientAuthMapper;
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     /**
      * 患者注册
@@ -59,16 +63,21 @@ public class PatientAuthServiceImpl implements PatientAuthService {
     @Override
     public Patient login(String phone, String password) {
 
+        // 检查是否已被锁定（登录前检查）
+        loginAttemptService.checkAttempts(phone);
+
         //判断用户是否存在
         Patient patient = patientAuthMapper.findByPhone(phone);
         if(patient == null){
             log.warn("患者登录失败，手机号未注册：{}", phone);
+            loginAttemptService.loginFailed(phone);
             throw new AccountNotFoundException();
         }
 
         //密码校验
         if(!PasswordUtil.matches(password, patient.getPassword())){
             log.warn("患者登录失败，密码错误：{}", phone);
+            loginAttemptService.loginFailed(phone);
             throw new PasswordErrorException();
         }
 
@@ -79,6 +88,9 @@ public class PatientAuthServiceImpl implements PatientAuthService {
         }
 
         log.info("患者登录成功：{}", phone);
+
+        // 登录成功，清除失败计数
+        loginAttemptService.loginSucceeded(phone);
 
         return patient;
 

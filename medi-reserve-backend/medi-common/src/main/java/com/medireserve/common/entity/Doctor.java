@@ -2,7 +2,6 @@ package com.medireserve.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.springframework.data.annotation.Transient;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,10 +19,8 @@ public class Doctor {
     private Long departmentId;  //科室 (外键)
     private Long titleId;   //职称 (外键)
 
-    @Transient
-    private String departmentName;  // 瞬态
-    @Transient
-    private String titleName;       // 瞬态
+    private transient String departmentName;  // 瞬态
+    private transient String titleName;       // 瞬态
 
     private Integer status;    // 状态：0禁用 1正常
     private LocalDateTime createdAt;    //注册时间

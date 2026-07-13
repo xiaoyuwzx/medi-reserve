@@ -178,9 +178,16 @@ public class AppointmentServiceImpl implements AppointmentService {
         } finally {
 
             //释放锁
-            if(locked && lock.isHeldByCurrentThread()){
-                lock.unlock();
-                log.debug("释放分布式锁成功，排班ID：{}", scheduleId);
+            if (locked) {
+                try {
+                    if (lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                        log.debug("释放分布式锁成功，排班ID：{}", scheduleId);
+                    }
+                } catch (IllegalMonitorStateException e) {
+                    // 极端情况：锁已被强制释放（如超时），仅记录警告，不影响业务
+                    log.warn("释放锁时状态异常，可能已被强制释放，排班ID：{}", scheduleId, e);
+                }
             }
 
         }
@@ -260,7 +267,23 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AppointmentNotPendingException();
         }
 
-        // 6. 使用乐观锁更新状态（仅当状态为0时更新成功）
+        // 6. 校验排班有效性
+        Schedule schedule = appointmentMapper.findByScheduleId(appointment.getScheduleId());
+        if (schedule == null) {
+            throw new ScheduleNotFoundException();
+        }
+        // 如果排班已停诊，不允许支付
+        if (StatusConstant.SCHEDULE_STOPPED.equals(schedule.getStatus())) {
+            log.warn("支付失败，排班已停诊，预约ID：{}，排班ID：{}", appointmentId, schedule.getId());
+            throw new ScheduleStoppedException("该排班已停诊，请联系医院或取消预约");
+        }
+        // 防御性校验：若剩余号源为0，虽不太可能（因预约已占号），但做兜底
+        if (schedule.getRemainingCount() < 0) {
+            log.error("排班号源数据异常，剩余号源为负数，排班ID：{}", schedule.getId());
+            throw new SystemException("号源数据异常，请联系管理员");
+        }
+
+        // 7. 使用乐观锁更新状态（仅当状态为0时更新成功）
         int rows = appointmentMapper.updateStatus(appointmentId, StatusConstant.APPOINTMENT_PAID);
         if (rows == 0) {
             // 并发情况：可能已被支付或已取消

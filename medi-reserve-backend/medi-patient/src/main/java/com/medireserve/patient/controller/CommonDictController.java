@@ -1,5 +1,7 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.dto.DepartmentVO;
+import com.medireserve.common.entity.Title;
 import com.medireserve.common.result.Result;
 import com.medireserve.patient.service.PatientDoctorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -24,13 +27,13 @@ public class CommonDictController {
 
     @GetMapping("/departments")
     @Operation(summary = "获取科室列表")
-    public Result<?> getDepartments() {
+    public Result<List<DepartmentVO>> getDepartments() {
         return Result.success(patientDoctorService.getAllDepartments());
     }
 
     @GetMapping("/titles")
     @Operation(summary = "获取职称列表")
-    public Result<?> getTitles() {
+    public Result<List<Title>> getTitles() {
         return Result.success(patientDoctorService.getAllTitles());
     }
 

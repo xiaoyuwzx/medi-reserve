@@ -8,6 +8,7 @@ import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.AdminRegisterDTO;
 import com.medireserve.common.entity.Admin;
 import com.medireserve.common.exception.*;
+import com.medireserve.common.service.LoginAttemptService;
 import com.medireserve.common.utils.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +24,9 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     @Autowired
     private AdminAuthMapper adminAuthMapper;
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     /**
      * 管理员注册
@@ -86,17 +90,22 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     @Override
     public Admin login(String username, String password) {
 
+        // 检查是否已被锁定（登录前检查）
+        loginAttemptService.checkAttempts(username);
+
         Admin admin = adminAuthMapper.findByUsername(username);
 
         //判断账号是否注册
         if(admin == null){
             log.warn("管理员登录失败，用户名不存在：{}", username);
+            loginAttemptService.loginFailed(username);
             throw new AccountNotFoundException();
         }
 
         //判断密码是否正确
         if(!PasswordUtil.matches(password, admin.getPassword())){
             log.warn("管理员登录失败，密码错误，用户名：{}", username);
+            loginAttemptService.loginFailed(username);
             throw new PasswordErrorException();
         }
 
@@ -107,6 +116,9 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         }
 
         log.info("管理员登录成功，用户名：{}", username);
+
+        // 登录成功，清除失败计数
+        loginAttemptService.loginSucceeded(username);
 
         return admin;
 

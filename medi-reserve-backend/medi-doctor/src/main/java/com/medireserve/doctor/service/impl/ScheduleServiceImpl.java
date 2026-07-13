@@ -8,6 +8,7 @@ import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.*;
 import com.medireserve.doctor.mapper.ScheduleMapper;
 import com.medireserve.doctor.service.ScheduleService;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,14 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Autowired
     private ScheduleMapper scheduleMapper;
+
+    @PostConstruct
+    public void init() {
+        int fixed = scheduleMapper.fixInconsistentStatus();
+        if (fixed > 0) {
+            log.warn("启动时修复了 {} 条状态不一致的排班记录", fixed);
+        }
+    }
 
     /**
      * 获取推荐号源数
