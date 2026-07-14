@@ -108,4 +108,20 @@ public class MessageConstant {
     public static final String STATUS_FULL_TEXT = "已满";
     public static final String STATUS_UNKNOWN_TEXT = "未知";
 
+    // ========== 评价相关 ==========
+    public static final String EVALUATION_CREATE_SUCCESS = "评价成功";
+    public static final String EVALUATION_DELETE_SUCCESS = "删除成功";
+    public static final String EVALUATION_NOT_FOUND = "评价不存在";
+    public static final String EVALUATION_ALREADY_DELETED = "该评价已删除";
+    public static final String EVALUATION_DUPLICATE = "您已评价过该预约";
+    public static final String APPOINTMENT_NOT_EVALUABLE = "该预约尚未就诊，暂不能评价";
+    public static final String SCHEDULE_INFO_NOT_FOUND = "排班信息不存在";
+    public static final String SCHEDULE_DATE_NOT_ARRIVED = "就诊日期尚未到来，请就诊后再评价";
+    public static final String EVALUATION_DELETE_FAILED = "删除失败，请稍后再试";
+    public static final String EVALUATION_CREATE_FAILED = "评价提交失败，请稍后重试";
+
+    // ========== 缓存相关 ==========
+    public static final String CACHE_REFRESH_SUCCESS = "缓存刷新成功";
+    public static final String CACHE_REFRESH_FAILED = "缓存刷新失败";
+
 }

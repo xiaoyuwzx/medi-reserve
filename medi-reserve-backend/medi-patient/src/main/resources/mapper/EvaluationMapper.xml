@@ -63,4 +63,27 @@
         where e.patient_id = #{patientId}
         order by e.created_at desc
     </select>
+
+    <!--查询某医生的评价列表-->
+    <!-- 只查询已发布的评价，匿名评价不显示患者姓名 -->
+    <select id="findByDoctorId" resultType="com.medireserve.common.dto.EvaluationListVO">
+        select
+            e.id as evaluationId,
+            e.doctor_id as doctorId,
+            d.name as doctorName,
+            dept.name as departmentName,
+            s.schedule_date as scheduleDate,
+            e.score,
+            e.content,
+            case when e.is_anonymous = 1 then 1 else 0
+            end as isAnonymous,
+            e.created_at as createdAt
+        from evaluation e
+        inner join doctor d on e.doctor_id = d.id
+        left join department dept on d.department_id = dept.id
+        left join schedule s on e.schedule_id = s.id
+        where e.doctor_id = #{doctorId} and e.status = 1
+        order by e.created_at desc
+    </select>
+
 </mapper>

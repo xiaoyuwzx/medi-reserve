@@ -40,7 +40,7 @@ public interface EvaluationService {
      * @param size 每页条数
      * @return 分页评价列表
      */
-    //PageInfo<EvaluationListVO> getDoctorEvaluations(Long doctorId, int page, int size);
+    PageInfo<EvaluationListVO> getDoctorEvaluations(Long doctorId, int page, int size);
 
     /**
      * 删除评价（软删除）
@@ -48,14 +48,14 @@ public interface EvaluationService {
      * @param evaluationId 评价ID
      * @param patientId 当前登录患者ID
      */
-    //void deleteEvaluation(Long evaluationId, Long patientId);
+    void deleteEvaluation(Long evaluationId, Long patientId);
 
     /**
      * 获取热门医生排行榜
      * 优先从 Redis 缓存读取，缓存不存在时查询数据库
      * @return 热门医生列表（最多10条）
      */
-    //List<DoctorHotVO> getHotDoctors();
+    List<DoctorHotVO> getHotDoctors();
 
     /**
      * 刷新热门医生缓存（评价提交时调用 + 定时任务调用）

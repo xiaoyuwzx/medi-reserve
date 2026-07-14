@@ -2,8 +2,11 @@ package com.medireserve.patient.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.medireserve.common.annotation.RequireRole;
+import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
+import com.medireserve.common.dto.DoctorHotVO;
 import com.medireserve.common.dto.EvaluationCreateDTO;
+import com.medireserve.common.dto.EvaluationListVO;
 import com.medireserve.common.dto.MyEvaluationVO;
 import com.medireserve.common.entity.Evaluation;
 import com.medireserve.common.result.Result;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,8 +61,7 @@ public class EvaluationController {
 
         log.info("创建评价成功，评价ID：{}", evaluation.getId());
 
-        // TODO : 新建评价成功常量
-        return Result.success("评价成功", map);
+        return Result.success(MessageConstant.EVALUATION_CREATE_SUCCESS, map);
 
     }
 
@@ -82,11 +85,92 @@ public class EvaluationController {
 
         //校验参数
         if(page < 1) page = 1;
-        if(page < 1 || size > 100) size = 10;
+        if(size < 1 || size > 100) size = 10;
 
         PageInfo<MyEvaluationVO> pageInfo = evaluationService.getMyEvaluations(patientId, page, size);
 
         return Result.success(pageInfo);
+
+    }
+
+    /**
+     * 查询医生的评价列表(公开访问)
+     * @param doctorId
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("/doctors/{doctorId}/evaluations")
+    @Operation(summary = "查询医生评价列表", description = "分页查询某医生的历史评价（公开接口，无需登录）")
+    public Result<PageInfo<EvaluationListVO>> getDoctorEvaluations(
+            @PathVariable Long doctorId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size){
+
+        log.info("查询医生评价列表，医生ID：{}，页码：{}，每页：{}", doctorId, page, size);
+
+        //校验数据
+        if(page < 1) page = 1;
+        if(size < 1 || size > 100) size = 10;
+
+        PageInfo<EvaluationListVO> pageInfo = evaluationService.getDoctorEvaluations(doctorId, page, size);
+
+        return Result.success(pageInfo);
+
+    }
+
+    /**
+     * 删除评价(软删除)
+     * 患者只能删除自己发布的评价
+     * @param evaluationId
+     * @param patientId
+     * @return
+     */
+    @DeleteMapping("/evaluations/{evaluationId}")
+    @RequireRole(RoleConstant.PATIENT)
+    @Operation(summary = "删除评价", description = "患者软删除自己提交的评价(状态改为隐藏)")
+    public Result<String> deleteEvaluation(
+            @PathVariable Long evaluationId,
+            @RequestAttribute("userId") Long patientId){
+
+        log.info("删除评价请求，评价ID：{}，患者ID：{}", evaluationId, patientId);
+
+        evaluationService.deleteEvaluation(evaluationId, patientId);
+
+        return Result.success(MessageConstant.EVALUATION_DELETE_SUCCESS);
+
+    }
+
+    /**
+     * 获取热门医生排行榜(公开访问)
+     * @return
+     */
+    @GetMapping("/doctors/hot")
+    @Operation(summary = "热门医生排行榜", description = "获取热度前10的医生(基于近30天评价，时间衰败算法)")
+    public Result<List<DoctorHotVO>> getHotDoctors(){
+
+        log.info("获取热门医生排行榜");
+
+        List<DoctorHotVO> hotList = evaluationService.getHotDoctors();
+
+        return Result.success(hotList);
+
+    }
+
+    /**
+     * 手动刷新热门医生缓存(管理员专用)
+     * @return
+     */
+    @PostMapping("/admin/refresh-hot-cache")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
+    @Operation(summary = "刷新热门医生缓存", description = "手动刷新热门医生排行榜(仅超级管理员)")
+    public Result<String> refreshHotCache(){
+
+        log.info("手动刷新热门医生缓存");
+
+        evaluationService.refreshHotDoctorCache();
+
+        return Result.success(MessageConstant.CACHE_REFRESH_SUCCESS);
 
     }
 

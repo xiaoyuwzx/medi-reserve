@@ -58,4 +58,16 @@ public class StatusCodeConstant {
     public static final Integer DEPARTMENT_NOT_FOUND = 5003;
     public static final Integer TITLE_NOT_FOUND = 5004;
 
+    // ========== 评价相关状态码（6000+） ==========
+    public static final Integer APPOINTMENT_NOT_EVALUABLE = 6001;      // 预约尚未就诊
+    public static final Integer SCHEDULE_INFO_NOT_FOUND = 6002;        // 排班信息不存在
+    public static final Integer SCHEDULE_DATE_NOT_ARRIVED = 6003;      // 就诊日期未到
+    public static final Integer EVALUATION_DUPLICATE = 6004;           // 重复评价
+    public static final Integer EVALUATION_NOT_FOUND = 6005;           // 评价不存在
+    public static final Integer EVALUATION_ALREADY_DELETED = 6006;     // 评价已删除
+    public static final Integer EVALUATION_DELETE_FAILED = 6007;       // 删除失败
+    public static final Integer EVALUATION_CREATE_FAILED = 6008;       // 创建失败
+    // ========== 缓存相关状态码 ==========
+    public static final Integer CACHE_REFRESH_FAILED = 6009;   // 缓存刷新失败
+
 }
