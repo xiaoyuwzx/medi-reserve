@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.medireserve.patient.mapper.EvaluationMapper">
+
+    <!--插入评价记录-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into evaluation (appointment_id,
+                                patient_id,
+                                doctor_id,
+                                schedule_id,
+                                score,
+                                content,
+                                is_anonymous,
+                                status)
+        values (#{appointmentId},
+                #{patientId},
+                #{doctorId},
+                #{scheduleId},
+                #{score},
+                #{content},
+                #{isAnonymous},
+                1 /*默认已发布*/)
+    </insert>
+
+    <!-- 热门医生排行榜（使用时间衰减算法） -->
+    <!-- 公式：hot_score = AVG(score * 0.98^(今天-评价日期) ) -->
+    <!-- 只统计近30天、状态为已发布的评价 -->
+    <select id="findHotDoctors" resultType="com.medireserve.common.dto.DoctorHotVO">
+        select
+            e.doctor_id as doctorId,
+            d.name as doctorName,
+            dept.name as departmentName,
+            t.name as titleName,
+            da.avatar as avatar,
+            round(avg(e.score * pow(0.98, datediff(now(), e.created_at))), 2) as hotScore,
+            count(*) as evaluationCount
+        from evaluation e
+        inner join doctor d on e.doctor_id = d.id
+        left join department dept on d.department_id = dept.id
+        left join title t on d.title_id = t.id
+        left join doctor_audit da on d.id = da.doctor_id
+        where e.status = 1 and e.created_at > DATE_SUB(now(), interval 30 day)
+        group by e.doctor_id, d.name, dept.name, t.name, da.avatar
+        order by hotScore desc
+        limit #{limit}
+    </select>
+</mapper>
