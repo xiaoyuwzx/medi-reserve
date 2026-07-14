@@ -44,4 +44,23 @@
         order by hotScore desc
         limit #{limit}
     </select>
+
+    <!--查询患者的所有评价-->
+    <select id="findByPatientId" resultType="com.medireserve.common.dto.MyEvaluationVO">
+        select
+            e.id as evaluationId,
+            e.doctor_id as doctorId,
+            d.name as doctorName,
+            dept.name as departmentName,
+            e.score,
+            e.content,
+            e.is_anonymous = 1 as isAnonymous,
+            e.status,
+            e.created_at as createdAt
+        from evaluation e
+        inner join doctor d on e.doctor_id = d.id
+        left join department dept on d.department_id = dept.id
+        where e.patient_id = #{patientId}
+        order by e.created_at desc
+    </select>
 </mapper>

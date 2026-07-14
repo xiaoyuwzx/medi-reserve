@@ -1,8 +1,11 @@
 package com.medireserve.patient.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DoctorHotVO;
 import com.medireserve.common.dto.EvaluationCreateDTO;
+import com.medireserve.common.dto.MyEvaluationVO;
 import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Evaluation;
 import com.medireserve.common.entity.Schedule;
@@ -135,6 +138,30 @@ public class EvaluationServiceImpl implements EvaluationService {
         }
 
         return evaluation;
+
+    }
+
+    /**
+     * 查询我的评价列表(分页)
+     * @param patientId 当前登录患者ID
+     * @param page 页码
+     * @param size 每页条数
+     * @return
+     */
+    @Override
+    public PageInfo<MyEvaluationVO> getMyEvaluations(Long patientId, int page, int size) {
+
+        log.info("查询我的评价列表，患者ID：{}，页码：{}，每页：{}", patientId, page, size);
+
+        PageHelper.startPage(page, size);
+
+        List<MyEvaluationVO> list = evaluationMapper.findByPatientId(patientId);
+
+        PageInfo<MyEvaluationVO> pageInfo = new PageInfo<>(list);
+
+        log.info("查询完成，总记录数：{}", pageInfo.getTotal());
+
+        return pageInfo;
 
     }
 

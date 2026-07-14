@@ -1,6 +1,7 @@
 package com.medireserve.patient.mapper;
 
 import com.medireserve.common.dto.DoctorHotVO;
+import com.medireserve.common.dto.MyEvaluationVO;
 import com.medireserve.common.entity.Evaluation;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -36,5 +37,12 @@ public interface EvaluationMapper {
      * @return 返回医生列表
      */
     List<DoctorHotVO> findHotDoctors(@Param("limit") int limit);
+
+    /**
+     * 查询患者的所有评价(分页)
+     * @param patientId
+     * @return
+     */
+    List<MyEvaluationVO> findByPatientId(@Param("patientId") Long patientId);
 
 }

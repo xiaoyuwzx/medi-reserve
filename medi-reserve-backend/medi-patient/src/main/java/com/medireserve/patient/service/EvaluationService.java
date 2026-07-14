@@ -31,7 +31,7 @@ public interface EvaluationService {
      * @param size 每页条数
      * @return 分页评价列表
      */
-    //PageInfo<MyEvaluationVO> getMyEvaluations(Long patientId, int page, int size);
+    PageInfo<MyEvaluationVO> getMyEvaluations(Long patientId, int page, int size);
 
     /**
      * 查询医生的评价列表（公开访问，分页）

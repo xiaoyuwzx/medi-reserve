@@ -1,8 +1,10 @@
 package com.medireserve.patient.controller;
 
+import com.github.pagehelper.PageInfo;
 import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.EvaluationCreateDTO;
+import com.medireserve.common.dto.MyEvaluationVO;
 import com.medireserve.common.entity.Evaluation;
 import com.medireserve.common.result.Result;
 import com.medireserve.patient.service.EvaluationService;
@@ -60,6 +62,32 @@ public class EvaluationController {
 
     }
 
-    
+    /**
+     * 查询我的评价列表(分页)
+     * 患者查看自己提交的所有评价
+     * @param page
+     * @param size
+     * @param patientId
+     * @return
+     */
+    @GetMapping("/my-evaluations")
+    @RequireRole(RoleConstant.PATIENT)
+    @Operation(summary = "查询我的评价", description = "分页查询当前患者提交的所有评价")
+    public Result<PageInfo<MyEvaluationVO>> getMyEvaluations(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestAttribute("userId") Long patientId){
+
+        log.info("查询我的评价，患者ID：{}，页码：{}，每页：{}", patientId, page, size);
+
+        //校验参数
+        if(page < 1) page = 1;
+        if(page < 1 || size > 100) size = 10;
+
+        PageInfo<MyEvaluationVO> pageInfo = evaluationService.getMyEvaluations(patientId, page, size);
+
+        return Result.success(pageInfo);
+
+    }
 
 }
