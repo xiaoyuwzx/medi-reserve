@@ -77,3 +77,15 @@ aliyun:
     timeout: 1800
     # 上传根目录（可选，默认不填则为 Bucket 根目录，我建议填 'medi'）
     base-dir: medi
+
+# ========== Actuator 配置（用于健康检查） ==========
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true

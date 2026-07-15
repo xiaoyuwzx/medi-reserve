@@ -1,0 +1,37 @@
+# =============================================
+# Docker 环境配置文件
+# 在 docker-compose 中通过 SPRING_PROFILES_ACTIVE=docker 激活
+# 覆盖默认的 application.yml 中的配置
+# =============================================
+
+server:
+  port: ${PORT:8081}
+
+spring:
+  datasource:
+    # 使用服务名 mysql 代替 localhost（Docker 内部 DNS 解析）
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/medi_reserve?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+  redis:
+    host: ${SPRING_REDIS_HOST:redis}
+    port: ${SPRING_REDIS_PORT:6379}
+    password: ${SPRING_REDIS_PASSWORD:}
+    database: 0
+    timeout: 5000ms
+
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-must-be-long-enough-1234567890}
+  expiration: 7200000
+
+logging:
+  level:
+    com.medireserve: INFO
+    org.springframework.web: WARN
+    org.springframework.cache: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
