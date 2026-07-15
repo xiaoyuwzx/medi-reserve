@@ -9,7 +9,7 @@ import com.medireserve.common.exception.PasswordErrorException;
 import com.medireserve.common.exception.PhoneAlreadyExistsException;
 import com.medireserve.common.service.LoginAttemptService;
 import com.medireserve.common.utils.PasswordUtil;
-import com.medireserve.patient.mapper.PatientAuthMapper;
+import com.medireserve.common.mapper.PatientAuthMapper;
 import com.medireserve.patient.service.PatientAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

@@ -2,9 +2,55 @@ server:
   port: 8084
 
 spring:
-  # WebSocket 主要依赖 Redis 存会话，如果不需要直接连 DB，可以只配 Redis
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/medi_reserve?useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
   redis:
     host: localhost
     port: 6379
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
 
-# 如果不连数据库，可以把 datasource 配置注释掉，或者保留（后面扩展用）
+jwt:
+  secret: "your-256-bit-secret-key-must-be-long-enough-1234567890"
+  expiration: 7200000
+  interceptor:
+    enabled: true
+    exclude-paths:
+      - /doc.html
+      - /css/**
+      - /js/**
+      - /favicon.ico
+      - /webjars/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /error
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  group-configs:
+    - group: WebSocket 服务
+      packages-to-scan: com.medireserve.websocket.controller
+      paths-to-match: '/**'
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+mybatis:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.medireserve.common.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

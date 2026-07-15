@@ -1,7 +1,6 @@
-package com.medireserve.patient.mapper;
+package com.medireserve.common.mapper;
 
 import com.medireserve.common.entity.Appointment;
-import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.Schedule;
 import org.apache.ibatis.annotations.*;
 

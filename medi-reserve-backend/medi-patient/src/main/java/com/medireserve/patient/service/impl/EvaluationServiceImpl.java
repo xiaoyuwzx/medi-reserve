@@ -12,7 +12,7 @@ import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Evaluation;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.*;
-import com.medireserve.patient.mapper.AppointmentMapper;
+import com.medireserve.common.mapper.AppointmentMapper;
 import com.medireserve.patient.mapper.EvaluationMapper;
 import com.medireserve.patient.service.EvaluationService;
 import lombok.extern.slf4j.Slf4j;

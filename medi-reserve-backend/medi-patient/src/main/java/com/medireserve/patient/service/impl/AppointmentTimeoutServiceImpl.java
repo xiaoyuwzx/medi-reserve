@@ -3,7 +3,7 @@ package com.medireserve.patient.service.impl;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Schedule;
-import com.medireserve.patient.mapper.AppointmentMapper;
+import com.medireserve.common.mapper.AppointmentMapper;
 import com.medireserve.patient.service.AppointmentTimeoutService;
 import com.medireserve.patient.service.PatientDoctorService;
 import lombok.extern.slf4j.Slf4j;

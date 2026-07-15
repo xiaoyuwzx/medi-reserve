@@ -1,7 +1,7 @@
 package com.medireserve.patient.timer;
 
 import com.medireserve.common.entity.Appointment;
-import com.medireserve.patient.mapper.AppointmentMapper;
+import com.medireserve.common.mapper.AppointmentMapper;
 import com.medireserve.patient.service.AppointmentTimeoutService;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;

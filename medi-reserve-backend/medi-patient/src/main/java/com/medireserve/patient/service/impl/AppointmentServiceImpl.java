@@ -8,7 +8,7 @@ import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.*;
-import com.medireserve.patient.mapper.AppointmentMapper;
+import com.medireserve.common.mapper.AppointmentMapper;
 import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.patient.service.AppointmentService;
 import com.medireserve.patient.service.PatientDoctorService;

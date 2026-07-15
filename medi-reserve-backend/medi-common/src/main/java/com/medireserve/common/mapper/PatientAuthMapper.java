@@ -1,4 +1,4 @@
-package com.medireserve.patient.mapper;
+package com.medireserve.common.mapper;
 
 import com.medireserve.common.entity.Patient;
 import org.apache.ibatis.annotations.Insert;
@@ -30,4 +30,11 @@ public interface PatientAuthMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Patient patient);
 
+    /**
+     * 根据患者ID查询患者信息
+     * @param patientId
+     * @return
+     */
+    @Select("select * from patient where id = #{patientId}")
+    Patient findById(Long patientId);
 }
