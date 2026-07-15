@@ -4,6 +4,7 @@ import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Schedule;
 import org.apache.ibatis.annotations.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -109,5 +110,12 @@ public interface AppointmentMapper {
      */
     @Update("update appointment set status = 2 where id = #{id} and status = 1")
     int finishConsultation(@Param("id") Long id);
+
+    /**
+     * 查询所有未来排班ID（今天及之后）
+     * 用于初始化布隆过滤器
+     */
+    @Select("SELECT id FROM schedule WHERE schedule_date >= CURDATE()")
+    List<Long> findFutureScheduleIds(@Param("startDate") LocalDate startDate);
 
 }

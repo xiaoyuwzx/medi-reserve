@@ -130,6 +130,20 @@
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>${redisson.version}</version>
             </dependency>
+
+            <!-- ========== 缓存相关 ========== -->
+            <!-- Google Guava（布隆过滤器 + 本地缓存工具） -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.2.0-jre</version>
+            </dependency>
+            <!-- Caffeine 本地缓存（Spring Boot 已自带，但为了版本统一显式声明） -->
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>3.1.8</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>

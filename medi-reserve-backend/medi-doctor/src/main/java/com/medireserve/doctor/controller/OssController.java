@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "医生端 - 文件上传", description = "获取 OSS STS 临时凭证")
 public class OssController {
 
-    @Autowired
     private OssStsService ossStsService;
 
     public OssController(OssStsService ossStsService) {

@@ -3,6 +3,8 @@ package com.medireserve.common.mapper;
 import com.medireserve.common.entity.Doctor;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 /**
  * 医生端认证
  */
@@ -44,5 +46,14 @@ public interface DoctorAuthMapper {
             "LEFT JOIN title t ON d.title_id = t.id " +
             "WHERE d.id = #{id}")
     Doctor findById(@Param("id") Long id);
+
+    /**
+     * 查询所有已审核通过且账号状态正常的医生ID
+     * 用于初始化布隆过滤器
+     */
+    @Select("SELECT d.id FROM doctor d " +
+            "INNER JOIN doctor_audit da ON d.id = da.doctor_id " +
+            "WHERE d.status = 1 AND da.audit_status = 1")
+    List<Long> findAllApprovedIds();
 
 }

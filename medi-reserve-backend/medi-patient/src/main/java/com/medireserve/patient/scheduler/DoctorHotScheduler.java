@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@EnableScheduling
 public class DoctorHotScheduler {
 
     @Autowired

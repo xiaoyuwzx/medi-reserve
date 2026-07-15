@@ -2,6 +2,7 @@ package com.medireserve.patient.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.medireserve.common.constant.CacheKeyConstants;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DepartmentVO;
 import com.medireserve.common.dto.DoctorListQueryDTO;
@@ -14,21 +15,24 @@ import com.medireserve.common.exception.DoctorNotFoundException;
 import com.medireserve.common.mapper.DoctorAuditMapper;
 import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.common.mapper.TitleMapper;
+import com.medireserve.common.service.BloomFilterService;
+import com.medireserve.common.service.MultiLevelCacheService;
 import com.medireserve.patient.mapper.PatientDoctorMapper;
 import com.medireserve.patient.mapper.PatientScheduleMapper;
+import com.medireserve.patient.service.CacheEvictService;
 import com.medireserve.patient.service.PatientDoctorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * 患者端 - 医生/排班查询服务
- * 提供科室列表、医生列表、排班日历等查询功能
+ * 集成多级缓存（Caffeine + Redis + 布隆过滤器）
  */
 @Slf4j
 @Service
@@ -52,108 +56,145 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
     @Autowired
     private DoctorAuditMapper doctorAuditMapper;
 
+    @Autowired
+    private MultiLevelCacheService multiLevelCacheService;
+
+    @Autowired
+    private BloomFilterService bloomFilterService;
+
+    @Autowired
+    private CacheEvictService cacheEvictService;
+
+    // ==================== 科室列表（使用 @Cacheable，但底层可改用多级缓存） ====================
+
     /**
-     * 获取所有科室列表(缓存一个小时减小数据库压力)
-     * @return
+     * 获取所有科室列表
+     * 使用 Spring Cache 的 @Cacheable 注解，默认使用 Caffeine 缓存管理器
      */
     @Override
     @Cacheable(value = "departments")
     public List<DepartmentVO> getAllDepartments() {
-
-        log.info("查询所有科室列表");
-
+        log.info("查询所有科室列表（回源）");
         return patientDoctorMapper.findAllDepartments();
-
     }
+
+    // ==================== 职称列表 ====================
 
     @Override
     @Cacheable(value = "titles")
     public List<Title> getAllTitles() {
-
-        log.info("查询所有职称列表");
-
+        log.info("查询所有职称列表（回源）");
         return titleMapper.findAll();
-
     }
 
+    // ==================== 医生列表（分页，手动缓存） ====================
+
     /**
-     * 分页查询医生列表(缓存5分钟)
-     * @param doctorListQueryDTO
-     * @return
+     * 分页查询医生列表
+     * 使用多级缓存（Caffeine + Redis）
+     *
+     * 缓存Key = cache:doctors:{department}:{keyword}:{page}:{size}
+     * 过期时间：5分钟（Redis），10分钟（Caffeine）
      */
     @Override
-    public PageInfo<DoctorListVO> getDoctorList(DoctorListQueryDTO doctorListQueryDTO) {
-
-        log.info("查询医生列表，科室：{}，关键词：{}，页码：{}，每页：{}",
-                doctorListQueryDTO.getDepartment(), doctorListQueryDTO.getKeyword(), doctorListQueryDTO.getPage(), doctorListQueryDTO.getSize());
-
-        //使用PageHelper分页
-        PageHelper.startPage(doctorListQueryDTO.getPage(), doctorListQueryDTO.getSize());
-
-        //执行查询
-        List<DoctorListVO> list = patientDoctorMapper.findDoctorList(
-                doctorListQueryDTO.getDepartment(),
-                doctorListQueryDTO.getKeyword()
+    public PageInfo<DoctorListVO> getDoctorList(DoctorListQueryDTO queryDTO) {
+        // 构建缓存Key
+        String cacheKey = CacheKeyConstants.buildDoctorsKey(
+                queryDTO.getDepartment(),
+                queryDTO.getKeyword(),
+                queryDTO.getPage(),
+                queryDTO.getSize()
         );
 
-        //封装页面结果
-        PageInfo<DoctorListVO> pageInfo = new PageInfo<>(list);
+        log.debug("查询医生列表，缓存Key: {}", cacheKey);
 
-        log.info("查询完成，总记录数：{}，总页数：{}", pageInfo.getTotal(), pageInfo.getPages());
+        // 使用多级缓存
+        PageInfo<DoctorListVO> pageInfo = multiLevelCacheService.get(
+                cacheKey,                    // Redis Key
+                cacheKey,                    // 本地缓存Key（可以相同）
+                () -> {                      // 回源函数
+                    // 分页查询
+                    PageHelper.startPage(queryDTO.getPage(), queryDTO.getSize());
+                    List<DoctorListVO> list = patientDoctorMapper.findDoctorList(
+                            queryDTO.getDepartment(),
+                            queryDTO.getKeyword()
+                    );
+                    return new PageInfo<>(list);
+                },
+                300L  // Redis 过期时间：5分钟（300秒）
+        );
 
         return pageInfo;
-
     }
 
+    // ==================== 排班日历（布隆过滤器 + 多级缓存） ====================
+
     /**
-     * 获取某医生未来7天的排班日历(缓存1分钟)
-     * @param doctorId
-     * @return
+     * 获取某医生未来7天的排班日历
+     *
+     * 防护机制：
+     * 1. 先通过布隆过滤器判断医生ID是否存在，不存在则直接返回空列表
+     * 2. 使用多级缓存（Caffeine + Redis）
      */
     @Override
-    @Cacheable(value = "schedules", key = "#doctorId + '_' + T(java.time.LocalDate).now().format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd'))")
     public List<ScheduleCalendarVO> getScheduleCalendar(Long doctorId) {
-
-        log.info("查询医生排班日历，医生ID：{}", doctorId);
-
-        //校验医生是否存在
-        Doctor doctor = doctorAuthMapper.findById(doctorId);
-        if(doctor == null){
-            log.warn("医生不存在，医生ID：{}", doctorId);
-            throw new DoctorNotFoundException();
+        // ========== 1. 布隆过滤器防穿透 ==========
+        if (!bloomFilterService.mightContainDoctor(doctorId)) {
+            log.warn("医生ID {} 不存在（布隆过滤器拦截）", doctorId);
+            return List.of(); // 返回空列表
         }
 
-        // 校验审核状态
-        DoctorAudit audit = doctorAuditMapper.findByDoctorId(doctorId);
-        if (audit == null || !StatusConstant.AUDIT_APPROVED.equals(audit.getAuditStatus())) {
-            log.warn("医生未审核或审核未通过，医生ID：{}", doctorId);
-            throw new DoctorNotFoundException();  // 复用相同异常，避免透露具体原因
-        }
+        // ========== 2. 构建缓存Key ==========
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String cacheKey = CacheKeyConstants.buildSchedulesKey(doctorId, today);
 
-        //定义日期范围
-        LocalDate today = LocalDate.now();
-        LocalDate endDate = today.plusDays(DEFAULT_FUTURE_DAYS - 1);
+        log.debug("查询排班日历，缓存Key: {}", cacheKey);
 
-        log.info("查询日期范围：{} ~ {}", today, endDate);
+        // ========== 3. 多级缓存查询 ==========
+        return multiLevelCacheService.get(
+                cacheKey,
+                cacheKey,
+                () -> {
+                    // ========== 4. 校验医生是否存在（二次校验） ==========
+                    Doctor doctor = doctorAuthMapper.findById(doctorId);
+                    if (doctor == null) {
+                        log.warn("医生不存在，ID：{}", doctorId);
+                        throw new DoctorNotFoundException();
+                    }
 
-        //查询排班日历
-        List<ScheduleCalendarVO> calendarList = patientScheduleMapper.findSchedulesByDoctorIdAndDateRange(doctorId, today, endDate);
+                    // 校验审核状态
+                    DoctorAudit audit = doctorAuditMapper.findByDoctorId(doctorId);
+                    if (audit == null || !StatusConstant.AUDIT_APPROVED.equals(audit.getAuditStatus())) {
+                        log.warn("医生未审核或审核未通过，ID：{}", doctorId);
+                        throw new DoctorNotFoundException();
+                    }
 
-        log.info("查询完成，共 {} 条排班记录", calendarList.size());
+                    // 定义日期范围
+                    LocalDate todayDate = LocalDate.now();
+                    LocalDate endDate = todayDate.plusDays(DEFAULT_FUTURE_DAYS - 1);
 
-        return calendarList;
-
+                    // 查询排班日历
+                    List<ScheduleCalendarVO> list = patientScheduleMapper.findSchedulesByDoctorIdAndDateRange(
+                            doctorId, todayDate, endDate
+                    );
+                    log.info("排班日历回源查询，医生ID：{}，共 {} 条", doctorId, list.size());
+                    return list;
+                },
+                60L  // Redis 过期时间：1分钟
+        );
     }
 
+    // ==================== 清除缓存 ====================
+
     /**
-     * 清除某医生的排班缓存（预约创建/取消时调用）
-     * @param doctorId
+     * 清除某医生的排班缓存
+     * 在预约创建/取消时调用
      */
     @Override
-    @CacheEvict(value = "schedules", key = "#doctorId + '_' + T(java.time.LocalDate).now().format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd'))")
     public void clearScheduleCache(Long doctorId) {
-
-        log.info("清除医生排班缓存，医生ID：{}", doctorId);
-
+        if (doctorId == null) return;
+        // 使用统一缓存失效服务
+        cacheEvictService.evictSchedulesByDoctor(doctorId);
+        log.info("清除医生 {} 的排班缓存", doctorId);
     }
 }

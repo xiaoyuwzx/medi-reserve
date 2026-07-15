@@ -27,7 +27,7 @@ public class CacheConfig {
     /**
      * 创建支持 Java 8 时间类型的 JSON 序列化器
      */
-    private GenericJackson2JsonRedisSerializer createJsonSerializer() {
+    public static GenericJackson2JsonRedisSerializer createJsonSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
         // 注册 JavaTimeModule 以支持 LocalDateTime、LocalDate 等
         objectMapper.registerModule(new JavaTimeModule());
