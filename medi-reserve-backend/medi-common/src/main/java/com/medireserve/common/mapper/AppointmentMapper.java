@@ -101,4 +101,13 @@ public interface AppointmentMapper {
     @Select("select * from appointment where status = 0 and created_at < date_sub(now(), interval 30 minute)")
     List<Appointment> findAllPendingTimeout();
 
+    /**
+     * 结束问诊：更新预约状态为已完成
+     * 仅当状态为 1（已支付）时才能更新为 2（已完成）
+     * @param id 预约ID
+     * @return 受影响行数
+     */
+    @Update("update appointment set status = 2 where id = #{id} and status = 1")
+    int finishConsultation(@Param("id") Long id);
+
 }

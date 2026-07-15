@@ -21,18 +21,11 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 
 /**
  * WebSocket 消息处理控制器
  * 处理 /app 前缀的 STOMP 消息
- *
- * 核心功能：
- * 1. 接收前端发送的消息
- * 2. 校验发送者身份和权限
- * 3. 保存消息到数据库（同步，确保ID回填）
- * 4. 实时推送给接收者（在线）或暂存离线消息（离线）
  */
 @Slf4j
 @Controller
@@ -60,24 +53,15 @@ public class ChatController {
      * 发送消息（核心方法）
      * 前端通过 /app/chat.send 发送 STOMP 消息
      *
-     * 处理流程：
-     * 1. 认证校验（从拦截器存入的 session 中提取用户信息）
-     * 2. 业务校验（预约归属、状态、日期）
-     * 3. 接收者校验（防止发错人）
-     * 4. 同步保存到数据库（确保 ID 回填，用于前端展示）
-     * 5. 查询发送者真实姓名（提升用户体验）
-     * 6. 实时推送（在线）或暂存离线消息（离线）
+     * 消息路由：
+     * 1. 广播到房间频道 /topic/room/{appointmentId}（按预约隔离，推荐）
+     * 2. 点对点推送 /user/{receiverId}/queue/messages（备用）
      */
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload SendMessageDTO sendMessageDTO,
-                            SimpMessageHeaderAccessor headerAccessor,
-                            Principal principal) {
+                            SimpMessageHeaderAccessor headerAccessor) {
 
         // ========== 1. 认证校验 ==========
-        if (principal == null) {
-            throw new ConsultationException("未认证的用户");
-        }
-
         Long senderId = (Long) headerAccessor.getSessionAttributes().get("userId");
         String senderRole = (String) headerAccessor.getSessionAttributes().get("role");
 
@@ -93,21 +77,19 @@ public class ChatController {
         // ========== 2. 业务校验 ==========
         Appointment appointment = consultationService.checkConsultationAccess(appointmentId, senderId, senderRole);
 
-        // ========== 3. 接收者校验（防止发错人） ==========
+        // ========== 3. 接收者校验 ==========
         boolean isPatient = "PATIENT".equals(senderRole);
         if (isPatient) {
-            // 患者只能发给自己的医生
             if (!receiverId.equals(appointment.getDoctorId())) {
                 throw new ConsultationException("您只能发送消息给您的医生");
             }
         } else {
-            // 医生只能发给自己的患者
             if (!receiverId.equals(appointment.getPatientId())) {
                 throw new ConsultationException("您只能发送消息给您的患者");
             }
         }
 
-        // ========== 4. 防 XSS 过滤（将 HTML 标签转义为安全字符） ==========
+        // ========== 4. 防 XSS 过滤 ==========
         String safeContent = sendMessageDTO.getContent()
                 .replaceAll("<", "&lt;")
                 .replaceAll(">", "&gt;");
@@ -122,13 +104,11 @@ public class ChatController {
         message.setMsgType(sendMessageDTO.getMsgType() == null ? MessageTypeConstant.TEXT : sendMessageDTO.getMsgType());
         message.setSendTime(LocalDateTime.now());
 
-        // ========== 6. 同步保存到数据库（确保 MyBatis 回填 ID） ==========
-        // 注意：改为同步保存是为了立即获取 messageId，便于前端做消息去重和引用
-        // 消息保存通常耗时 20-50ms，对用户体验影响可以接受
+        // ========== 6. 同步保存到数据库 ==========
         consultationMessageMapper.insert(message);
         log.debug("消息保存成功，消息ID：{}", message.getId());
 
-        // ========== 7. 查询发送者真实姓名（提升用户体验） ==========
+        // ========== 7. 查询发送者真实姓名 ==========
         String senderName;
         if (isPatient) {
             Patient patient = patientAuthMapper.findById(senderId);
@@ -138,7 +118,7 @@ public class ChatController {
             senderName = doctor != null ? doctor.getName() : "医生";
         }
 
-        // ========== 8. 构建 VO 用于推送给接收者 ==========
+        // ========== 8. 构建 VO ==========
         ChatMessageVO chatMessageVO = new ChatMessageVO();
         chatMessageVO.setMessageId(message.getId());
         chatMessageVO.setSenderId(senderId);
@@ -146,21 +126,31 @@ public class ChatController {
         chatMessageVO.setSenderRole(senderRole);
         chatMessageVO.setContent(safeContent);
         chatMessageVO.setSendTime(message.getSendTime());
-        chatMessageVO.setIsSelf(false);  // 接收者收到时是 false
+        chatMessageVO.setIsSelf(false);
 
-        // ========== 9. 判断接收者状态，推送或暂存 ==========
+        // ================================================================
+        //  ========== 9. 广播到房间频道（按预约ID隔离） ==========
+        //  所有订阅了 /topic/room/{appointmentId} 的用户都能收到
+        //  实现了按问诊室隔离的效果
+        // ================================================================
+        String roomTopic = "/topic/room/" + appointmentId;
+        messagingTemplate.convertAndSend(roomTopic, chatMessageVO);
+        log.info("消息已广播到房间频道 {}", roomTopic);
+
+        // ========== 10. 点对点推送（备用，兼容旧客户端） ==========
         boolean isReceiverOnline = consultationRedisService.isOnline(receiverId);
-
         if (isReceiverOnline) {
-            // 接收者在线：实时推送（通过 STOMP 点对点）
-            messagingTemplate.convertAndSendToUser(
-                    receiverId.toString(),
-                    "/queue/messages",
-                    chatMessageVO
-            );
-            log.info("消息已实时推送给用户 {}", receiverId);
+            try {
+                messagingTemplate.convertAndSendToUser(
+                        String.valueOf(receiverId),
+                        "/queue/messages",
+                        chatMessageVO
+                );
+                log.debug("点对点消息已推送给用户 {}", receiverId);
+            } catch (Exception e) {
+                log.warn("点对点推送失败: {}", e.getMessage());
+            }
         } else {
-            // 接收者离线：暂存到 Redis，待上线后推送
             consultationRedisService.storeOfflineMessage(receiverId, chatMessageVO);
             log.info("用户 {} 离线，消息已暂存", receiverId);
         }

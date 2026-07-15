@@ -146,9 +146,11 @@ public class ConsultationService {
         checkConsultationAccess(appointmentId, userId, role);
 
         // 更新预约状态为已完成（2）
-        int rows = appointmentMapper.updateStatus(appointmentId, StatusConstant.APPOINTMENT_COMPLETED);
+        // 使用专用方法，仅当状态为 1（已支付）时才能更新
+        int rows = appointmentMapper.finishConsultation(appointmentId);
         if (rows == 0) {
-            throw new ConsultationException("结束问诊失败，请稍后重试");
+            // 可能已被其他操作修改状态，或状态不是已支付
+            throw new ConsultationException("结束问诊失败，预约状态可能已被修改");
         }
 
         // 清理 Redis 房间成员
