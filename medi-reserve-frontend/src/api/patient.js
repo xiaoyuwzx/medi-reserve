@@ -21,3 +21,19 @@ export function patientRegister(data) {
     data,
   })
 }
+
+// 获取科室列表
+export function getDepartments() {
+  return request({
+    url: '/patient/departments',
+    method: 'get',
+  })
+}
+
+// 获取热门医生
+export function getHotDoctors() {
+  return request({
+    url: '/patient/doctors/hot',
+    method: 'get',
+  })
+}
