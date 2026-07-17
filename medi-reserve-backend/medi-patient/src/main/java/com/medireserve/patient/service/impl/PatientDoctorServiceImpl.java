@@ -1,5 +1,6 @@
 package com.medireserve.patient.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.medireserve.common.constant.CacheKeyConstants;
@@ -65,12 +66,8 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
     @Autowired
     private CacheEvictService cacheEvictService;
 
-    // ==================== 科室列表（使用 @Cacheable，但底层可改用多级缓存） ====================
+    // ==================== 科室列表（使用 @Cacheable） ====================
 
-    /**
-     * 获取所有科室列表
-     * 使用 Spring Cache 的 @Cacheable 注解，默认使用 Caffeine 缓存管理器
-     */
     @Override
     @Cacheable(value = "departments")
     public List<DepartmentVO> getAllDepartments() {
@@ -87,14 +84,11 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
         return titleMapper.findAll();
     }
 
-    // ==================== 医生列表（分页，手动缓存） ====================
+    // ==================== 医生列表（多级缓存 + TypeReference） ====================
 
     /**
      * 分页查询医生列表
-     * 使用多级缓存（Caffeine + Redis）
-     *
-     * 缓存Key = cache:doctors:{department}:{keyword}:{page}:{size}
-     * 过期时间：5分钟（Redis），10分钟（Caffeine）
+     * 使用多级缓存（Caffeine + Redis），通过 TypeReference 解决 PageInfo 泛型反序列化问题
      */
     @Override
     public PageInfo<DoctorListVO> getDoctorList(DoctorListQueryDTO queryDTO) {
@@ -108,12 +102,11 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
 
         log.debug("查询医生列表，缓存Key: {}", cacheKey);
 
-        // 使用多级缓存
+        // 使用多级缓存，传递 Type 确保 PageInfo 泛型正确反序列化
         PageInfo<DoctorListVO> pageInfo = multiLevelCacheService.get(
-                cacheKey,                    // Redis Key
-                cacheKey,                    // 本地缓存Key（可以相同）
-                () -> {                      // 回源函数
-                    // 分页查询
+                cacheKey,
+                cacheKey,
+                () -> {
                     PageHelper.startPage(queryDTO.getPage(), queryDTO.getSize());
                     List<DoctorListVO> list = patientDoctorMapper.findDoctorList(
                             queryDTO.getDepartment(),
@@ -121,7 +114,8 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
                     );
                     return new PageInfo<>(list);
                 },
-                300L  // Redis 过期时间：5分钟（300秒）
+                300L,
+                new TypeReference<PageInfo<DoctorListVO>>() {}.getType()
         );
 
         return pageInfo;
@@ -129,33 +123,26 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
 
     // ==================== 排班日历（布隆过滤器 + 多级缓存） ====================
 
-    /**
-     * 获取某医生未来7天的排班日历
-     *
-     * 防护机制：
-     * 1. 先通过布隆过滤器判断医生ID是否存在，不存在则直接返回空列表
-     * 2. 使用多级缓存（Caffeine + Redis）
-     */
     @Override
     public List<ScheduleCalendarVO> getScheduleCalendar(Long doctorId) {
-        // ========== 1. 布隆过滤器防穿透 ==========
+        // 1. 布隆过滤器防穿透
         if (!bloomFilterService.mightContainDoctor(doctorId)) {
             log.warn("医生ID {} 不存在（布隆过滤器拦截）", doctorId);
-            return List.of(); // 返回空列表
+            return List.of();
         }
 
-        // ========== 2. 构建缓存Key ==========
+        // 2. 构建缓存Key
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String cacheKey = CacheKeyConstants.buildSchedulesKey(doctorId, today);
 
         log.debug("查询排班日历，缓存Key: {}", cacheKey);
 
-        // ========== 3. 多级缓存查询 ==========
+        // 3. 多级缓存查询，使用 TypeReference 保留泛型
         return multiLevelCacheService.get(
                 cacheKey,
                 cacheKey,
                 () -> {
-                    // ========== 4. 校验医生是否存在（二次校验） ==========
+                    // 校验医生是否存在
                     Doctor doctor = doctorAuthMapper.findById(doctorId);
                     if (doctor == null) {
                         log.warn("医生不存在，ID：{}", doctorId);
@@ -180,20 +167,16 @@ public class PatientDoctorServiceImpl implements PatientDoctorService {
                     log.info("排班日历回源查询，医生ID：{}，共 {} 条", doctorId, list.size());
                     return list;
                 },
-                60L  // Redis 过期时间：1分钟
+                60L,
+                new TypeReference<List<ScheduleCalendarVO>>() {}.getType()
         );
     }
 
     // ==================== 清除缓存 ====================
 
-    /**
-     * 清除某医生的排班缓存
-     * 在预约创建/取消时调用
-     */
     @Override
     public void clearScheduleCache(Long doctorId) {
         if (doctorId == null) return;
-        // 使用统一缓存失效服务
         cacheEvictService.evictSchedulesByDoctor(doctorId);
         log.info("清除医生 {} 的排班缓存", doctorId);
     }

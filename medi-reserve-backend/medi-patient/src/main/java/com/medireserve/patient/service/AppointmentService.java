@@ -1,6 +1,7 @@
 package com.medireserve.patient.service;
 
 import com.medireserve.common.dto.AppointmentCreateDTO;
+import com.medireserve.common.dto.AppointmentListVO;
 import com.medireserve.common.dto.ScheduleDetailVO;
 import com.medireserve.common.entity.Appointment;
 import jakarta.validation.Valid;
@@ -31,4 +32,14 @@ public interface AppointmentService {
      * @param patientId
      */
     void payAppointment(Long appointmentId, Long patientId);
+
+    /**
+     * 查询我的预约列表（分页）
+     * @param patientId
+     * @param status 预约状态筛选（可选）
+     * @param page 页码
+     * @param size 每页条数
+     * @return 分页结果
+     */
+    com.github.pagehelper.PageInfo<AppointmentListVO> getMyAppointments(Long patientId, Integer status, int page, int size);
 }

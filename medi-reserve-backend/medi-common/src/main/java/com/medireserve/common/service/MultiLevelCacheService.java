@@ -1,29 +1,21 @@
 package com.medireserve.common.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
+import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-/**
- * 多级缓存服务
- *
- * 提供手动操作多级缓存的方法：
- * - get：先查 Caffeine，再查 Redis，最后查数据库
- * - put：写入 Redis 和 Caffeine
- * - evict：清除所有层缓存
- *
- * 使用场景：需要手动控制缓存的业务场景（如医生列表分页）
- */
 @Slf4j
 @Service
 public class MultiLevelCacheService {
@@ -31,35 +23,30 @@ public class MultiLevelCacheService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    // 本地缓存（用于热点数据）
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final Cache<String, Object> localCache = Caffeine.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)  // 本地缓存10分钟
+            .expireAfterWrite(10, TimeUnit.MINUTES)
             .maximumSize(500)
             .recordStats()
             .build();
 
+    // ==================== 核心方法（带 Type） ====================
+
     /**
-     * 从多级缓存获取数据（带回源函数）
-     *
-     * 流程：
-     * 1. 先查 Caffeine 本地缓存
-     * 2. 未命中则查 Redis
-     * 3. 未命中则执行回源函数查询数据库
-     * 4. 查询结果写入 Redis 和 Caffeine
-     *
-     * @param cacheKey 缓存Key（Redis Key）
-     * @param localCacheKey 本地缓存Key（可自定义，默认与 cacheKey 相同）
-     * @param supplier 回源函数（查询数据库）
-     * @param ttl 缓存过期时间（秒），null 则使用默认
-     * @return 缓存数据
+     * 从多级缓存获取数据（带回源函数）- 支持类型安全反序列化
      */
-    public <T> T get(String cacheKey, String localCacheKey, Supplier<T> supplier, Long ttl) {
+    public <T> T get(String cacheKey, String localCacheKey, Supplier<T> supplier, Long ttl, Type targetType) {
         String localKey = localCacheKey != null ? localCacheKey : cacheKey;
 
         // 1. 尝试从 Caffeine 获取
         Object cachedLocal = localCache.getIfPresent(localKey);
         if (cachedLocal != null) {
             log.debug("本地缓存命中，key: {}", localKey);
+            if (targetType != null && cachedLocal instanceof LinkedHashMap) {
+                return convertToTargetType(cachedLocal, targetType);
+            }
             return (T) cachedLocal;
         }
 
@@ -67,25 +54,27 @@ public class MultiLevelCacheService {
         Object cachedRedis = redisTemplate.opsForValue().get(cacheKey);
         if (cachedRedis != null) {
             log.debug("Redis 缓存命中，key: {}", cacheKey);
-            // 回写本地缓存
-            localCache.put(localKey, cachedRedis);
-            return (T) cachedRedis;
+            T result;
+            if (targetType != null && cachedRedis instanceof LinkedHashMap) {
+                result = convertToTargetType(cachedRedis, targetType);
+            } else {
+                result = (T) cachedRedis;
+            }
+            localCache.put(localKey, result);
+            return result;
         }
 
         // 3. 回源查询
         log.debug("缓存未命中，回源查询，key: {}", cacheKey);
         T result = supplier.get();
         if (result != null) {
-            // 写入 Redis
             if (ttl != null && ttl > 0) {
                 redisTemplate.opsForValue().set(cacheKey, result, ttl, TimeUnit.SECONDS);
             } else {
                 redisTemplate.opsForValue().set(cacheKey, result);
             }
-            // 写入本地缓存
             localCache.put(localKey, result);
         } else {
-            // 空值缓存（防穿透）：缓存空对象，有效期5分钟
             redisTemplate.opsForValue().set(cacheKey, null, 5, TimeUnit.MINUTES);
             localCache.put(localKey, null);
         }
@@ -93,23 +82,46 @@ public class MultiLevelCacheService {
         return result;
     }
 
+    // ==================== 新增：4 参数重载 ====================
+
     /**
-     * 重载：使用默认本地缓存Key（与 cacheKey 相同）
+     * 从多级缓存获取数据（带回源函数）- 不需要类型转换时使用
      */
+    public <T> T get(String cacheKey, String localCacheKey, Supplier<T> supplier, Long ttl) {
+        return get(cacheKey, localCacheKey, supplier, ttl, null);
+    }
+
+    // ==================== 3 参数重载 ====================
+
+    public <T> T get(String cacheKey, Supplier<T> supplier, Long ttl, Type targetType) {
+        return get(cacheKey, cacheKey, supplier, ttl, targetType);
+    }
+
     public <T> T get(String cacheKey, Supplier<T> supplier, Long ttl) {
-        return get(cacheKey, cacheKey, supplier, ttl);
+        return get(cacheKey, cacheKey, supplier, ttl, null);
     }
 
-    /**
-     * 重载：不设置过期时间（使用 Redis 默认）
-     */
+    public <T> T get(String cacheKey, Supplier<T> supplier, Type targetType) {
+        return get(cacheKey, cacheKey, supplier, null, targetType);
+    }
+
     public <T> T get(String cacheKey, Supplier<T> supplier) {
-        return get(cacheKey, cacheKey, supplier, null);
+        return get(cacheKey, cacheKey, supplier, null, null);
     }
 
-    /**
-     * 写入缓存（同时写入 Redis 和本地）
-     */
+    // ==================== 工具方法 ====================
+
+    private <T> T convertToTargetType(Object obj, Type targetType) {
+        try {
+            TypeFactory typeFactory = objectMapper.getTypeFactory();
+            String json = objectMapper.writeValueAsString(obj);
+            return objectMapper.readValue(json, typeFactory.constructType(targetType));
+        } catch (JsonProcessingException e) {
+            log.error("类型转换失败，目标类型：{}", targetType, e);
+            throw new RuntimeException("缓存数据格式转换失败", e);
+        }
+    }
+
     public void put(String cacheKey, Object value, Long ttl) {
         if (value != null) {
             if (ttl != null && ttl > 0) {
@@ -119,40 +131,24 @@ public class MultiLevelCacheService {
             }
             localCache.put(cacheKey, value);
         } else {
-            // 空值缓存（防穿透）
             redisTemplate.opsForValue().set(cacheKey, null, 5, TimeUnit.MINUTES);
             localCache.put(cacheKey, null);
         }
     }
 
-    /**
-     * 清除缓存（同时清除 Redis 和本地）
-     */
     public void evict(String cacheKey) {
         redisTemplate.delete(cacheKey);
         localCache.invalidate(cacheKey);
-        log.debug("缓存已清除，key: {}", cacheKey);
     }
 
-    /**
-     * 批量清除缓存（Redis 使用 pattern，本地清除所有）
-     */
     public void evictAll(String pattern) {
-        // 清除 Redis（使用 keys 操作，生产环境慎用，建议用 scan）
-        // 为了安全，这里使用 keys，但生产环境应使用 scan
-        // 这里仅用于演示
         Set<String> keys = redisTemplate.keys(pattern);
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
-        // 清除本地缓存（全部清除，因为无法按 pattern 清除）
         localCache.invalidateAll();
-        log.debug("批量缓存已清除，pattern: {}", pattern);
     }
 
-    /**
-     * 获取本地缓存统计信息
-     */
     public String getLocalCacheStats() {
         return localCache.stats().toString();
     }

@@ -62,3 +62,29 @@ export function getScheduleDetail(scheduleId) {
     method: 'get',
   })
 }
+
+// 创建预约（下单）
+export function createAppointment(scheduleId) {
+  return request({
+    url: '/patient/appointments',
+    method: 'post',
+    data: { scheduleId },
+  })
+}
+
+// 模拟支付
+export function payAppointment(appointmentId) {
+  return request({
+    url: `/patient/appointments/${appointmentId}/pay`,
+    method: 'post',
+  })
+}
+
+// 查询我的预约列表
+export function getMyAppointments(params) {
+  return request({
+    url: '/patient/appointments',
+    method: 'get',
+    params,
+  })
+}

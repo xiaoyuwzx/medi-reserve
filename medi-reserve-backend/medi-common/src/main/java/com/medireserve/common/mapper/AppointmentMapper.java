@@ -1,5 +1,6 @@
 package com.medireserve.common.mapper;
 
+import com.medireserve.common.dto.AppointmentListVO;
 import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Schedule;
 import org.apache.ibatis.annotations.*;
@@ -117,5 +118,37 @@ public interface AppointmentMapper {
      */
     @Select("SELECT id FROM schedule WHERE schedule_date >= CURDATE()")
     List<Long> findFutureScheduleIds(@Param("startDate") LocalDate startDate);
+
+    /**
+     * 分页查询我的预约列表（含关联医生、科室、职称、排班信息）
+     */
+    @Select("<script>" +
+            "SELECT a.id, a.appointment_no as appointmentNo, a.schedule_id as scheduleId, " +
+            "a.patient_id as patientId, a.doctor_id as doctorId, a.status, a.created_at as createdAt, " +
+            "d.name as doctorName, dept.name as departmentName, t.name as titleName, " +
+            "s.schedule_date as scheduleDate, s.period as period, " +
+            "CASE WHEN s.period = 1 THEN '上午' ELSE '下午' END as periodText " +
+            "FROM appointment a " +
+            "LEFT JOIN doctor d ON a.doctor_id = d.id " +
+            "LEFT JOIN department dept ON d.department_id = dept.id " +
+            "LEFT JOIN title t ON d.title_id = t.id " +
+            "LEFT JOIN schedule s ON a.schedule_id = s.id " +
+            "WHERE a.patient_id = #{patientId} " +
+            "<if test='status != null'> AND a.status = #{status} </if> " +
+            "ORDER BY a.created_at DESC" +
+            "</script>")
+    List<AppointmentListVO> findMyAppointments(@Param("patientId") Long patientId,
+                                                @Param("status") Integer status);
+
+    /**
+     * 统计我的预约总数
+     */
+    @Select("<script>" +
+            "SELECT count(*) FROM appointment " +
+            "WHERE patient_id = #{patientId} " +
+            "<if test='status != null'> AND status = #{status} </if>" +
+            "</script>")
+    int countMyAppointments(@Param("patientId") Long patientId,
+                            @Param("status") Integer status);
 
 }

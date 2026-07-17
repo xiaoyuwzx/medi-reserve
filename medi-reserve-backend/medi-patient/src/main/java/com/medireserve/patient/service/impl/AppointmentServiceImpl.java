@@ -3,6 +3,7 @@ package com.medireserve.patient.service.impl;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.AppointmentCreateDTO;
+import com.medireserve.common.dto.AppointmentListVO;
 import com.medireserve.common.dto.ScheduleDetailVO;
 import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.entity.Doctor;
@@ -13,6 +14,8 @@ import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.patient.service.AppointmentService;
 import com.medireserve.patient.service.PatientDoctorService;
 import com.medireserve.patient.timer.AppointmentTimeoutTimer;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -292,6 +296,26 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         log.info("支付成功，预约ID：{}", appointmentId);
+    }
+
+    /**
+     * 查询我的预约列表（分页）
+     */
+    @Override
+    public PageInfo<AppointmentListVO> getMyAppointments(Long patientId, Integer status, int page, int size) {
+        log.info("查询我的预约列表，患者ID：{}，状态：{}，页码：{}，每页：{}", patientId, status, page, size);
+
+        // 分页查询
+        PageHelper.startPage(page, size);
+        List<AppointmentListVO> list = appointmentMapper.findMyAppointments(patientId, status);
+        int total = appointmentMapper.countMyAppointments(patientId, status);
+
+        // 构建 PageInfo
+        PageInfo<AppointmentListVO> pageInfo = new PageInfo<>(list);
+        pageInfo.setTotal(total);
+
+        log.info("查询我的预约列表成功，共 {} 条", total);
+        return pageInfo;
     }
 
 }

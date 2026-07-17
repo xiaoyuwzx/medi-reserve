@@ -4,7 +4,9 @@ import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.AppointmentCreateDTO;
+import com.medireserve.common.dto.AppointmentListVO;
 import com.medireserve.common.dto.ScheduleDetailVO;
+import com.github.pagehelper.PageInfo;
 import com.medireserve.common.entity.Appointment;
 import com.medireserve.common.result.Result;
 import com.medireserve.patient.service.AppointmentService;
@@ -90,6 +92,29 @@ public class AppointmentController {
 
         return Result.success(MessageConstant.APPOINTMENT_PAY_SUCCESS);
 
+    }
+
+    /**
+     * 查询我的预约列表（分页）
+     */
+    @GetMapping("/appointments")
+    @RequireRole(RoleConstant.PATIENT)
+    @Operation(summary = "查询我的预约列表", description = "分页查询当前患者的预约记录，支持按状态筛选")
+    public Result<PageInfo<AppointmentListVO>> getMyAppointments(
+            @RequestParam(required = false) Integer status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestAttribute("userId") Long patientId) {
+
+        log.info("查询我的预约列表，患者ID：{}，状态：{}", patientId, status);
+
+        // 参数校验
+        if (page < 1) page = 1;
+        if (size < 1 || size > 100) size = 10;
+
+        PageInfo<AppointmentListVO> pageInfo = appointmentService.getMyAppointments(patientId, status, page, size);
+
+        return Result.success(pageInfo);
     }
 
 }
