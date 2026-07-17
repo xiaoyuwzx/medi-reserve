@@ -80,7 +80,7 @@
                 v-if="order.status === 1 && isPastDate(order.scheduleDate)"
                 type="success"
                 size="small"
-                @click="goToEvaluate(order.id)"
+                @click="goToEvaluate(order)"
               >
                 去评价
               </el-button>
@@ -227,9 +227,18 @@ const goToPay = (appointmentId) => {
   router.push(`/patient/pay/${appointmentId}`)
 }
 
-// 去评价
-const goToEvaluate = (appointmentId) => {
-  router.push(`/patient/evaluate/${appointmentId}`)
+// 去评价（携带预约信息）
+const goToEvaluate = (order) => {
+  router.push({
+    path: `/patient/evaluate/${order.id}`,
+    query: {
+      doctorName: order.doctorName,
+      departmentName: order.departmentName,
+      titleName: order.titleName,
+      scheduleDate: order.scheduleDate,
+      periodText: order.periodText,
+    },
+  })
 }
 
 onMounted(() => {

@@ -88,3 +88,12 @@ export function getMyAppointments(params) {
     params,
   })
 }
+
+// 创建评价
+export function createEvaluation(data) {
+  return request({
+    url: '/patient/evaluations',
+    method: 'post',
+    data,
+  })
+}
