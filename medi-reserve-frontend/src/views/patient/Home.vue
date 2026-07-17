@@ -66,7 +66,7 @@
           v-for="doctor in hotDoctors"
           :key="doctor.doctorId"
           class="doctor-card"
-          @click="goToSchedule(doctor.doctorId)"
+          @click="goToSchedule(doctor)"
         >
           <div class="doctor-avatar">
             <el-avatar :size="56" :src="doctor.avatar">
@@ -146,9 +146,17 @@ const goToDoctors = (department) => {
   router.push({ path: '/patient/doctors', query: { department } })
 }
 
-// 跳转医生排班日历
-const goToSchedule = (doctorId) => {
-  router.push(`/patient/schedule/${doctorId}`)
+// 跳转医生排班日历（携带医生信息）
+const goToSchedule = (doctor) => {
+  router.push({
+    path: `/patient/schedule/${doctor.doctorId}`,
+    query: {
+      name: doctor.doctorName,
+      department: doctor.departmentName,
+      title: doctor.titleName,
+      specialty: '',
+    },
+  })
 }
 
 // 获取科室列表

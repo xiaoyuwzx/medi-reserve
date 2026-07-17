@@ -37,3 +37,28 @@ export function getHotDoctors() {
     method: 'get',
   })
 }
+
+// 获取医生列表（分页 + 筛选）
+export function getDoctors(params) {
+  return request({
+    url: '/patient/doctors',
+    method: 'get',
+    params,
+  })
+}
+
+// 获取医生排班日历
+export function getDoctorSchedules(doctorId) {
+  return request({
+    url: `/patient/doctors/${doctorId}/schedules`,
+    method: 'get',
+  })
+}
+
+// 获取排班详情
+export function getScheduleDetail(scheduleId) {
+  return request({
+    url: `/patient/schedules/${scheduleId}`,
+    method: 'get',
+  })
+}
