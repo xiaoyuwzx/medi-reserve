@@ -10,6 +10,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  define: {
+    global: 'window',
+  },
   server: {
     port: 5173,
     proxy: {
@@ -29,11 +32,11 @@ export default defineConfig({
         changeOrigin: true,
       },
       // WebSocket 连接（8084）
-      '/ws': {
-        target: 'ws://localhost:8084',
-        ws: true,
-        changeOrigin: true,
-      },
+'/ws': {
+  target: 'http://localhost:8084',
+  ws: true,
+  changeOrigin: true,
+},
       // 咨询 HTTP 接口（8084）
       '/consultation': {
         target: 'http://localhost:8084',

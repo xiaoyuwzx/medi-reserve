@@ -151,4 +151,39 @@ public interface AppointmentMapper {
     int countMyAppointments(@Param("patientId") Long patientId,
                             @Param("status") Integer status);
 
+    /**
+     * 分页查询医生的预约列表（含关联患者信息）
+     */
+    @Select("<script>" +
+            "SELECT a.id, a.appointment_no as appointmentNo, a.schedule_id as scheduleId, " +
+            "a.patient_id as patientId, a.doctor_id as doctorId, a.status, a.created_at as createdAt, " +
+            "p.name as doctorName, p.name as patientName, p.phone as patientPhone, " +
+            "s.schedule_date as scheduleDate, s.period as period, " +
+            "CASE WHEN s.period = 1 THEN '上午' ELSE '下午' END as periodText " +
+            "FROM appointment a " +
+            "LEFT JOIN patient p ON a.patient_id = p.id " +
+            "LEFT JOIN schedule s ON a.schedule_id = s.id " +
+            "WHERE a.doctor_id = #{doctorId} " +
+            "<if test='date != null'> AND s.schedule_date = #{date} </if> " +
+            "<if test='status != null'> AND a.status = #{status} </if> " +
+            "ORDER BY a.created_at DESC" +
+            "</script>")
+    List<AppointmentListVO> findDoctorAppointments(@Param("doctorId") Long doctorId,
+                                                    @Param("date") String date,
+                                                    @Param("status") Integer status);
+
+    /**
+     * 统计医生的预约总数
+     */
+    @Select("<script>" +
+            "SELECT count(*) FROM appointment a " +
+            "LEFT JOIN schedule s ON a.schedule_id = s.id " +
+            "WHERE a.doctor_id = #{doctorId} " +
+            "<if test='date != null'> AND s.schedule_date = #{date} </if> " +
+            "<if test='status != null'> AND a.status = #{status} </if>" +
+            "</script>")
+    int countDoctorAppointments(@Param("doctorId") Long doctorId,
+                                @Param("date") String date,
+                                @Param("status") Integer status);
+
 }

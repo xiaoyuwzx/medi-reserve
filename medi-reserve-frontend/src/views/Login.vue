@@ -7,11 +7,13 @@
           <el-icon :size="40" color="#409EFF"><Monitor /></el-icon>
         </div>
         <h2 class="title">MediReserve</h2>
-        <p class="subtitle">智慧医疗预约平台</p>
+        <p class="subtitle">
+          {{ role === 'admin' ? '管理员登录' : '智慧医疗预约平台' }}
+        </p>
       </div>
 
-      <!-- 角色切换 -->
-      <div class="role-tabs">
+      <!-- 角色切换 Tab（管理员模式不显示） -->
+      <div v-if="showTabs" class="role-tabs">
         <el-radio-group v-model="role" @change="handleRoleChange" size="large">
           <el-radio-button value="patient">患者登录</el-radio-button>
           <el-radio-button value="doctor">医生登录</el-radio-button>
@@ -26,12 +28,12 @@
         label-position="top"
         @keyup.enter="handleLogin"
       >
-        <el-form-item label="手机号" prop="username">
+        <el-form-item :label="accountLabel" prop="username">
           <el-input
             v-model="form.username"
-            placeholder="请输入手机号"
-            :prefix-icon="Phone"
-            maxlength="11"
+            :placeholder="accountPlaceholder"
+            :prefix-icon="User"
+            maxlength="30"
             clearable
           />
         </el-form-item>
@@ -47,9 +49,8 @@
           />
         </el-form-item>
 
-        <!-- 错误提示：审核状态相关 -->
         <el-alert
-          v-if="auditError"
+          v-if="auditError && role !== 'admin'"
           :title="auditError"
           type="warning"
           show-icon
@@ -70,21 +71,19 @@
         </el-form-item>
       </el-form>
 
-      <!-- 底部链接 -->
-      <div class="login-footer">
+      <!-- 底部链接（管理员不显示） -->
+      <div v-if="role !== 'admin'" class="login-footer">
         <span>还没有账号？</span>
         <router-link :to="registerPath" class="register-link">
           {{ role === 'patient' ? '患者注册' : '医生注册' }}
         </router-link>
       </div>
 
-      <!-- 切换入口 -->
-      <div class="switch-entry">
-        <span class="switch-text">
-          {{ role === 'patient' ? '医生请' : '患者请' }}
-        </span>
-        <el-button link type="primary" @click="switchRole">
-          {{ role === 'patient' ? '切换到医生登录' : '切换到患者登录' }}
+      <!-- 切换入口（管理员显示切换入口） -->
+      <div v-if="role === 'admin'" class="switch-entry">
+        <span class="switch-text">管理员</span>
+        <el-button link type="primary" @click="switchTo('patient')">
+          切换到患者登录
         </el-button>
       </div>
     </div>
@@ -93,10 +92,11 @@
 
 <script setup>
 import { reactive, ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { Phone, Lock } from '@element-plus/icons-vue'
+import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
+import { User, Lock } from '@element-plus/icons-vue'
 import { patientLogin } from '@/api/patient'
 import { doctorLogin } from '@/api/doctor'
+import { adminLogin } from '@/api/admin'
 import { useUserStore } from '@/store/user'
 import { isValidPhone } from '@/utils/validate'
 
@@ -108,8 +108,29 @@ const formRef = ref(null)
 const loading = ref(false)
 const auditError = ref('')
 
-// 角色：patient / doctor（可通过 query 参数预设）
-const role = ref(route.query.role === 'doctor' ? 'doctor' : 'patient')
+// 角色：从 URL 参数读取，默认为 patient
+const role = ref(
+  route.query.role === 'doctor' ? 'doctor'
+    : route.query.role === 'admin' ? 'admin'
+      : 'patient',
+)
+
+// 管理员模式不显示 Tab
+const showTabs = computed(() => role.value !== 'admin')
+
+// 监听路由变化，当 role 参数变化时更新
+onBeforeRouteUpdate((to) => {
+  const newRole = to.query.role === 'doctor' ? 'doctor'
+    : to.query.role === 'admin' ? 'admin'
+    : 'patient'
+  if (newRole !== role.value) {
+    role.value = newRole
+    form.username = ''
+    form.password = ''
+    auditError.value = ''
+    formRef.value?.clearValidate()
+  }
+})
 
 // 表单
 const form = reactive({
@@ -117,12 +138,14 @@ const form = reactive({
   password: '',
 })
 
-// 注册路径
-const registerPath = computed(() => {
-  return role.value === 'patient' ? '/patient/register' : '/doctor/register'
-})
+// 动态标签和占位符
+const accountLabel = computed(() => role.value === 'admin' ? '用户名' : '手机号')
+const accountPlaceholder = computed(() => role.value === 'admin' ? '请输入用户名' : '请输入手机号')
 
-// 切换角色 → 清空表单
+// 注册路径
+const registerPath = computed(() => role.value === 'patient' ? '/patient/register' : '/doctor/register')
+
+// 切换角色
 const handleRoleChange = () => {
   form.username = ''
   form.password = ''
@@ -130,25 +153,24 @@ const handleRoleChange = () => {
   formRef.value?.clearValidate()
 }
 
-const switchRole = () => {
-  role.value = role.value === 'patient' ? 'doctor' : 'patient'
+const switchTo = (targetRole) => {
+  role.value = targetRole
   handleRoleChange()
 }
 
-// 手机号校验
-const validatePhone = (_rule, value, callback) => {
+// 账号校验
+const validateAccount = (_rule, value, callback) => {
   if (!value) {
-    callback(new Error('请输入手机号'))
-  } else if (!isValidPhone(value)) {
+    callback(new Error(role.value === 'admin' ? '请输入用户名' : '请输入手机号'))
+  } else if (role.value !== 'admin' && !isValidPhone(value)) {
     callback(new Error('手机号格式不正确'))
   } else {
     callback()
   }
 }
 
-// 表单规则
 const rules = {
-  username: [{ required: true, validator: validatePhone, trigger: 'blur' }],
+  username: [{ required: true, validator: validateAccount, trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度 6-20 位', trigger: 'blur' },
@@ -175,20 +197,24 @@ const handleLogin = async () => {
     if (role.value === 'patient') {
       res = await patientLogin({ username: form.username, password: form.password })
       userRole = 'PATIENT'
-    } else {
+    } else if (role.value === 'doctor') {
       res = await doctorLogin({ username: form.username, password: form.password })
       userRole = 'DOCTOR'
+    } else {
+      res = await adminLogin({ username: form.username, password: form.password })
+      userRole = 'SUPER_ADMIN'
     }
 
     const { token, id, name, phone } = res.data
-    userStore.setUser(token, { id, name, phone, role: userRole })
+    userStore.setUser(token, { id, name, phone: phone || '', role: userRole })
 
-    // 根据角色跳转
-    const redirectPath = userRole === 'PATIENT' ? '/patient/home' : '/doctor/schedules'
-    router.push(redirectPath)
+    const redirectMap = {
+      PATIENT: '/patient/home',
+      DOCTOR: '/doctor/schedules',
+      SUPER_ADMIN: '/admin/audit',
+    }
+    router.push(redirectMap[userRole] || '/patient/home')
   } catch (err) {
-    // 响应拦截器已 ElMessage.error，但审核相关错误码拦截器只会提示一次
-    // 此处捕获错误消息判断是否审核相关，在页面中持久显示
     const msg = err?.message || ''
     if (msg.includes('审核') || msg.includes('管理员')) {
       auditError.value = msg
@@ -288,7 +314,7 @@ const handleLogin = async () => {
   text-decoration: underline;
 }
 
-/* ===== 切换入口 ===== */
+/* ===== 切换入口（管理员） ===== */
 .switch-entry {
   text-align: center;
   margin-top: 14px;

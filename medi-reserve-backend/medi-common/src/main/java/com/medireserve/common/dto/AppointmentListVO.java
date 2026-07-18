@@ -27,4 +27,8 @@ public class AppointmentListVO {
     private LocalDate scheduleDate; // 就诊日期
     private Integer period;         // 时段：1上午 2下午
     private String periodText;      // 时段文本
+
+    // ===== 医生端查询患者信息 =====
+    private String patientName;     // 患者姓名
+    private String patientPhone;    // 患者手机号
 }

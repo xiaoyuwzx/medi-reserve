@@ -21,3 +21,81 @@ export function doctorRegister(data) {
     data,
   })
 }
+
+// 获取推荐号源数
+export function getRecommendedMaxCount(scheduleDate, userInputMax = 20) {
+  return request({
+    url: '/doctor/schedules/recommend',
+    method: 'get',
+    params: { scheduleDate, userInputMax },
+  })
+}
+
+// 新增排班
+export function createSchedule(data) {
+  return request({
+    url: '/doctor/schedules',
+    method: 'post',
+    data,
+  })
+}
+
+// 查询排班列表
+export function getSchedules(params) {
+  return request({
+    url: '/doctor/schedules',
+    method: 'get',
+    params,
+  })
+}
+
+// 修改排班状态（停诊/恢复）
+export function updateScheduleStatus(scheduleId, status) {
+  return request({
+    url: `/doctor/schedules/${scheduleId}/status`,
+    method: 'patch',
+    params: { status },
+  })
+}
+
+// 删除排班
+export function deleteSchedule(scheduleId) {
+  return request({
+    url: `/doctor/schedules/${scheduleId}`,
+    method: 'delete',
+  })
+}
+
+// 获取医生问诊预约列表
+export function getDoctorAppointments(params) {
+  return request({
+    url: '/doctor/appointments',
+    method: 'get',
+    params,
+  })
+}
+
+// 获取问诊室信息
+export function getConsultationRoom(appointmentId) {
+  return request({
+    url: `/consultation/room/${appointmentId}`,
+    method: 'get',
+  })
+}
+
+// 获取聊天历史
+export function getChatHistory(appointmentId, params) {
+  return request({
+    url: `/consultation/history/${appointmentId}`,
+    method: 'get',
+    params,
+  })
+}
+
+// 结束问诊
+export function endConsultation(appointmentId) {
+  return request({
+    url: `/consultation/end/${appointmentId}`,
+    method: 'post',
+  })
+}

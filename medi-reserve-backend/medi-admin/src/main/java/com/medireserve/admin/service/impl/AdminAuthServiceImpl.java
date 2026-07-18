@@ -10,10 +10,14 @@ import com.medireserve.common.entity.Admin;
 import com.medireserve.common.exception.*;
 import com.medireserve.common.service.LoginAttemptService;
 import com.medireserve.common.utils.PasswordUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 管理端认证
@@ -122,5 +126,43 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
         return admin;
 
+    }
+
+    /**
+     * 获取管理员列表（分页）
+     */
+    @Override
+    public PageInfo<Admin> getAdminList(int page, int size) {
+        log.info("获取管理员列表，页码：{}，每页：{}", page, size);
+
+        PageHelper.startPage(page, size);
+        List<Admin> list = adminAuthMapper.findAll();
+        int total = adminAuthMapper.countAll();
+
+        PageInfo<Admin> pageInfo = new PageInfo<>(list);
+        pageInfo.setTotal(total);
+        return pageInfo;
+    }
+
+    /**
+     * 修改管理员状态（禁用/启用）
+     */
+    @Override
+    public void updateAdminStatus(Long adminId, Integer status, Long currentAdminId) {
+        log.info("修改管理员状态，管理员ID：{}，目标状态：{}，操作人：{}", adminId, status, currentAdminId);
+
+        // 不允许禁用自己
+        if (adminId.equals(currentAdminId) && StatusConstant.ACCOUNT_DISABLED.equals(status)) {
+            log.warn("尝试禁用自己，管理员ID：{}", adminId);
+            throw new BusinessException("不能禁用当前登录的管理员账号");
+        }
+
+        int rows = adminAuthMapper.updateStatus(adminId, status);
+        if (rows == 0) {
+            log.warn("修改管理员状态失败，管理员不存在，ID：{}", adminId);
+            throw new BusinessException("管理员不存在");
+        }
+
+        log.info("管理员状态修改成功，ID：{}，状态：{}", adminId, status);
     }
 }

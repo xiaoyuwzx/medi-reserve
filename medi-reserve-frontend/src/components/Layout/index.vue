@@ -10,12 +10,12 @@
         background-color="#304156"
         text-color="#bfcbd9"
         active-text-color="#409EFF"
-        router
       >
         <el-menu-item
           v-for="item in menuItems"
           :key="item.path"
           :index="item.path"
+          @click="navigate(item.path)"
         >
           <el-icon><component :is="item.icon" /></el-icon>
           <span>{{ item.title }}</span>
@@ -69,12 +69,14 @@ const menuItems = computed(() => {
   if (role === 'DOCTOR') {
     return [
       { path: '/doctor/schedules', title: '排班管理', icon: 'Calendar' },
+      { path: '/doctor/chat', title: '在线问诊', icon: 'ChatDotRound' },
     ]
   }
 
   if (role === 'SUPER_ADMIN') {
     return [
       { path: '/admin/audit', title: '医生审核', icon: 'Check' },
+      { path: '/admin/admins', title: '管理员管理', icon: 'User' },
     ]
   }
 
@@ -83,6 +85,11 @@ const menuItems = computed(() => {
 
 const activeMenu = computed(() => route.path)
 const pageTitle = computed(() => route.meta.title || 'MediReserve')
+
+// 菜单导航（使用 hash 直接跳转，绕过 el-menu 的 router 模式兼容问题）
+const navigate = (path) => {
+  window.location.hash = `#${path}`
+}
 
 // 退出登录
 const handleLogout = () => {

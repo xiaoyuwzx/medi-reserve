@@ -75,7 +75,7 @@ const routes = [
         meta: { title: '热门医生' },
       },
       {
-        path: 'chat/:appointmentId',
+        path: 'chat/:appointmentId?',
         name: 'PatientChat',
         component: () => import('@/views/patient/ChatRoom.vue'),
         meta: { title: '在线问诊' },
@@ -103,7 +103,7 @@ const routes = [
         meta: { title: '排班管理' },
       },
       {
-        path: 'chat/:appointmentId',
+        path: 'chat/:appointmentId?',
         name: 'DoctorChat',
         component: () => import('@/views/doctor/ChatRoom.vue'),
         meta: { title: '在线问诊' },
@@ -112,12 +112,7 @@ const routes = [
   },
 
   // ==================== 管理端 ====================
-  {
-    path: '/admin/login',
-    name: 'AdminLogin',
-    component: () => import('@/views/admin/Login.vue'),
-    meta: { title: '管理员登录', requiresAuth: false },
-  },
+  { path: '/admin/login', redirect: '/login?role=admin' },
   {
     path: '/admin',
     component: () => import('@/components/Layout/index.vue'),
@@ -128,6 +123,12 @@ const routes = [
         name: 'AdminAudit',
         component: () => import('@/views/admin/Audit.vue'),
         meta: { title: '医生审核' },
+      },
+      {
+        path: 'admins',
+        name: 'AdminManage',
+        component: () => import('@/views/admin/AdminManage.vue'),
+        meta: { title: '管理员管理' },
       },
     ],
   },
@@ -202,8 +203,15 @@ router.beforeEach((to, from, next) => {
     }
   }
 
-  // 4. 已登录但访问登录页，重定向到首页（Token 需有效）
+  // 4. 已登录但访问登录页
   if (token && !to.meta.requiresAuth) {
+    // 管理员登录页：清除当前 token，允许重新登录
+    if (to.path === '/login' && to.query.role === 'admin') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      next()
+      return
+    }
     if (to.path === '/login' || to.path === '/patient/register') {
       if (role === 'PATIENT') next('/patient/home')
       else if (role === 'DOCTOR') next('/doctor/schedules')

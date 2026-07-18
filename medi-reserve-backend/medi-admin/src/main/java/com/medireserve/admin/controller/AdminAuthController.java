@@ -9,6 +9,7 @@ import com.medireserve.common.dto.LoginDTO;
 import com.medireserve.common.entity.Admin;
 import com.medireserve.common.result.Result;
 import com.medireserve.common.utils.JwtUtil;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -99,6 +100,42 @@ public class AdminAuthController {
 
         return Result.success(MessageConstant.LOGIN_SUCCESS, map);
 
+    }
+
+    /**
+     * 获取管理员列表
+     */
+    @GetMapping("/list")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
+    @Operation(summary = "管理员列表", description = "获取所有管理员账号列表（仅超级管理员）")
+    public Result<PageInfo<Admin>> listAdmins(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageInfo<Admin> pageInfo = adminAuthService.getAdminList(page, size);
+        return Result.success(pageInfo);
+    }
+
+    /**
+     * 修改管理员状态（禁用/启用）
+     */
+    @PatchMapping("/{id}/status")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
+    @Operation(summary = "修改管理员状态", description = "禁用或启用管理员账号")
+    public Result<String> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Integer> body,
+            @RequestAttribute("userId") Long currentAdminId) {
+
+        Integer status = body.get("status");
+        if (status == null || (status != 0 && status != 1)) {
+            return Result.error("状态值无效");
+        }
+
+        // Service 层会校验不能禁用自己
+        adminAuthService.updateAdminStatus(id, status, currentAdminId);
+        String msg = status == 0 ? "已禁用" : "已启用";
+        return Result.success(msg);
     }
 
 }

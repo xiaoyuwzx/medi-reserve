@@ -75,9 +75,19 @@
                 去支付
               </el-button>
 
+              <!-- 已支付 + 就诊日期是今天 → 进入问诊室 -->
+              <el-button
+                v-if="order.status === 1 && isToday(order.scheduleDate)"
+                type="primary"
+                size="small"
+                @click="goToChat(order.id)"
+              >
+                进入问诊室
+              </el-button>
+
               <!-- 已支付 + 就诊日期已过 → 去评价 -->
               <el-button
-                v-if="order.status === 1 && isPastDate(order.scheduleDate)"
+                v-if="order.status === 1 && isPastDate(order.scheduleDate) && !isToday(order.scheduleDate)"
                 type="success"
                 size="small"
                 @click="goToEvaluate(order)"
@@ -85,9 +95,9 @@
                 去评价
               </el-button>
 
-              <!-- 已支付 + 就诊日期未到 → 等待就诊 -->
+              <!-- 已支付 + 就诊日期未来 → 等待就诊 -->
               <span
-                v-if="order.status === 1 && !isPastDate(order.scheduleDate)"
+                v-if="order.status === 1 && !isPastDate(order.scheduleDate) && !isToday(order.scheduleDate)"
                 class="waiting-text"
               >
                 等待就诊
@@ -161,6 +171,16 @@ const isPastDate = (dateStr) => {
   return scheduleDate < today
 }
 
+// 判断就诊日期是否是今天
+const isToday = (dateStr) => {
+  if (!dateStr) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const targetDate = new Date(dateStr)
+  targetDate.setHours(0, 0, 0, 0)
+  return targetDate.getTime() === today.getTime()
+}
+
 // 日期格式化
 const formatFullDate = (dateStr) => {
   if (!dateStr) return '-'
@@ -225,6 +245,11 @@ const handleSizeChange = (size) => {
 // 去支付
 const goToPay = (appointmentId) => {
   router.push(`/patient/pay/${appointmentId}`)
+}
+
+// 进入问诊室
+const goToChat = (appointmentId) => {
+  router.push(`/patient/chat/${appointmentId}`)
 }
 
 // 去评价（携带预约信息）
