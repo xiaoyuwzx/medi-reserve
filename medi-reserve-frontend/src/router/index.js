@@ -4,13 +4,17 @@ import { jwtDecode } from 'jwt-decode'
 
 // 定义路由
 const routes = [
-  // ==================== 患者端 ====================
+  // ==================== 统一登录 ====================
   {
-    path: '/patient/login',
-    name: 'PatientLogin',
-    component: () => import('@/views/patient/Login.vue'),
-    meta: { title: '患者登录', requiresAuth: false },
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '登录', requiresAuth: false },
   },
+  // 旧登录路径重定向
+  { path: '/patient/login', redirect: '/login' },
+
+  // ==================== 患者端 ====================
   {
     path: '/patient/register',
     name: 'PatientRegister',
@@ -80,12 +84,7 @@ const routes = [
   },
 
   // ==================== 医生端 ====================
-  {
-    path: '/doctor/login',
-    name: 'DoctorLogin',
-    component: () => import('@/views/doctor/Login.vue'),
-    meta: { title: '医生登录', requiresAuth: false },
-  },
+  { path: '/doctor/login', redirect: '/login?role=doctor' },
   {
     path: '/doctor/register',
     name: 'DoctorRegister',
@@ -161,12 +160,11 @@ function isTokenExpired(token) {
 
 // 跳转到对应登录页
 function redirectToLogin(to, next) {
-  if (to.path.startsWith('/doctor')) {
-    next('/doctor/login')
-  } else if (to.path.startsWith('/admin')) {
+  if (to.path.startsWith('/admin')) {
     next('/admin/login')
   } else {
-    next('/patient/login')
+    // 患者端和医生端统一跳转到 /login
+    next('/login')
   }
 }
 
@@ -199,16 +197,18 @@ router.beforeEach((to, from, next) => {
       if (role === 'PATIENT') next('/patient/home')
       else if (role === 'DOCTOR') next('/doctor/schedules')
       else if (role === 'SUPER_ADMIN') next('/admin/audit')
-      else next('/patient/login')
+      else next('/login')
       return
     }
   }
 
   // 4. 已登录但访问登录页，重定向到首页（Token 需有效）
   if (token && !to.meta.requiresAuth) {
-    if (to.path === '/patient/login' || to.path === '/patient/register') {
-      next('/patient/home')
-    } else if (to.path === '/doctor/login' || to.path === '/doctor/register') {
+    if (to.path === '/login' || to.path === '/patient/register') {
+      if (role === 'PATIENT') next('/patient/home')
+      else if (role === 'DOCTOR') next('/doctor/schedules')
+      else next('/patient/home')
+    } else if (to.path === '/doctor/register') {
       next('/doctor/schedules')
     } else if (to.path === '/admin/login') {
       next('/admin/audit')

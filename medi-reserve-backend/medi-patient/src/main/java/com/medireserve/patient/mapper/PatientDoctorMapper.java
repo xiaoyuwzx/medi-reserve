@@ -22,7 +22,7 @@ public interface PatientDoctorMapper {
      * 只统计已审核且账号状态正常的医生
      * @return
      */
-    @Select("SELECT dept.name AS department, COUNT(*) AS doctorCount " +
+    @Select("SELECT dept.id AS id, dept.name AS department, COUNT(*) AS doctorCount " +
             "FROM doctor d INNER JOIN doctor_audit da " +
             "ON d.id = da.doctor_id " +
             "LEFT JOIN department dept ON d.department_id = dept.id " +

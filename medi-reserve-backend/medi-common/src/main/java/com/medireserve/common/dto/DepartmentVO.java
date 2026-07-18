@@ -14,6 +14,11 @@ import lombok.NoArgsConstructor;
 public class DepartmentVO {
 
     /**
+     * 科室ID
+     */
+    private Long id;
+
+    /**
      * 科室名称
      */
     private String department;

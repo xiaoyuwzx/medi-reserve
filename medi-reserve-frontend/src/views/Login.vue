@@ -4,10 +4,18 @@
       <!-- 标题区域 -->
       <div class="login-header">
         <div class="logo">
-          <el-icon :size="36" color="#409EFF"><Monitor /></el-icon>
+          <el-icon :size="40" color="#409EFF"><Monitor /></el-icon>
         </div>
-        <h2 class="title">医疗预约挂号平台</h2>
-        <p class="subtitle">医生登录</p>
+        <h2 class="title">MediReserve</h2>
+        <p class="subtitle">智慧医疗预约平台</p>
+      </div>
+
+      <!-- 角色切换 -->
+      <div class="role-tabs">
+        <el-radio-group v-model="role" @change="handleRoleChange" size="large">
+          <el-radio-button value="patient">患者登录</el-radio-button>
+          <el-radio-button value="doctor">医生登录</el-radio-button>
+        </el-radio-group>
       </div>
 
       <!-- 登录表单 -->
@@ -39,7 +47,16 @@
           />
         </el-form-item>
 
-        <!-- 登录按钮 -->
+        <!-- 错误提示：审核状态相关 -->
+        <el-alert
+          v-if="auditError"
+          :title="auditError"
+          type="warning"
+          show-icon
+          :closable="false"
+          style="margin-bottom: 18px;"
+        />
+
         <el-form-item>
           <el-button
             type="primary"
@@ -56,43 +73,69 @@
       <!-- 底部链接 -->
       <div class="login-footer">
         <span>还没有账号？</span>
-        <router-link to="/doctor/register" class="register-link">
-          立即注册
+        <router-link :to="registerPath" class="register-link">
+          {{ role === 'patient' ? '患者注册' : '医生注册' }}
         </router-link>
       </div>
 
-      <!-- 患者端入口 -->
+      <!-- 切换入口 -->
       <div class="switch-entry">
-        <router-link to="/patient/login" class="switch-link">
-          我是患者，去患者端登录
-        </router-link>
+        <span class="switch-text">
+          {{ role === 'patient' ? '医生请' : '患者请' }}
+        </span>
+        <el-button link type="primary" @click="switchRole">
+          {{ role === 'patient' ? '切换到医生登录' : '切换到患者登录' }}
+        </el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { reactive, ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Phone, Lock } from '@element-plus/icons-vue'
+import { patientLogin } from '@/api/patient'
 import { doctorLogin } from '@/api/doctor'
 import { useUserStore } from '@/store/user'
 import { isValidPhone } from '@/utils/validate'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const formRef = ref(null)
 const loading = ref(false)
+const auditError = ref('')
 
-// 表单数据
+// 角色：patient / doctor（可通过 query 参数预设）
+const role = ref(route.query.role === 'doctor' ? 'doctor' : 'patient')
+
+// 表单
 const form = reactive({
   username: '',
   password: '',
 })
 
-// 自定义手机号校验
+// 注册路径
+const registerPath = computed(() => {
+  return role.value === 'patient' ? '/patient/register' : '/doctor/register'
+})
+
+// 切换角色 → 清空表单
+const handleRoleChange = () => {
+  form.username = ''
+  form.password = ''
+  auditError.value = ''
+  formRef.value?.clearValidate()
+}
+
+const switchRole = () => {
+  role.value = role.value === 'patient' ? 'doctor' : 'patient'
+  handleRoleChange()
+}
+
+// 手机号校验
 const validatePhone = (_rule, value, callback) => {
   if (!value) {
     callback(new Error('请输入手机号'))
@@ -103,18 +146,16 @@ const validatePhone = (_rule, value, callback) => {
   }
 }
 
-// 表单校验规则
+// 表单规则
 const rules = {
-  username: [
-    { required: true, validator: validatePhone, trigger: 'blur' },
-  ],
+  username: [{ required: true, validator: validatePhone, trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度 6-20 位', trigger: 'blur' },
   ],
 }
 
-// 登录处理
+// 登录
 const handleLogin = async () => {
   if (!formRef.value) return
 
@@ -124,35 +165,34 @@ const handleLogin = async () => {
     return
   }
 
+  auditError.value = ''
   loading.value = true
+
   try {
-    // 注意：响应拦截器对非 code=1 的响应会先 ElMessage.error 再 reject
-    // 此处 catch 不到具体错误码，拦截器已统一提示
-    const res = await doctorLogin({
-      username: form.username,
-      password: form.password,
-    })
+    let res
+    let userRole
+
+    if (role.value === 'patient') {
+      res = await patientLogin({ username: form.username, password: form.password })
+      userRole = 'PATIENT'
+    } else {
+      res = await doctorLogin({ username: form.username, password: form.password })
+      userRole = 'DOCTOR'
+    }
 
     const { token, id, name, phone } = res.data
+    userStore.setUser(token, { id, name, phone, role: userRole })
 
-    // 保存用户信息到 store 和 localStorage
-    userStore.setUser(token, {
-      id,
-      name,
-      phone,
-      role: 'DOCTOR',
-    })
-
-    // 跳转到医生排班管理页
-    router.push('/doctor/schedules')
-  } catch {
-    // 错误提示已由响应拦截器处理
-    //  1002 → "账号不存在"
-    //  1003 → "密码错误"
-    //  1006 → "账号正在审核中，请耐心等待管理员审核"
-    //  1007 → "账号审核未通过，请查看管理员备注信息"
-    //  1001 → "账号已被禁用，请联系管理员"
-    //  1009 → "账号被锁定，请稍后重试"
+    // 根据角色跳转
+    const redirectPath = userRole === 'PATIENT' ? '/patient/home' : '/doctor/schedules'
+    router.push(redirectPath)
+  } catch (err) {
+    // 响应拦截器已 ElMessage.error，但审核相关错误码拦截器只会提示一次
+    // 此处捕获错误消息判断是否审核相关，在页面中持久显示
+    const msg = err?.message || ''
+    if (msg.includes('审核') || msg.includes('管理员')) {
+      auditError.value = msg
+    }
   } finally {
     loading.value = false
   }
@@ -175,31 +215,54 @@ const handleLogin = async () => {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  padding: 40px 36px 32px;
+  padding: 36px 36px 28px;
 }
 
+/* ===== 标题区域 ===== */
 .login-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .logo {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .title {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: #303133;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
+  letter-spacing: 2px;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: #909399;
   margin: 0;
 }
 
+/* ===== 角色切换 ===== */
+.role-tabs {
+  margin-bottom: 24px;
+}
+
+.role-tabs :deep(.el-radio-group) {
+  width: 100%;
+}
+
+.role-tabs :deep(.el-radio-button) {
+  width: 50%;
+}
+
+.role-tabs :deep(.el-radio-button__inner) {
+  width: 100%;
+  text-align: center;
+  font-size: 15px;
+  padding: 10px 0;
+}
+
+/* ===== 表单 ===== */
 .login-btn {
   width: 100%;
   height: 44px;
@@ -207,11 +270,12 @@ const handleLogin = async () => {
   letter-spacing: 4px;
 }
 
+/* ===== 底部链接 ===== */
 .login-footer {
   text-align: center;
   font-size: 14px;
   color: #909399;
-  padding-top: 8px;
+  padding-top: 4px;
 }
 
 .register-link {
@@ -227,31 +291,27 @@ const handleLogin = async () => {
 /* ===== 切换入口 ===== */
 .switch-entry {
   text-align: center;
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid #f0f0f0;
-}
-
-.switch-link {
   font-size: 13px;
   color: #909399;
-  text-decoration: none;
 }
 
-.switch-link:hover {
-  color: #409eff;
+.switch-text {
+  margin-right: 2px;
 }
 
 /* ===== 响应式适配 ===== */
 @media (max-width: 768px) {
   .login-card {
     width: 380px;
-    padding: 32px 28px 28px;
+    padding: 30px 28px 24px;
     border-radius: 10px;
   }
 
   .title {
-    font-size: 20px;
+    font-size: 22px;
   }
 }
 
@@ -259,19 +319,19 @@ const handleLogin = async () => {
   .login-container {
     padding: 16px;
     align-items: flex-start;
-    padding-top: 40px;
+    padding-top: 30px;
     background: #fff;
   }
 
   .login-card {
     width: 100%;
-    padding: 28px 20px 24px;
+    padding: 24px 20px 20px;
     box-shadow: none;
     border-radius: 0;
   }
 
   .title {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .login-btn {

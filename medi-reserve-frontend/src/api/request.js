@@ -44,7 +44,7 @@ request.interceptors.response.use(
         localStorage.removeItem('userInfo')
         const msg = data?.msg || '登录已过期，请重新登录'
         ElMessage.error(msg)
-        router.push('/patient/login')
+        router.push('/login')
       } else if (status === 403) {
         ElMessage.error(data?.msg || '没有权限执行此操作')
       } else {

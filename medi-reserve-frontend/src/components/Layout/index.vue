@@ -87,7 +87,7 @@ const pageTitle = computed(() => route.meta.title || 'MediReserve')
 // 退出登录
 const handleLogout = () => {
   userStore.logout()
-  router.push('/patient/login')
+  router.push('/login')
 }
 </script>
 

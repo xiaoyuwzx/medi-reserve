@@ -97,3 +97,11 @@ export function createEvaluation(data) {
     data,
   })
 }
+
+// 获取职称列表
+export function getTitles() {
+  return request({
+    url: '/patient/dict/titles',
+    method: 'get',
+  })
+}
