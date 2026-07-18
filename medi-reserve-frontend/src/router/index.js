@@ -1,4 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { jwtDecode } from 'jwt-decode'
 
 // 定义路由
 const routes = [
@@ -141,6 +143,33 @@ const router = createRouter({
   routes,
 })
 
+// -------- 工具函数 --------
+
+// 验证 Token 是否过期
+function isTokenExpired(token) {
+  if (!token) return true
+  try {
+    const decoded = jwtDecode(token)
+    // JWT exp 单位是秒，Date.now() 单位是毫秒
+    const currentTime = Date.now() / 1000
+    return decoded.exp < currentTime
+  } catch {
+    // 解析失败，视为无效 Token
+    return true
+  }
+}
+
+// 跳转到对应登录页
+function redirectToLogin(to, next) {
+  if (to.path.startsWith('/doctor')) {
+    next('/doctor/login')
+  } else if (to.path.startsWith('/admin')) {
+    next('/admin/login')
+  } else {
+    next('/patient/login')
+  }
+}
+
 // -------- 路由守卫 --------
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
@@ -150,18 +179,20 @@ router.beforeEach((to, from, next) => {
 
   // 1. 需要登录但未登录
   if (to.meta.requiresAuth && !token) {
-    // 根据路径跳转到对应的登录页
-    if (to.path.startsWith('/doctor')) {
-      next('/doctor/login')
-    } else if (to.path.startsWith('/admin')) {
-      next('/admin/login')
-    } else {
-      next('/patient/login')
-    }
+    redirectToLogin(to, next)
     return
   }
 
-  // 2. 需要角色校验
+  // 2. 需要登录 + 有 Token 但 Token 已过期
+  if (to.meta.requiresAuth && token && isTokenExpired(token)) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    ElMessage.warning('登录已过期，请重新登录')
+    redirectToLogin(to, next)
+    return
+  }
+
+  // 3. 需要角色校验
   if (to.meta.requiresAuth && to.meta.role) {
     if (role !== to.meta.role) {
       // 角色不匹配，跳转到对应首页
@@ -173,7 +204,7 @@ router.beforeEach((to, from, next) => {
     }
   }
 
-  // 3. 已登录但访问登录页，重定向到首页
+  // 4. 已登录但访问登录页，重定向到首页（Token 需有效）
   if (token && !to.meta.requiresAuth) {
     if (to.path === '/patient/login' || to.path === '/patient/register') {
       next('/patient/home')
