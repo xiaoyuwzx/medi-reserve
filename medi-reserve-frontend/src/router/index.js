@@ -80,6 +80,12 @@ const routes = [
         component: () => import('@/views/patient/ChatRoom.vue'),
         meta: { title: '在线问诊' },
       },
+      {
+        path: 'profile',
+        name: 'PatientProfile',
+        component: () => import('@/views/patient/Profile.vue'),
+        meta: { title: '个人信息' },
+      },
     ],
   },
 

@@ -1,9 +1,12 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.LoginDTO;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.dto.PatientRegisterDTO;
+import com.medireserve.common.dto.PatientUpdateDTO;
 import com.medireserve.common.entity.Patient;
 import com.medireserve.common.result.Result;
 import com.medireserve.common.utils.JwtUtil;
@@ -13,10 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +89,42 @@ public class PatientAuthController {
 
         return Result.success(MessageConstant.LOGIN_SUCCESS, map);
 
+    }
+
+    /**
+     * 修改个人信息
+     */
+    @PutMapping("/profile")
+    @RequireRole(RoleConstant.PATIENT)
+    @Operation(summary = "修改个人信息", description = "修改姓名、手机号、性别、身份证号")
+    public Result<Map<String, Object>> updateProfile(
+            @RequestAttribute("userId") Long userId,
+            @RequestBody @Valid PatientUpdateDTO dto) {
+
+        log.info("修改个人信息，患者ID：{}", userId);
+
+        Map<String, Object> result = patientAuthService.updateProfile(userId, dto);
+
+        log.info("个人信息修改成功，患者ID：{}", userId);
+
+        return Result.success(MessageConstant.UPDATE_SUCCESS, result);
+    }
+
+    /**
+     * 修改密码
+     */
+    @PutMapping("/password")
+    @RequireRole(RoleConstant.PATIENT)
+    @Operation(summary = "修改密码", description = "验证旧密码后更新为新密码")
+    public Result<Void> updatePassword(
+            @RequestAttribute("userId") Long userId,
+            @RequestBody @Valid PasswordUpdateDTO dto) {
+
+        log.info("修改密码，患者ID：{}", userId);
+        patientAuthService.updatePassword(userId, dto);
+        log.info("密码修改成功，患者ID：{}", userId);
+
+        return Result.success("密码修改成功，请重新登录", null);
     }
 
 }

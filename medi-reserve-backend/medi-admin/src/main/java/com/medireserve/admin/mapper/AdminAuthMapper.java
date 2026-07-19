@@ -34,4 +34,10 @@ public interface AdminAuthMapper {
     @Update("update admin set status = #{status} where id = #{id}")
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
 
+    /**
+     * 修改密码
+     */
+    @Update("update admin set password = #{password} where id = #{id}")
+    int updatePassword(@Param("id") Long id, @Param("password") String password);
+
 }

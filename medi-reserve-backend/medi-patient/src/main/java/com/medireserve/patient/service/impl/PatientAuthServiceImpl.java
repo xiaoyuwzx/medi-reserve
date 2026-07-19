@@ -1,13 +1,14 @@
 package com.medireserve.patient.service.impl;
 
+import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.constant.StatusConstant;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.dto.PatientRegisterDTO;
+import com.medireserve.common.dto.PatientUpdateDTO;
 import com.medireserve.common.entity.Patient;
-import com.medireserve.common.exception.AccountDisabledException;
-import com.medireserve.common.exception.AccountNotFoundException;
-import com.medireserve.common.exception.PasswordErrorException;
-import com.medireserve.common.exception.PhoneAlreadyExistsException;
+import com.medireserve.common.exception.*;
 import com.medireserve.common.service.LoginAttemptService;
+import com.medireserve.common.utils.JwtUtil;
 import com.medireserve.common.utils.PasswordUtil;
 import com.medireserve.common.mapper.PatientAuthMapper;
 import com.medireserve.patient.service.PatientAuthService;
@@ -15,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 患者端认证接口
@@ -94,6 +98,82 @@ public class PatientAuthServiceImpl implements PatientAuthService {
 
         return patient;
 
+    }
+
+    @Override
+    public Map<String, Object> updateProfile(Long patientId, PatientUpdateDTO dto) {
+
+        // 1. 查询患者是否存在
+        Patient patient = patientAuthMapper.findById(patientId);
+        if (patient == null) {
+            log.warn("修改个人信息失败，患者不存在，ID：{}", patientId);
+            throw new AccountNotFoundException();
+        }
+
+        // 2. 如果手机号变更，校验新手机号是否已被占用
+        boolean phoneChanged = !dto.getPhone().equals(patient.getPhone());
+        if (phoneChanged) {
+            int count = patientAuthMapper.countByPhoneAndNotId(dto.getPhone(), patientId);
+            if (count > 0) {
+                log.warn("修改个人信息失败，手机号已被占用：{}", dto.getPhone());
+                throw new PhoneAlreadyExistsException();
+            }
+        }
+
+        // 3. 更新患者信息
+        patient.setName(dto.getName());
+        patient.setPhone(dto.getPhone());
+        patient.setIdCard(dto.getIdCard());
+        patient.setGender(dto.getGender());
+        patientAuthMapper.updateById(patient);
+
+        log.info("患者信息修改成功，ID：{}，手机号：{}", patientId, dto.getPhone());
+
+        // 4. 如果手机号变更，生成新 Token
+        String token = null;
+        if (phoneChanged) {
+            token = JwtUtil.createToken(patient.getId(), patient.getPhone(), RoleConstant.PATIENT);
+            log.info("手机号变更，已生成新 Token");
+        }
+
+        // 5. 返回结果
+        Map<String, Object> map = new HashMap<>();
+        if (token != null) {
+            map.put("token", token);
+        }
+        map.put("id", patient.getId());
+        map.put("name", patient.getName());
+        map.put("phone", patient.getPhone());
+        return map;
+
+    }
+
+    @Override
+    public void updatePassword(Long patientId, PasswordUpdateDTO dto) {
+
+        Patient patient = patientAuthMapper.findById(patientId);
+        if (patient == null) {
+            throw new AccountNotFoundException();
+        }
+
+        // 校验旧密码
+        if (!PasswordUtil.matches(dto.getOldPassword(), patient.getPassword())) {
+            throw new PasswordErrorException();
+        }
+
+        // 校验新密码与确认密码一致
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new BusinessException("两次密码输入不一致");
+        }
+
+        // 校验新旧密码不同
+        if (dto.getOldPassword().equals(dto.getNewPassword())) {
+            throw new BusinessException("新密码不能与旧密码相同");
+        }
+
+        // 加密并更新
+        patientAuthMapper.updatePassword(patientId, PasswordUtil.encode(dto.getNewPassword()));
+        log.info("患者密码修改成功，ID：{}", patientId);
     }
 
 }

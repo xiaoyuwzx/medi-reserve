@@ -1,6 +1,7 @@
 package com.medireserve.doctor.service;
 
 import com.medireserve.common.dto.DoctorRegisterDTO;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.entity.Doctor;
 
 /**
@@ -22,4 +23,9 @@ public interface DoctorAuthService {
      * @return
      */
     Doctor login(String username, String password);
+
+    /**
+     * 修改密码
+     */
+    void updatePassword(Long doctorId, PasswordUpdateDTO dto);
 }

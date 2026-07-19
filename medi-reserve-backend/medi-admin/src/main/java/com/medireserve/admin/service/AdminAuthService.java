@@ -1,6 +1,7 @@
 package com.medireserve.admin.service;
 
 import com.medireserve.common.dto.AdminRegisterDTO;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.entity.Admin;
 import com.github.pagehelper.PageInfo;
 
@@ -33,4 +34,9 @@ public interface AdminAuthService {
      * 修改管理员状态（禁用/启用）
      */
     void updateAdminStatus(Long adminId, Integer status, Long currentAdminId);
+
+    /**
+     * 修改密码
+     */
+    void updatePassword(Long adminId, PasswordUpdateDTO dto);
 }

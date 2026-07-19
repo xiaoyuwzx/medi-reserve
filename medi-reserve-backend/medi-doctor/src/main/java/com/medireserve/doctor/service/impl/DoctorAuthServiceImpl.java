@@ -2,6 +2,7 @@ package com.medireserve.doctor.service.impl;
 
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.DoctorRegisterDTO;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.entity.Department;
 import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.DoctorAudit;
@@ -155,6 +156,30 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
 
         return doctor;
 
+    }
+
+    @Override
+    public void updatePassword(Long doctorId, PasswordUpdateDTO dto) {
+
+        Doctor doctor = doctorAuthMapper.findById(doctorId);
+        if (doctor == null) {
+            throw new AccountNotFoundException();
+        }
+
+        if (!PasswordUtil.matches(dto.getOldPassword(), doctor.getPassword())) {
+            throw new PasswordErrorException();
+        }
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new BusinessException("两次密码输入不一致");
+        }
+
+        if (dto.getOldPassword().equals(dto.getNewPassword())) {
+            throw new BusinessException("新密码不能与旧密码相同");
+        }
+
+        doctorAuthMapper.updatePassword(doctorId, PasswordUtil.encode(dto.getNewPassword()));
+        log.info("医生密码修改成功，ID：{}", doctorId);
     }
 
 }

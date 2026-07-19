@@ -157,10 +157,11 @@ public interface AppointmentMapper {
     @Select("<script>" +
             "SELECT a.id, a.appointment_no as appointmentNo, a.schedule_id as scheduleId, " +
             "a.patient_id as patientId, a.doctor_id as doctorId, a.status, a.created_at as createdAt, " +
-            "p.name as doctorName, p.name as patientName, p.phone as patientPhone, " +
+            "d.name as doctorName, p.name as patientName, p.phone as patientPhone, " +
             "s.schedule_date as scheduleDate, s.period as period, " +
             "CASE WHEN s.period = 1 THEN '上午' ELSE '下午' END as periodText " +
             "FROM appointment a " +
+            "LEFT JOIN doctor d ON a.doctor_id = d.id " +
             "LEFT JOIN patient p ON a.patient_id = p.id " +
             "LEFT JOIN schedule s ON a.schedule_id = s.id " +
             "WHERE a.doctor_id = #{doctorId} " +

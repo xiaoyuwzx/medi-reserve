@@ -15,7 +15,7 @@
           v-for="item in menuItems"
           :key="item.path"
           :index="item.path"
-          @click="navigate(item.path)"
+          @click="item.path ? navigate(item.path) : openChangePassword()"
         >
           <el-icon><component :is="item.icon" /></el-icon>
           <span>{{ item.title }}</span>
@@ -41,17 +41,23 @@
         <router-view />
       </el-main>
     </el-container>
+
+    <!-- 修改密码弹窗 -->
+    <ChangePasswordDialog v-model="showPasswordDialog" :role="userStore.role" />
   </el-container>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+const showPasswordDialog = ref(false)
 
 // 根据角色动态生成菜单
 const menuItems = computed(() => {
@@ -63,6 +69,8 @@ const menuItems = computed(() => {
       { path: '/patient/doctors', title: '找医生', icon: 'User' },
       { path: '/patient/orders', title: '我的预约', icon: 'List' },
       { path: '/patient/hot', title: '热门医生', icon: 'TrendCharts' },
+      { path: '/patient/profile', title: '个人信息', icon: 'User' },
+      { path: '', title: '修改密码', icon: 'Lock' },
     ]
   }
 
@@ -70,6 +78,7 @@ const menuItems = computed(() => {
     return [
       { path: '/doctor/schedules', title: '排班管理', icon: 'Calendar' },
       { path: '/doctor/chat', title: '在线问诊', icon: 'ChatDotRound' },
+      { path: '', title: '修改密码', icon: 'Lock' },
     ]
   }
 
@@ -77,6 +86,7 @@ const menuItems = computed(() => {
     return [
       { path: '/admin/audit', title: '医生审核', icon: 'Check' },
       { path: '/admin/admins', title: '管理员管理', icon: 'User' },
+      { path: '', title: '修改密码', icon: 'Lock' },
     ]
   }
 
@@ -89,6 +99,11 @@ const pageTitle = computed(() => route.meta.title || 'MediReserve')
 // 菜单导航（使用 hash 直接跳转，绕过 el-menu 的 router 模式兼容问题）
 const navigate = (path) => {
   window.location.hash = `#${path}`
+}
+
+// 打开修改密码弹窗
+const openChangePassword = () => {
+  showPasswordDialog.value = true
 }
 
 // 退出登录

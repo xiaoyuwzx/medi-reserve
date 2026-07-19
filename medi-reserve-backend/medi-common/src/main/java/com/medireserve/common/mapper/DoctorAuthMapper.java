@@ -56,4 +56,10 @@ public interface DoctorAuthMapper {
             "WHERE d.status = 1 AND da.audit_status = 1")
     List<Long> findAllApprovedIds();
 
+    /**
+     * 修改密码
+     */
+    @Update("update doctor set password = #{password} where id = #{id}")
+    int updatePassword(@Param("id") Long id, @Param("password") String password);
+
 }

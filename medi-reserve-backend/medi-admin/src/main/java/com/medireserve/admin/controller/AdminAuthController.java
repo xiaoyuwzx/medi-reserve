@@ -6,6 +6,7 @@ import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.AdminRegisterDTO;
 import com.medireserve.common.dto.LoginDTO;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.entity.Admin;
 import com.medireserve.common.result.Result;
 import com.medireserve.common.utils.JwtUtil;
@@ -136,6 +137,23 @@ public class AdminAuthController {
         adminAuthService.updateAdminStatus(id, status, currentAdminId);
         String msg = status == 0 ? "已禁用" : "已启用";
         return Result.success(msg);
+    }
+
+    /**
+     * 修改密码
+     */
+    @PutMapping("/password")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
+    @Operation(summary = "修改密码", description = "验证旧密码后更新为新密码")
+    public Result<Void> updatePassword(
+            @RequestAttribute("userId") Long userId,
+            @RequestBody @Valid PasswordUpdateDTO dto) {
+
+        log.info("修改密码，管理员ID：{}", userId);
+        adminAuthService.updatePassword(userId, dto);
+        log.info("密码修改成功，管理员ID：{}", userId);
+
+        return Result.success("密码修改成功，请重新登录", null);
     }
 
 }

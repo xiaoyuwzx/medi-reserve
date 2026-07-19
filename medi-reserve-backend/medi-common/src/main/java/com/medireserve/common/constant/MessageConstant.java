@@ -12,6 +12,7 @@ public class MessageConstant {
     public static final String USER_NOT_LOGIN = "用户未登录，请先登录";
 
     // ========== 登录注册 ==========
+    public static final String UPDATE_SUCCESS = "修改成功";
     public static final String LOGIN_SUCCESS = "登录成功";
     public static final String LOGIN_FAILED = "登录失败";
     public static final String PASSWORD_ERROR = "密码错误";

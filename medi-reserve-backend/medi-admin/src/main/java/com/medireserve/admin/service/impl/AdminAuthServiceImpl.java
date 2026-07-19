@@ -6,6 +6,7 @@ import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.AdminRegisterDTO;
+import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.entity.Admin;
 import com.medireserve.common.exception.*;
 import com.medireserve.common.service.LoginAttemptService;
@@ -164,5 +165,29 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         }
 
         log.info("管理员状态修改成功，ID：{}，状态：{}", adminId, status);
+    }
+
+    @Override
+    public void updatePassword(Long adminId, PasswordUpdateDTO dto) {
+
+        Admin admin = adminAuthMapper.findById(adminId);
+        if (admin == null) {
+            throw new AccountNotFoundException();
+        }
+
+        if (!PasswordUtil.matches(dto.getOldPassword(), admin.getPassword())) {
+            throw new PasswordErrorException();
+        }
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new BusinessException("两次密码输入不一致");
+        }
+
+        if (dto.getOldPassword().equals(dto.getNewPassword())) {
+            throw new BusinessException("新密码不能与旧密码相同");
+        }
+
+        adminAuthMapper.updatePassword(adminId, PasswordUtil.encode(dto.getNewPassword()));
+        log.info("管理员密码修改成功，ID：{}", adminId);
     }
 }

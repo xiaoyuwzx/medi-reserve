@@ -68,8 +68,8 @@ aliyun:
     # 注意：STS 的 Endpoint 通常为 sts.aliyuncs.com，如果是专有云请替换
     sts-endpoint: sts.aliyuncs.com
     # 以下为 RAM 子账号的 AccessKey（建议只给 AssumeRole 权限）
-    access-key-id: ${ALIYUN_ACCESS_KEY_ID}
-    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
+    access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY}
+    access-key-secret: ${ALIBABA_CLOUD_SECRET_KEY}
     # RAM 角色 ARN（在 RAM 控制台 -> 角色管理 中获取）
     # 格式：acs:ram::{主账号ID}:role/{角色名称}
     role-arn: acs:ram::1353664742775914:role/medi-oss-role

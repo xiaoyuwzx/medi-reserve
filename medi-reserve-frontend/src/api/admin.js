@@ -64,3 +64,12 @@ export function updateAdminStatus(adminId, status) {
     data: { status },
   })
 }
+
+// 修改密码
+export function updatePassword(data) {
+  return request({
+    url: '/admin/password',
+    method: 'put',
+    data,
+  })
+}

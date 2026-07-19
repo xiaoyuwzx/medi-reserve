@@ -99,3 +99,20 @@ export function endConsultation(appointmentId) {
     method: 'post',
   })
 }
+
+// 获取 OSS STS 临时凭证
+export function getStsToken() {
+  return request({
+    url: '/doctor/oss/sts',
+    method: 'get',
+  })
+}
+
+// 修改密码
+export function updatePassword(data) {
+  return request({
+    url: '/doctor/password',
+    method: 'put',
+    data,
+  })
+}

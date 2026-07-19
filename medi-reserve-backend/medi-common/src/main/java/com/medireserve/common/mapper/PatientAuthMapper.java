@@ -1,10 +1,7 @@
 package com.medireserve.common.mapper;
 
 import com.medireserve.common.entity.Patient;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 /**
  * 患者端认证接口
@@ -37,4 +34,22 @@ public interface PatientAuthMapper {
      */
     @Select("select * from patient where id = #{patientId}")
     Patient findById(Long patientId);
+
+    /**
+     * 统计除指定ID外的手机号数量（用于修改时校验唯一性）
+     */
+    @Select("select count(*) from patient where phone = #{phone} and id != #{id}")
+    int countByPhoneAndNotId(@Param("phone") String phone, @Param("id") Long id);
+
+    /**
+     * 根据ID更新患者信息
+     */
+    @Update("update patient set name = #{name}, phone = #{phone}, id_card = #{idCard}, gender = #{gender} where id = #{id}")
+    int updateById(Patient patient);
+
+    /**
+     * 修改密码
+     */
+    @Update("update patient set password = #{password} where id = #{id}")
+    int updatePassword(@Param("id") Long id, @Param("password") String password);
 }

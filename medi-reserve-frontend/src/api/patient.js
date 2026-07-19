@@ -105,3 +105,21 @@ export function getTitles() {
     method: 'get',
   })
 }
+
+// 修改个人信息
+export function updateProfile(data) {
+  return request({
+    url: '/patient/profile',
+    method: 'put',
+    data,
+  })
+}
+
+// 修改密码
+export function updatePassword(data) {
+  return request({
+    url: '/patient/password',
+    method: 'put',
+    data,
+  })
+}
