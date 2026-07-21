@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.medireserve.admin.mapper.AdminDashboardMapper">
+
+    <!-- ==================== 总览统计 ==================== -->
+    <select id="selectOverviewStatistics" resultType="com.medireserve.common.dto.DashboardOverviewVO">
+        SELECT
+            /* 今日有效预约数（已支付 + 待支付 + 已就诊） */
+            (SELECT COUNT(*)
+             FROM appointment
+             WHERE DATE(created_at) = CURDATE()
+               AND status IN (0, 1, 2)
+            ) AS todayAppointments,
+
+            /* 今日已支付数 */
+            (SELECT COUNT(*)
+             FROM appointment
+             WHERE DATE(created_at) = CURDATE()
+               AND status = 1
+            ) AS todayPaid,
+
+            /* 今日收入 = 今日支付数 * 固定单价（后续可改为 schedule.price） */
+            (SELECT COUNT(*) * #{defaultPrice}
+             FROM appointment
+             WHERE DATE(created_at) = CURDATE()
+               AND status = 1
+            ) AS todayIncome,
+
+            /* 历史有效预约数 */
+            (SELECT COUNT(*)
+             FROM appointment
+             WHERE status IN (0, 1, 2)
+            ) AS totalAppointments,
+
+            /* 历史总收入 = 历史支付数 * 固定单价 */
+            (SELECT COUNT(*) * #{defaultPrice}
+             FROM appointment
+             WHERE status = 1
+            ) AS totalIncome,
+
+            /* 总患者数 */
+            (SELECT COUNT(*) FROM patient WHERE status = 1) AS totalPatients,
+
+            /* 总医生数（审核通过且启用） */
+            (SELECT COUNT(*)
+             FROM doctor d
+                      INNER JOIN doctor_audit da ON d.id = da.doctor_id
+             WHERE d.status = 1 AND da.audit_status = 1
+            ) AS totalDoctors,
+
+            /* 总评价数（已发布） */
+            (SELECT COUNT(*) FROM evaluation WHERE status = 1) AS totalEvaluations
+        FROM DUAL
+    </select>
+
+    <!-- ==================== 趋势数据 ==================== -->
+    <select id="selectTrendData" resultType="com.medireserve.common.dto.TrendDataVO">
+        SELECT
+            DATE(created_at) AS date,
+            COUNT(*) AS appointments,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS paid,
+            SUM(CASE WHEN status = 1 THEN #{defaultPrice} ELSE 0 END) AS income
+        FROM appointment
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL (#{days} - 1) DAY)
+          AND status IN (0, 1, 2)   /* 仅统计有效预约 */
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+    </select>
+
+    <!-- ==================== 科室排行 ==================== -->
+    <select id="selectDepartmentRanking" resultType="com.medireserve.common.dto.DepartmentRankingVO">
+        SELECT
+            d.id AS departmentId,
+            d.name AS departmentName,
+            COUNT(a.id) AS appointmentCount,
+            ROUND(COUNT(a.id) * 100.0 / (SELECT COUNT(*) FROM appointment WHERE status IN (0,1,2)), 2) AS ratio
+        FROM department d
+                 LEFT JOIN doctor doc ON d.id = doc.department_id
+                 LEFT JOIN appointment a ON doc.id = a.doctor_id AND a.status IN (0,1,2)
+        GROUP BY d.id, d.name
+        ORDER BY appointmentCount DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- ===== 医生排行 ===== -->
+    <select id="selectDoctorRanking" resultType="com.medireserve.common.dto.DoctorRankingVO">
+        SELECT
+        doc.id AS doctorId,
+        doc.name AS doctorName,
+        dept.name AS departmentName,
+        COUNT(a.id) AS appointmentCount,
+        COALESCE(ROUND(AVG(ev.score), 2), 0) AS avgScore
+        FROM doctor doc
+        LEFT JOIN department dept ON doc.department_id = dept.id
+        LEFT JOIN appointment a ON doc.id = a.doctor_id AND a.status IN (0,1,2)
+        LEFT JOIN evaluation ev ON a.id = ev.appointment_id AND ev.status = 1
+        WHERE doc.status = 1
+        GROUP BY doc.id, doc.name, dept.name
+        <choose>
+            <when test="sortBy == 'score'">
+                ORDER BY avgScore DESC, appointmentCount DESC
+            </when>
+            <otherwise>
+                ORDER BY appointmentCount DESC, avgScore DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit}
+    </select>
+
+    <!-- ==================== 状态分布 ==================== -->
+    <select id="selectStatusDistribution" resultType="com.medireserve.common.dto.StatusDistributionVO">
+        SELECT
+            status,
+            CASE status
+                WHEN 0 THEN '待支付'
+                WHEN 1 THEN '已支付'
+                WHEN 2 THEN '已就诊'
+                WHEN 3 THEN '已取消'
+                WHEN 4 THEN '已过期'
+                ELSE '未知'
+                END AS label,
+            COUNT(*) AS count
+        FROM appointment
+        GROUP BY status
+        ORDER BY status
+    </select>
+
+</mapper>
