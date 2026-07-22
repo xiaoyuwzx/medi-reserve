@@ -1,6 +1,7 @@
 package com.medireserve.patient.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
@@ -44,6 +45,7 @@ public class EvaluationController {
      */
     @PostMapping("/evaluations")
     @RequireRole(RoleConstant.PATIENT)
+    @LogOperation(module = "就诊评价", operation = "创建评价")
     @Operation(summary = "创建评价", description = "患者对已就诊的预约进行评分和文字评价")
     public Result<Map<String, Object>> createEvaluation(
             @RequestBody @Valid EvaluationCreateDTO createDTO,
@@ -128,6 +130,7 @@ public class EvaluationController {
      */
     @DeleteMapping("/evaluations/{evaluationId}")
     @RequireRole(RoleConstant.PATIENT)
+    @LogOperation(module = "就诊评价", operation = "删除评价")
     @Operation(summary = "删除评价", description = "患者软删除自己提交的评价(状态改为隐藏)")
     public Result<String> deleteEvaluation(
             @PathVariable Long evaluationId,

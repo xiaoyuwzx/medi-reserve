@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.medireserve.admin.mapper.PermissionMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.medireserve.common.entity.Permission">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 查询所有权限，按父ID和排序排序 -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM permission
+        ORDER BY parent_id ASC, sort_order ASC, id ASC
+    </select>
+
+    <!-- 根据角色ID查询权限 -->
+    <select id="findByRoleId" resultMap="BaseResultMap">
+        SELECT p.*
+        FROM permission p
+                 INNER JOIN role_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+        ORDER BY p.parent_id ASC, p.sort_order ASC
+    </select>
+
+    <!--插入权限（用于初始化，实际业务可能不需要）-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO permission (parent_id, code, name, type, sort_order)
+        VALUES (#{parentId}, #{code}, #{name}, #{type}, #{sortOrder})
+    </insert>
+
+    <!--更新权限-->
+    <update id="update">
+        UPDATE permission
+        SET parent_id = #{parentId},
+            code = #{code},
+            name = #{name},
+            type = #{type},
+            sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

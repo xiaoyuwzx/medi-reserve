@@ -1,5 +1,6 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
@@ -57,6 +58,7 @@ public class AppointmentController {
      */
     @PostMapping("/appointments")
     @RequireRole(RoleConstant.PATIENT)
+    @LogOperation(module = "预约管理", operation = "创建预约")
     @Operation(summary = "创建预约(下单)", description = "患者选择排班，扣减号源，生成待支付预约单")
     public Result<Map<String, Object>> createAppointment(
             @RequestBody @Valid AppointmentCreateDTO appointmentCreateDTO,

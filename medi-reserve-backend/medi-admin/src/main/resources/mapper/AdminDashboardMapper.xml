@@ -73,7 +73,11 @@
             d.id AS departmentId,
             d.name AS departmentName,
             COUNT(a.id) AS appointmentCount,
-            ROUND(COUNT(a.id) * 100.0 / (SELECT COUNT(*) FROM appointment WHERE status IN (0,1,2)), 2) AS ratio
+            ROUND(
+                    COUNT(a.id) * 100.0 /
+                    NULLIF((SELECT COUNT(*) FROM appointment WHERE status IN (0,1,2)), 0),
+                    2
+            ) AS ratio
         FROM department d
                  LEFT JOIN doctor doc ON d.id = doc.department_id
                  LEFT JOIN appointment a ON doc.id = a.doctor_id AND a.status IN (0,1,2)

@@ -19,7 +19,7 @@ public class DashboardOverviewVO {
     @Schema(description = "今日已支付数")
     private Long todayPaid;
 
-    @Schema(description = "今日收入（估计值，按固定单价计算）")
+    @Schema(description = "今日收入（仅统计已支付预约，按固定单价计算）")
     private BigDecimal todayIncome;
 
     @Schema(description = "历史总挂号数（有效预约）")

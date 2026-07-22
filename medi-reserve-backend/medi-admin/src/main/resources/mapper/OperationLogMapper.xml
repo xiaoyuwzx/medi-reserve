@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.medireserve.admin.mapper.OperationLogMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.medireserve.common.entity.OperationLog">
+        <id property="id" column="id"/>
+        <result property="adminId" column="admin_id"/>
+        <result property="adminName" column="admin_name"/>
+        <result property="module" column="module"/>
+        <result property="operation" column="operation"/>
+        <result property="method" column="method"/>
+        <result property="path" column="path"/>
+        <result property="params" column="params"/>
+        <result property="ip" column="ip"/>
+        <result property="result" column="result"/>
+        <result property="statusCode" column="status_code"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="durationMs" column="duration_ms"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 插入 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO operation_log (
+            admin_id, admin_name, module, operation,
+            method, path, params, ip,
+            result, status_code, error_msg, duration_ms
+        ) VALUES (
+                     #{adminId}, #{adminName}, #{module}, #{operation},
+                     #{method}, #{path}, #{params}, #{ip},
+                     #{result}, #{statusCode}, #{errorMsg}, #{durationMs}
+                 )
+    </insert>
+
+    <!-- 动态查询列表 -->
+    <select id="findList" resultMap="BaseResultMap">
+        SELECT * FROM operation_log
+        <where>
+            <if test="q.adminId != null">AND admin_id = #{q.adminId}</if>
+            <if test="q.module != null and q.module != ''">AND module = #{q.module}</if>
+            <if test="q.result != null">AND result = #{q.result}</if>
+            <if test="q.startDate != null">AND DATE(created_at) &gt;= #{q.startDate}</if>
+            <if test="q.endDate != null">AND DATE(created_at) &lt;= #{q.endDate}</if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 统计总数 -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM operation_log
+        <where>
+            <if test="q.adminId != null">AND admin_id = #{q.adminId}</if>
+            <if test="q.module != null and q.module != ''">AND module = #{q.module}</if>
+            <if test="q.result != null">AND result = #{q.result}</if>
+            <if test="q.startDate != null">AND DATE(created_at) &gt;= #{q.startDate}</if>
+            <if test="q.endDate != null">AND DATE(created_at) &lt;= #{q.endDate}</if>
+        </where>
+    </select>
+
+</mapper>

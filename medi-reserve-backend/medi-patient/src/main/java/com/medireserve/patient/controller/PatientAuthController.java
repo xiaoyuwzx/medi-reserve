@@ -1,5 +1,6 @@
 package com.medireserve.patient.controller;
 
+import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
@@ -39,6 +40,7 @@ public class PatientAuthController {
      * @return
      */
     @PostMapping("/register")
+    @LogOperation(module = "认证管理", operation = "患者注册")
     @Operation(summary = "患者注册", description = "填写个人信息注册患者账号")
     public Result<Map<String, Object>> register(@RequestBody @Valid PatientRegisterDTO registerDTO){
 
@@ -64,6 +66,7 @@ public class PatientAuthController {
      * @return
      */
     @PostMapping("/login")
+    @LogOperation(module = "认证管理", operation = "患者登录")
     @Operation(summary = "患者登录", description = "手机号 + 密码，成功登录后返回 JWT 令牌")
     public Result<Map<String, Object>> login(@RequestBody @Valid LoginDTO loginDTO){
 
@@ -96,6 +99,7 @@ public class PatientAuthController {
      */
     @PutMapping("/profile")
     @RequireRole(RoleConstant.PATIENT)
+    @LogOperation(module = "认证管理", operation = "修改患者信息")
     @Operation(summary = "修改个人信息", description = "修改姓名、手机号、性别、身份证号")
     public Result<Map<String, Object>> updateProfile(
             @RequestAttribute("userId") Long userId,
@@ -115,6 +119,7 @@ public class PatientAuthController {
      */
     @PutMapping("/password")
     @RequireRole(RoleConstant.PATIENT)
+    @LogOperation(module = "认证管理", operation = "修改患者密码")
     @Operation(summary = "修改密码", description = "验证旧密码后更新为新密码")
     public Result<Void> updatePassword(
             @RequestAttribute("userId") Long userId,

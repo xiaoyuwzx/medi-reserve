@@ -6,10 +6,16 @@ import com.medireserve.common.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 管理端数据统计服务实现
@@ -31,6 +37,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
      * @return
      */
     @Override
+    @Cacheable(value = "dashboard:overview", unless = "#result == null")
     public DashboardOverviewVO getOverview() {
 
         log.info("查询总览统计");
@@ -62,6 +69,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
      * @return
      */
     @Override
+    @Cacheable(value = "dashboard:trend", key = "#days", unless = "#result == null")
     public List<TrendDataVO> getTrendData(int days) {
 
         log.info("查询趋势数据，天数：{}", days);
@@ -74,10 +82,26 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 
         List<TrendDataVO> list = dashboardMapper.selectTrendData(days, defaultPrice);
 
-        // 补充缺失日期的数据（由于分组查询可能跳过无预约的日期，但前端通常需要连续日期）
-        // 此处简单处理，如需连续日期可在 Java 中补全，但推荐前端处理。
+        // 补全缺失日期
+        List<TrendDataVO> fullList = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        Map<LocalDate, TrendDataVO> dateMap = list.stream()
+                .collect(Collectors.toMap(TrendDataVO::getDate, Function.identity()));
 
-        return list;
+        for (int i = days - 1; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            TrendDataVO vo = dateMap.getOrDefault(date, new TrendDataVO());
+            vo.setDate(date);
+            // 若存在则使用原有数据，否则使用默认值（0）
+            if (!dateMap.containsKey(date)) {
+                vo.setAppointments(0L);
+                vo.setPaid(0L);
+                vo.setIncome(BigDecimal.ZERO);
+            }
+            fullList.add(vo);
+        }
+
+        return fullList;
 
     }
 
@@ -148,10 +172,23 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 
         List<StatusDistributionVO> list = dashboardMapper.selectStatusDistribution();
 
-        // 确保所有状态都有标签，即使数据库没有数据
-        // 但 Mapper 已通过 CASE WHEN 生成 label，所以无需额外处理
+        // 构建所有状态的默认集合
+        Map<Integer, String> allStatuses = Map.of(
+                0, "待支付", 1, "已支付", 2, "已就诊", 3, "已取消", 4, "已过期"
+        );
+        Map<Integer, StatusDistributionVO> resultMap = list.stream()
+                .collect(Collectors.toMap(StatusDistributionVO::getStatus, Function.identity()));
 
-        return list;
+        List<StatusDistributionVO> fullList = new ArrayList<>();
+        for (Map.Entry<Integer, String> entry : allStatuses.entrySet()) {
+            StatusDistributionVO vo = resultMap.getOrDefault(entry.getKey(), new StatusDistributionVO());
+            vo.setStatus(entry.getKey());
+            vo.setLabel(entry.getValue());
+            if (vo.getCount() == null) vo.setCount(0L);
+            fullList.add(vo);
+        }
+
+        return fullList;
 
     }
 

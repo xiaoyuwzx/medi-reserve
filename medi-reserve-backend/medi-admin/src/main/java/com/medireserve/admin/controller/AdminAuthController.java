@@ -1,6 +1,7 @@
 package com.medireserve.admin.controller;
 
 import com.medireserve.admin.service.AdminAuthService;
+import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
@@ -41,6 +42,7 @@ public class AdminAuthController {
      */
     @PostMapping("/register")
     @RequireRole(RoleConstant.SUPER_ADMIN)
+    @LogOperation(module = "管理员管理", operation = "添加管理员")
     @Operation(summary = "管理员注册", description = "创建管理员账号（仅限超级管理员操作）")
     public Result<Map<String, Object>> register(
             @RequestBody @Valid AdminRegisterDTO registerDTO,
@@ -71,6 +73,7 @@ public class AdminAuthController {
      * @return
      */
     @PostMapping("/login")
+    @LogOperation(module = "登录认证", operation = "管理员登录")
     @Operation(summary = "管理员登录", description = "用户名 + 密码登录，成功后返回 JWT 令牌")
     public Result<Map<String, Object>> login(@RequestBody @Valid LoginDTO loginDTO){
 
@@ -122,6 +125,7 @@ public class AdminAuthController {
      */
     @PatchMapping("/{id}/status")
     @RequireRole(RoleConstant.SUPER_ADMIN)
+    @LogOperation(module = "管理员管理", operation = "修改管理员状态")
     @Operation(summary = "修改管理员状态", description = "禁用或启用管理员账号")
     public Result<String> updateStatus(
             @PathVariable Long id,
@@ -144,6 +148,7 @@ public class AdminAuthController {
      */
     @PutMapping("/password")
     @RequireRole(RoleConstant.SUPER_ADMIN)
+    @LogOperation(module = "管理员管理", operation = "修改管理员密码")
     @Operation(summary = "修改密码", description = "验证旧密码后更新为新密码")
     public Result<Void> updatePassword(
             @RequestAttribute("userId") Long userId,

@@ -1,5 +1,6 @@
 package com.medireserve.doctor.controller;
 
+import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
@@ -78,6 +79,7 @@ public class ScheduleController {
      * @return
      */
     @PostMapping("/schedules")
+    @LogOperation(module = "排班管理", operation = "新增排班")
     @Operation(summary = "新增排班", description = "医生选择日期和时段，设置最大挂号数（系统会基于历史数据智能推荐）")
     public Result<Map<String, Object>> createSchedule(
             @RequestBody @Valid ScheduleCreateDTO scheduleCreateDTO,
@@ -131,6 +133,7 @@ public class ScheduleController {
      * @return
      */
     @PatchMapping("/schedules/{id}/status")
+    @LogOperation(module = "排班管理", operation = "停诊/恢复排班")
     @Operation(summary = "停诊/恢复排班", description = "传入 status=2 停诊，status=1 恢复")
     public Result<String> updateScheduleStatus(
             @PathVariable Long id,
@@ -157,6 +160,7 @@ public class ScheduleController {
      * @return
      */
     @DeleteMapping("/schedules/{id}")
+    @LogOperation(module = "排班管理", operation = "删除排班")
     @Operation(summary = "删除排班", description = "物理删除排班（仅当该排班下无预约记录时允许）")
     public Result<String> deleteSchedule(
             @PathVariable Long id,

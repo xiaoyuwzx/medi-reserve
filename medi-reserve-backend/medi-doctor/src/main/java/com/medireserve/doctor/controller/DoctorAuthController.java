@@ -1,5 +1,6 @@
 package com.medireserve.doctor.controller;
 
+import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.constant.StatusConstant;
@@ -39,6 +40,7 @@ public class DoctorAuthController {
      * @return
      */
     @PostMapping("/register")
+    @LogOperation(module = "认证管理", operation = "医生注册")
     @Operation(summary = "医生注册", description = "填写个人信息注册医生账号，提交后进入待审核状态")
     public Result<Map<String, Object>> register(@RequestBody @Valid DoctorRegisterDTO registerDTO){
 
@@ -66,6 +68,7 @@ public class DoctorAuthController {
      * @return
      */
     @PostMapping("/login")
+    @LogOperation(module = "认证管理", operation = "医生登录")
     @Operation(summary = "医生登录", description = "手机号 + 密码登录，成功后返回 JWT 令牌")
     public Result<Map<String, Object>> login(@RequestBody @Valid LoginDTO loginDTO){
 
@@ -98,6 +101,7 @@ public class DoctorAuthController {
      */
     @PutMapping("/password")
     @RequireRole(RoleConstant.DOCTOR)
+    @LogOperation(module = "认证管理", operation = "修改医生密码")
     @Operation(summary = "修改密码", description = "验证旧密码后更新为新密码")
     public Result<Void> updatePassword(
             @RequestAttribute("userId") Long userId,
