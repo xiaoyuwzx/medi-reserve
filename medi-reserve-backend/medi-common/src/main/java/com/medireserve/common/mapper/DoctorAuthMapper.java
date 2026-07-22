@@ -62,4 +62,17 @@ public interface DoctorAuthMapper {
     @Update("update doctor set password = #{password} where id = #{id}")
     int updatePassword(@Param("id") Long id, @Param("password") String password);
 
+    /**
+     * 更新医生基本信息（不包含密码、科室、职称）
+     * 普通信息立即生效
+     */
+    @Update("UPDATE doctor SET name = #{name}, phone = #{phone}, id_card = #{idCard}, gender = #{gender} " +
+            "WHERE id = #{id}")
+    int updateById(Doctor doctor);
+
+    /**
+     * 统计除指定ID外该手机号的数量（用于修改时校验唯一性）
+     */
+    @Select("SELECT COUNT(*) FROM doctor WHERE phone = #{phone} AND id != #{id}")
+    int countByPhoneAndNotId(@Param("phone") String phone, @Param("id") Long id);
 }

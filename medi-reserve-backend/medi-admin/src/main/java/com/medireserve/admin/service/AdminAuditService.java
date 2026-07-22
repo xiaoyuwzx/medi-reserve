@@ -1,7 +1,9 @@
 package com.medireserve.admin.service;
 
 import com.github.pagehelper.PageInfo;
+import com.medireserve.common.dto.CertificateAuditDTO;
 import com.medireserve.common.dto.DoctorPendingVO;
+import com.medireserve.common.dto.PendingCertAuditVO;
 import com.medireserve.common.entity.DoctorAudit;
 
 /**
@@ -38,4 +40,27 @@ public interface AdminAuditService {
      * @param rejectReason
      */
     void reject(Long doctorId, Long auditorId, String rejectReason);
+
+    /**
+     * 查询待审核证件列表（分页）
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    PageInfo<PendingCertAuditVO> listCertPending(int pageNum, int pageSize);
+
+    /**
+     * 查询待审核证件详情
+     * @param doctorId
+     * @return
+     */
+    PendingCertAuditVO getCertPendingDetail(Long doctorId);
+
+    /**
+     * 审核医生证件变更（通过/驳回）
+     * @param doctorId
+     * @param adminId
+     * @param dto
+     */
+    void auditCertificate(Long doctorId, Long adminId, CertificateAuditDTO dto);
 }

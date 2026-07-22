@@ -1,6 +1,7 @@
 package com.medireserve.admin.mapper;
 
 import com.medireserve.common.dto.DoctorPendingVO;
+import com.medireserve.common.dto.PendingCertAuditVO;
 import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.DoctorAudit;
 import org.apache.ibatis.annotations.Mapper;
@@ -21,31 +22,37 @@ public interface AdminAuditMapper {
     List<DoctorPendingVO> findPendingList();
 
     /**
-     * 根据医生ID查询审核数据
-     * @param doctorId
-     * @return
+     * 统计待审核医生数量
      */
-    @Select("select * from doctor_audit where doctor_id = #{doctorId}")
+    long countPending();
+
+    /**
+     * 根据医生ID查询审核资料
+     */
+    @Select("SELECT * FROM doctor_audit WHERE doctor_id = #{doctorId}")
     DoctorAudit findByDoctorId(@Param("doctorId") Long doctorId);
 
     /**
-     * 更新审核状态
-     * @param doctorId
-     * @param auditStatus
-     * @param auditRemark
-     * @param auditTime
-     * @param auditorId
-     * @return
+     * 更新审核状态（首次注册审核）
      */
-    @Update("update doctor_audit set " +
-            "audit_status = #{auditStatus}, " +
-            "audit_remark = #{auditRemark}, " +
-            "audit_time = #{auditTime}, " +
-            "auditor_id = #{auditorId} " +
-            "where doctor_id = #{doctorId}")
     int updateAuditStatus(@Param("doctorId") Long doctorId,
                           @Param("auditStatus") Integer auditStatus,
                           @Param("auditRemark") String auditRemark,
-                          @Param("auditTime") LocalDateTime auditTime,
                           @Param("auditorId") Long auditorId);
+
+    /**
+     * 查询待审核证件列表（证件变更审核）
+     */
+    List<PendingCertAuditVO> findCertPendingList(@Param("pageSize") int pageSize,
+                                                 @Param("offset") int offset);
+
+    /**
+     * 统计待审核证件数量
+     */
+    long countCertPending();
+
+    /**
+     * 根据医生ID查询待审核证件信息
+     */
+    PendingCertAuditVO findCertPendingByDoctorId(@Param("doctorId") Long doctorId);
 }

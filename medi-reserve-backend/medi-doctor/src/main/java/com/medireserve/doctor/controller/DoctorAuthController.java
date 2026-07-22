@@ -5,9 +5,7 @@ import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.annotation.RequireRole;
-import com.medireserve.common.dto.DoctorRegisterDTO;
-import com.medireserve.common.dto.LoginDTO;
-import com.medireserve.common.dto.PasswordUpdateDTO;
+import com.medireserve.common.dto.*;
 import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.result.Result;
 import com.medireserve.common.utils.JwtUtil;
@@ -98,6 +96,9 @@ public class DoctorAuthController {
 
     /**
      * 修改密码
+     * @param userId
+     * @param dto
+     * @return
      */
     @PutMapping("/password")
     @RequireRole(RoleConstant.DOCTOR)
@@ -108,10 +109,45 @@ public class DoctorAuthController {
             @RequestBody @Valid PasswordUpdateDTO dto) {
 
         log.info("修改密码，医生ID：{}", userId);
+
         doctorAuthService.updatePassword(userId, dto);
+
         log.info("密码修改成功，医生ID：{}", userId);
 
         return Result.success("密码修改成功，请重新登录", null);
+
+    }
+
+    /**
+     * 修改医生个人信息
+     * 普通信息（姓名、手机号、性别、身份证号）立即生效
+     * 证件信息（执业证书、资格证）提交审核，需管理员审批
+     */
+    @PutMapping("/profile")
+    @RequireRole(RoleConstant.DOCTOR)
+    @Operation(summary = "修改个人信息",
+            description = "普通信息立即生效，证件信息提交审核（需管理员审批）")
+    public Result<Map<String, Object>> updateProfile(
+            @RequestAttribute("userId") Long doctorId,
+            @RequestBody @Valid DoctorUpdateDTO dto) {
+        log.info("修改个人信息，医生ID：{}", doctorId);
+        Map<String, Object> result = doctorAuthService.updateProfile(doctorId, dto);
+        log.info("个人信息修改成功，医生ID：{}，证件已提交审核", doctorId);
+        return Result.success(MessageConstant.UPDATE_SUCCESS, result);
+    }
+
+    /**
+     * 查询医生证件审核状态
+     */
+    @GetMapping("/profile/audit-status")
+    @RequireRole(RoleConstant.DOCTOR)
+    @Operation(summary = "查询证件审核状态",
+            description = "返回当前证件审核状态：待审核/已通过/已驳回/未提交")
+    public Result<DoctorAuditInfoVO> getAuditStatus(
+            @RequestAttribute("userId") Long doctorId) {
+        log.info("查询证件审核状态，医生ID：{}", doctorId);
+        DoctorAuditInfoVO vo = doctorAuthService.getAuditStatus(doctorId);
+        return Result.success(vo);
     }
 
 }

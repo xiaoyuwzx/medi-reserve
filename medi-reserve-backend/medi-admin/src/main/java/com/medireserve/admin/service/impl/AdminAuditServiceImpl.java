@@ -3,6 +3,9 @@ package com.medireserve.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.mapper.AdminAuditMapper;
+import com.medireserve.common.dto.CertificateAuditDTO;
+import com.medireserve.common.dto.PendingCertAuditVO;
+import com.medireserve.common.mapper.DoctorAuditMapper;
 import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.admin.service.AdminAuditService;
 import com.medireserve.common.constant.StatusConstant;
@@ -14,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +34,10 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
     @Autowired
     private DoctorAuthMapper doctorAuthMapper;
+
+    @Autowired
+    private DoctorAuditMapper doctorAuditMapper;
+
 
     /**
      * 分页查询待审核医生列表
@@ -127,7 +135,6 @@ public class AdminAuditServiceImpl implements AdminAuditService {
                 doctorId,
                 StatusConstant.AUDIT_APPROVED, // 1
                 null,        // 审核通过无驳回原因
-                LocalDateTime.now(),
                 auditorId
         );
 
@@ -181,7 +188,6 @@ public class AdminAuditServiceImpl implements AdminAuditService {
                 doctorId,
                 StatusConstant.AUDIT_REJECTED, // 2
                 rejectReason, //驳回原因
-                LocalDateTime.now(),
                 auditorId
         );
 
@@ -192,6 +198,83 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
         log.info("审核驳回成功，医生ID：{}，审核人：{}", doctorId, auditorId);
 
+    }
+
+    /**
+     * 查询待审核证件列表（分页）
+     */
+    @Override
+    public PageInfo<PendingCertAuditVO> listCertPending(int pageNum, int pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<PendingCertAuditVO> list = adminAuditMapper.findCertPendingList(pageSize,
+                (pageNum - 1) * pageSize);
+        return new PageInfo<>(list);
+    }
+
+    /**
+     * 查询待审核证件详情
+     */
+    @Override
+    public PendingCertAuditVO getCertPendingDetail(Long doctorId) {
+        // 先验证医生是否存在
+        if (doctorAuthMapper.findById(doctorId) == null) {
+            throw new DoctorNotFoundException();
+        }
+
+        PendingCertAuditVO vo = adminAuditMapper.findCertPendingByDoctorId(doctorId);
+        if (vo == null) {
+            throw new BusinessException("该医生未提交证件变更申请");
+        }
+        return vo;
+    }
+
+    /**
+     * 审核医生证件变更（通过/驳回）
+     */
+    @Transactional
+    @Override
+    public void auditCertificate(Long doctorId, Long adminId, CertificateAuditDTO dto) {
+        // 1. 验证医生是否存在
+        if (doctorAuthMapper.findById(doctorId) == null) {
+            throw new DoctorNotFoundException();
+        }
+
+        // 2. 查询当前审核状态
+        DoctorAudit audit = adminAuditMapper.findByDoctorId(doctorId);
+        if (audit == null) {
+            throw new DoctorAuditNotFoundException();
+        }
+
+        // 3. 验证是否有待审核的证件
+        if (audit.getCertAuditStatus() == null || audit.getCertAuditStatus() != 0) {
+            throw new BusinessException("该医生没有待审核的证件变更");
+        }
+        if (!StringUtils.hasText(audit.getPendingCertificateUrl())
+                && !StringUtils.hasText(audit.getPendingQualificationUrl())) {
+            throw new BusinessException("该医生没有待审核的证件变更");
+        }
+
+        // 4. 执行审核
+        int rows;
+        if (dto.getResult() == 1) {
+            // 审核通过：pending 覆盖到正式字段
+            rows = doctorAuditMapper.approveCert(doctorId, adminId, dto.getRemark());
+            log.info("证件审核通过，医生ID：{}，管理员ID：{}", doctorId, adminId);
+        } else if (dto.getResult() == 2) {
+            // 审核驳回：需要填写驳回原因
+            if (!StringUtils.hasText(dto.getRemark())) {
+                throw new BusinessException("驳回时必须填写驳回原因");
+            }
+            rows = doctorAuditMapper.rejectCert(doctorId, adminId, dto.getRemark());
+            log.info("证件审核驳回，医生ID：{}，管理员ID：{}，原因：{}",
+                    doctorId, adminId, dto.getRemark());
+        } else {
+            throw new BusinessException("审核结果参数错误，请传入 1（通过）或 2（驳回）");
+        }
+
+        if (rows == 0) {
+            throw new AuditOperationFailedException("审核操作失败，请重试");
+        }
     }
 
 }

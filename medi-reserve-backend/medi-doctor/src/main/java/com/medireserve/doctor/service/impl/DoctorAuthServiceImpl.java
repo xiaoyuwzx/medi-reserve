@@ -1,7 +1,9 @@
 package com.medireserve.doctor.service.impl;
 
 import com.medireserve.common.constant.StatusConstant;
+import com.medireserve.common.dto.DoctorAuditInfoVO;
 import com.medireserve.common.dto.DoctorRegisterDTO;
+import com.medireserve.common.dto.DoctorUpdateDTO;
 import com.medireserve.common.dto.PasswordUpdateDTO;
 import com.medireserve.common.entity.Department;
 import com.medireserve.common.entity.Doctor;
@@ -9,6 +11,7 @@ import com.medireserve.common.entity.DoctorAudit;
 import com.medireserve.common.entity.Title;
 import com.medireserve.common.exception.*;
 import com.medireserve.common.service.LoginAttemptService;
+import com.medireserve.common.utils.JwtUtil;
 import com.medireserve.common.utils.PasswordUtil;
 import com.medireserve.common.mapper.DepartmentMapper;
 import com.medireserve.common.mapper.DoctorAuthMapper;
@@ -20,6 +23,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 医生端认证
@@ -180,6 +187,132 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
 
         doctorAuthMapper.updatePassword(doctorId, PasswordUtil.encode(dto.getNewPassword()));
         log.info("医生密码修改成功，ID：{}", doctorId);
+    }
+
+    /**
+     * 更新医生个人信息
+     * 普通信息立即生效，证件信息提交审核
+     */
+    @Transactional
+    @Override
+    public Map<String, Object> updateProfile(Long doctorId, DoctorUpdateDTO dto) {
+        // 1. 查询医生是否存在
+        Doctor doctor = doctorAuthMapper.findById(doctorId);
+        if (doctor == null) {
+            log.warn("修改个人信息失败，医生不存在，ID：{}", doctorId);
+            throw new AccountNotFoundException();
+        }
+
+        // 2. 如果手机号变更，校验新手机号是否已被占用
+        boolean phoneChanged = !dto.getPhone().equals(doctor.getPhone());
+        if (phoneChanged) {
+            int count = doctorAuthMapper.countByPhoneAndNotId(dto.getPhone(), doctorId);
+            if (count > 0) {
+                log.warn("修改个人信息失败，手机号已被占用：{}", dto.getPhone());
+                throw new PhoneAlreadyExistsException();
+            }
+        }
+
+        // 3. 更新 doctor 表基本信息（立即生效）
+        doctor.setName(dto.getName());
+        doctor.setPhone(dto.getPhone());
+        doctor.setIdCard(dto.getIdCard());
+        doctor.setGender(dto.getGender());
+        doctorAuthMapper.updateById(doctor);
+
+        // 4. 更新 doctor_audit 表（专业信息立即生效 + 证件提交审核）
+        int rows;
+        if (StringUtils.hasText(dto.getCertificateUrl()) || StringUtils.hasText(dto.getQualificationUrl())) {
+            // 有证件变更 → 提交审核
+            rows = doctorAuditMapper.updateProfileAndSubmitCert(
+                    doctorId,
+                    dto.getSpecialty(),
+                    dto.getIntroduction(),
+                    dto.getCertificateUrl(),
+                    dto.getQualificationUrl()
+            );
+        } else {
+            // 无证件变更 → 只更新专业信息，不触发审核
+            rows = doctorAuditMapper.updateProfileOnly(
+                    doctorId,
+                    dto.getSpecialty(),
+                    dto.getIntroduction()
+            );
+        }
+        if (rows == 0) {
+            log.warn("医生审核资料不存在，医生ID：{}", doctorId);
+            throw new BusinessException("医生资料不存在，请联系管理员");
+        }
+
+        log.info("医生信息修改成功，ID：{}，手机号：{}，证件已提交审核", doctorId, dto.getPhone());
+
+        // 5. 如果手机号变更，生成新 Token
+        String token = null;
+        if (phoneChanged) {
+            token = JwtUtil.createToken(doctor.getId(), doctor.getPhone(), "DOCTOR");
+            log.info("手机号变更，已生成新 Token");
+        }
+
+        // 6. 返回结果
+        Map<String, Object> resultMap = new HashMap<>();
+        if (token != null) {
+            resultMap.put("token", token);
+        }
+        resultMap.put("id", doctor.getId());
+        resultMap.put("name", doctor.getName());
+        resultMap.put("phone", doctor.getPhone());
+        resultMap.put("gender", doctor.getGender());
+        resultMap.put("idCard", doctor.getIdCard());
+        resultMap.put("specialty", dto.getSpecialty());
+        resultMap.put("introduction", dto.getIntroduction());
+        // 注意：证件不立即生效，所以返回当前生效的证件，而不是新提交的
+        // 前端可以通过 getAuditStatus 查询审核状态
+
+        return resultMap;
+    }
+
+    /**
+     * 查询医生证件审核状态
+     */
+    @Override
+    public DoctorAuditInfoVO getAuditStatus(Long doctorId) {
+        DoctorAudit audit = doctorAuditMapper.findByDoctorId(doctorId);
+        if (audit == null) {
+            throw new BusinessException("医生资料不存在");
+        }
+
+        DoctorAuditInfoVO vo = new DoctorAuditInfoVO();
+        vo.setDoctorId(doctorId);
+        vo.setCertificateUrl(audit.getCertificateUrl());
+        vo.setQualificationUrl(audit.getQualificationUrl());
+        vo.setPendingCertificateUrl(audit.getPendingCertificateUrl());
+        vo.setPendingQualificationUrl(audit.getPendingQualificationUrl());
+        vo.setCertAuditStatus(audit.getCertAuditStatus());
+        vo.setCertAuditRemark(audit.getCertAuditRemark());
+        vo.setCertAuditTime(audit.getCertAuditTime());
+        vo.setSpecialty(audit.getSpecialty());
+        vo.setIntroduction(audit.getIntroduction());
+
+        // 设置状态描述
+        if (audit.getCertAuditStatus() == null) {
+            vo.setCertAuditStatusText("未提交");
+        } else {
+            switch (audit.getCertAuditStatus()) {
+                case 0:
+                    vo.setCertAuditStatusText("审核中");
+                    break;
+                case 1:
+                    vo.setCertAuditStatusText("已通过");
+                    break;
+                case 2:
+                    vo.setCertAuditStatusText("已驳回");
+                    break;
+                default:
+                    vo.setCertAuditStatusText("未知");
+            }
+        }
+
+        return vo;
     }
 
 }

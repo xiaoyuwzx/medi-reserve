@@ -7,21 +7,91 @@
     <select id="findPendingList" resultType="com.medireserve.common.dto.DoctorPendingVO">
         SELECT
             d.id AS doctorId,
-            d.name,
-            d.phone,
+            d.name AS doctorName,
+            d.phone AS phone,
             dept.name AS departmentName,
             t.name AS titleName,
-            d.created_at AS createdAt,
             da.specialty,
             da.introduction,
             da.certificate_url AS certificateUrl,
-            da.qualification_url AS qualificationUrl
+            da.qualification_url AS qualificationUrl,
+            da.audit_status AS auditStatus,
+            da.created_at AS registeredAt
         FROM doctor d
                  INNER JOIN doctor_audit da ON d.id = da.doctor_id
                  LEFT JOIN department dept ON d.department_id = dept.id
                  LEFT JOIN title t ON d.title_id = t.id
         WHERE da.audit_status = 0
-        ORDER BY d.created_at ASC
+        ORDER BY da.created_at ASC
+    </select>
+
+    <select id="countPending" resultType="long">
+        SELECT COUNT(*)
+        FROM doctor_audit
+        WHERE audit_status = 0
+    </select>
+
+    <update id="updateAuditStatus">
+        UPDATE doctor_audit
+        SET audit_status = #{auditStatus},
+            audit_remark = #{auditRemark},
+            audit_time = NOW(),
+            auditor_id = #{auditorId}
+        WHERE doctor_id = #{doctorId}
+    </update>
+
+    <!-- ==================== 证件审核相关 ==================== -->
+
+    <!-- 查询待审核证件列表（医生已提交证件变更） -->
+    <select id="findCertPendingList" resultType="com.medireserve.common.dto.PendingCertAuditVO">
+        SELECT
+            d.id AS doctorId,
+            d.name AS doctorName,
+            dept.name AS departmentName,
+            t.name AS titleName,
+            da.certificate_url AS currentCertificateUrl,
+            da.qualification_url AS currentQualificationUrl,
+            da.pending_certificate_url AS pendingCertificateUrl,
+            da.pending_qualification_url AS pendingQualificationUrl,
+            da.updated_at AS submittedAt
+        FROM doctor d
+                 INNER JOIN doctor_audit da ON d.id = da.doctor_id
+                 LEFT JOIN department dept ON d.department_id = dept.id
+                 LEFT JOIN title t ON d.title_id = t.id
+        WHERE da.cert_audit_status = 0
+          AND (da.pending_certificate_url IS NOT NULL
+            OR da.pending_qualification_url IS NOT NULL)
+        ORDER BY da.updated_at ASC
+    </select>
+
+    <select id="countCertPending" resultType="long">
+        SELECT COUNT(*)
+        FROM doctor_audit
+        WHERE cert_audit_status = 0
+          AND (pending_certificate_url IS NOT NULL
+            OR pending_qualification_url IS NOT NULL)
+    </select>
+
+    <!-- 根据医生ID查询待审核证件信息 -->
+    <select id="findCertPendingByDoctorId" resultType="com.medireserve.common.dto.PendingCertAuditVO">
+        SELECT
+            d.id AS doctorId,
+            d.name AS doctorName,
+            dept.name AS departmentName,
+            t.name AS titleName,
+            da.certificate_url AS currentCertificateUrl,
+            da.qualification_url AS currentQualificationUrl,
+            da.pending_certificate_url AS pendingCertificateUrl,
+            da.pending_qualification_url AS pendingQualificationUrl,
+            da.updated_at AS submittedAt
+        FROM doctor d
+                 INNER JOIN doctor_audit da ON d.id = da.doctor_id
+                 LEFT JOIN department dept ON d.department_id = dept.id
+                 LEFT JOIN title t ON d.title_id = t.id
+        WHERE d.id = #{doctorId}
+          AND da.cert_audit_status = 0
+          AND (da.pending_certificate_url IS NOT NULL
+            OR da.pending_qualification_url IS NOT NULL)
     </select>
 
 </mapper>
