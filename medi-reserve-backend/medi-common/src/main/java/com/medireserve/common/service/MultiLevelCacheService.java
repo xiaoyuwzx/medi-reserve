@@ -75,7 +75,7 @@ public class MultiLevelCacheService {
             }
             localCache.put(localKey, result);
         } else {
-            redisTemplate.opsForValue().set(cacheKey, null, 5, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(cacheKey, null, 10, TimeUnit.MINUTES);
             localCache.put(localKey, null);
         }
 

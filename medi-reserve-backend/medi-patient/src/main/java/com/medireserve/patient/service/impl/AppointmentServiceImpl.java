@@ -156,8 +156,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         boolean locked = false;
         try {
 
-            //尝试获取锁，等待3秒，锁持有时间最多10秒
-            locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
+            //尝试获取锁，等待3秒，锁持有时间最多15秒
+            locked = lock.tryLock(3, 15, TimeUnit.SECONDS);
             if(!locked){
                 log.error("获取分布式锁失败，排班ID：{}", scheduleId);
                 throw new SystemBusyException();

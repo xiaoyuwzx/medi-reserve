@@ -19,11 +19,16 @@ jwt:
 
 logging:
   level:
-    com.medireserve: INFO
-    org.springframework.web: WARN
+    com.medireserve: INFO          # 业务日志 INFO
+    org.springframework: WARN      # 框架日志 WARN
+    org.mybatis: WARN
+    org.redisson: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
 
 management:
   endpoints:
     web:
       exposure:
         include: health
+

@@ -88,4 +88,37 @@ public class GlobalExceptionHandler {
         log.warn("参数校验失败：{}", errorMsg);
         return Result.error(StatusCodeConstant.PARAM_ERROR, errorMsg);
     }
+
+    // ==================== Redisson 异常处理 ====================
+    /**
+     * 捕获 Redis 操作超时异常（锁获取超时）
+     * Redisson 在等待锁超时时抛出 RedisTimeoutException
+     */
+    @ExceptionHandler(org.redisson.client.RedisTimeoutException.class)
+    @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
+    public Result<Void> handleRedisTimeoutException(org.redisson.client.RedisTimeoutException e) {
+        log.error("Redis 操作超时: {}", e.getMessage(), e);
+        return Result.error(StatusCodeConstant.SYSTEM_BUSY, "系统繁忙，请稍后重试");
+    }
+
+    /**
+     * 捕获其他 Redis 操作异常（连接失败、命令执行异常等）
+     */
+    @ExceptionHandler(org.redisson.client.RedisException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result<Void> handleRedisException(org.redisson.client.RedisException e) {
+        log.error("Redis 操作异常: {}", e.getMessage(), e);
+        return Result.error(StatusCodeConstant.SYSTEM_ERROR, "缓存服务异常，请稍后重试");
+    }
+
+    /**
+     * 捕获分布式锁获取时线程中断异常
+     */
+    @ExceptionHandler(InterruptedException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result<Void> handleInterruptedException(InterruptedException e) {
+        Thread.currentThread().interrupt(); // 恢复中断状态
+        log.error("分布式锁获取被中断: {}", e.getMessage(), e);
+        return Result.error(StatusCodeConstant.SYSTEM_BUSY, "操作被中断，请重试");
+    }
 }
