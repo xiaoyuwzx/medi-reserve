@@ -1,5 +1,6 @@
 package com.medireserve.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -9,40 +10,27 @@ import java.time.LocalDate;
  * 用于展示某医生未来7天的排班情况
  */
 @Data
+@Schema(description = "排班日历返回 VO（患者端）")
 public class ScheduleCalendarVO {
 
-    /**
-     * 排班ID
-     */
+    @Schema(description = "排班ID")
     private Long scheduleId;
 
-    /**
-     * 排班日期
-     */
+    @Schema(description = "排班日期")
     private LocalDate scheduleDate;
 
-    /**
-     * 时段：1上午 2下午
-     */
+    @Schema(description = "时段：1=上午，2=下午")
     private Integer period;
 
-    /**
-     * 时段文本（上午/下午）
-     */
+    @Schema(description = "时段文本（上午/下午）")
     private String periodText;
 
-    /**
-     * 剩余号源
-     */
+    @Schema(description = "剩余号源")
     private Integer remainingCount;
 
-    /**
-     * 排班状态：1正常 2停诊 3已满
-     */
+    @Schema(description = "排班状态：1-正常，2-停诊，3-已满")
     private Integer status;
 
-    /**
-     * 状态文本（正常/停诊/已满）
-     */
+    @Schema(description = "状态文本")
     private String statusText;
 }

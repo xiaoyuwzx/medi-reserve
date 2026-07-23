@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 操作日志响应 VO
  */
 @Data
-@Schema(description = "操作日志信息")
+@Schema(description = "操作日志响应 VO")
 public class OperationLogVO {
 
     @Schema(description = "日志ID")
@@ -33,7 +33,7 @@ public class OperationLogVO {
     @Schema(description = "请求路径")
     private String path;
 
-    @Schema(description = "请求参数")
+    @Schema(description = "请求参数（JSON）")
     private String params;
 
     @Schema(description = "客户端IP")
@@ -48,7 +48,7 @@ public class OperationLogVO {
     @Schema(description = "错误信息（失败时）")
     private String errorMsg;
 
-    @Schema(description = "耗时（毫秒）")
+    @Schema(description = "操作耗时（毫秒）")
     private Integer durationMs;
 
     @Schema(description = "操作时间")

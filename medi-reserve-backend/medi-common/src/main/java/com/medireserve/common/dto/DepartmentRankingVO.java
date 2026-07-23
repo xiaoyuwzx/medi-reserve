@@ -7,10 +7,9 @@ import java.math.BigDecimal;
 
 /**
  * 科室排行 VO
- * 位置：medi-common/src/main/java/com/medireserve/common/dto/DepartmentRankingVO.java
  */
 @Data
-@Schema(description = "科室排行数据")
+@Schema(description = "科室排行数据 VO")
 public class DepartmentRankingVO {
 
     @Schema(description = "科室ID")

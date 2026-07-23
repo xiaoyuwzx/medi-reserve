@@ -9,9 +9,10 @@ import java.util.List;
  * 角色权限更新请求 DTO
  */
 @Data
-@Schema(description = "角色权限更新请求")
+@Schema(description = "角色权限更新请求 DTO")
 public class RolePermissionUpdateDTO {
+
+    @Schema(description = "权限ID列表", required = true)
     @NotNull(message = "权限ID列表不能为空")
-    @Schema(description = "权限ID列表")
     private List<Long> permissionIds;
 }

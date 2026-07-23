@@ -1,5 +1,6 @@
 package com.medireserve.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,19 +10,27 @@ import lombok.Data;
  */
 @Data
 @Builder
+@Schema(description = "OSS STS 临时凭证返回对象")
 public class OssStsVO {
-    // 临时 AccessKeyId（切记：非主账号 AK，仅 30 分钟有效）
+
+    @Schema(description = "临时 AccessKeyId")
     private String accessKeyId;
-    // 临时 AccessKeySecret
+
+    @Schema(description = "临时 AccessKeySecret")
     private String accessKeySecret;
-    // 安全令牌（STS 的核心凭证，必须携带）
+
+    @Schema(description = "安全令牌（STS）")
     private String securityToken;
-    // 凭证过期时间（ISO 8601 格式，前端可用于倒计时提醒）
+
+    @Schema(description = "凭证过期时间（ISO 8601）")
     private String expiration;
-    // OSS 存储空间名称
+
+    @Schema(description = "OSS 存储空间名称")
     private String bucket;
-    // OSS 访问端点
+
+    @Schema(description = "OSS 访问端点")
     private String endpoint;
-    // 文件上传的目标目录（前端必须拼接此路径作为 objectName 前缀）
+
+    @Schema(description = "上传目标目录（需前端拼接）")
     private String dir;
 }

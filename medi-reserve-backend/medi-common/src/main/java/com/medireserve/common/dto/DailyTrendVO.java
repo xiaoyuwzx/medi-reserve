@@ -7,10 +7,9 @@ import java.time.LocalDate;
 
 /**
  * 每日趋势数据点
- * 位置：medi-common/src/main/java/com/medireserve/common/dto/DailyTrendVO.java
  */
 @Data
-@Schema(description = "每日趋势数据")
+@Schema(description = "每日趋势数据点")
 public class DailyTrendVO {
 
     @Schema(description = "日期")

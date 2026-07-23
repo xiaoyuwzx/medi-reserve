@@ -1,15 +1,14 @@
 package com.medireserve.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * 创建预约（下单）请求DTO
- * 患者端 POST /patient/appointments 接收的参数
- */
 @Data
+@Schema(description = "创建预约请求 DTO")
 public class AppointmentCreateDTO {
 
+    @Schema(description = "排班ID", required = true)
     @NotNull(message = "排班ID不能为空")
-    private Long scheduleId;   // 患者选择的排班ID
+    private Long scheduleId;
 }

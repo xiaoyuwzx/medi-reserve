@@ -8,15 +8,16 @@ import java.util.List;
  * 角色 VO
  */
 @Data
-@Schema(description = "角色信息")
+@Schema(description = "角色信息 VO")
 public class RoleVO {
+
     @Schema(description = "角色ID")
     private Integer id;
 
     @Schema(description = "角色名称")
     private String name;
 
-    @Schema(description = "描述")
+    @Schema(description = "角色描述")
     private String description;
 
     @Schema(description = "拥有的权限ID列表")

@@ -1,5 +1,6 @@
 package com.medireserve.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -7,41 +8,27 @@ import lombok.Data;
  * 用于患者浏览医生列表时展示
  */
 @Data
+@Schema(description = "医生列表返回对象（患者端）")
 public class DoctorListVO {
 
-    /**
-     * 医生ID（用于后续查询排班）
-     */
+    @Schema(description = "医生ID")
     private Long doctorId;
 
-    /**
-     * 医生姓名
-     */
+    @Schema(description = "医生姓名")
     private String name;
 
-    /**
-     * 科室
-     */
+    @Schema(description = "科室名称")
     private String department;
 
-    /**
-     * 职称（主任医师/副主任医师/主治医师/住院医师）
-     */
+    @Schema(description = "职称名称")
     private String title;
 
-    /**
-     * 擅长领域
-     */
+    @Schema(description = "擅长领域")
     private String specialty;
 
-    /**
-     * 职称权重（用于排序，数值越大职称越高）
-     * 主任医师=4，副主任医师=3，主治医师=2，住院医师=1
-     */
+    @Schema(description = "职称权重（4=主任医师，1=住院医师）")
     private Integer titleWeight;
 
-    /**
-     * 是否有可用号源（未来7天有剩余号源）
-     */
+    @Schema(description = "未来7天是否有可用号源")
     private Boolean hasAvailableSlot;
 }

@@ -8,10 +8,9 @@ import java.time.LocalDate;
 
 /**
  * 趋势数据点
- * 位置：medi-common/src/main/java/com/medireserve/common/dto/TrendDataVO.java
  */
 @Data
-@Schema(description = "每日趋势数据")
+@Schema(description = "每日趋势数据点")
 public class TrendDataVO {
 
     @Schema(description = "日期")
@@ -23,6 +22,6 @@ public class TrendDataVO {
     @Schema(description = "当日支付量")
     private Long paid;
 
-    @Schema(description = "当日收入（估计值）")
+    @Schema(description = "当日收入（固定单价估算）")
     private BigDecimal income;
 }

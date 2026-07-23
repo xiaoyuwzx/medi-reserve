@@ -10,23 +10,23 @@ import lombok.Data;
  * 普通信息（姓名、手机号等）立即生效，证件信息提交审核
  */
 @Data
-@Schema(description = "医生个人信息更新请求")
+@Schema(description = "医生个人信息更新请求 DTO（普通信息立即生效，证件提交审核）")
 public class DoctorUpdateDTO {
 
-    @NotBlank(message = "姓名不能为空")
     @Schema(description = "姓名", required = true)
+    @NotBlank(message = "姓名不能为空")
     private String name;
 
+    @Schema(description = "手机号（11位）", required = true)
     @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    @Schema(description = "手机号", required = true)
     private String phone;
 
-    @Schema(description = "性别：0-未知 1-男 2-女")
+    @Schema(description = "性别：0=未知，1=男，2=女")
     private Integer gender;
 
+    @Schema(description = "身份证号（18位）")
     @Pattern(regexp = "^[1-9]\\d{16}[0-9Xx]$", message = "身份证号格式不正确")
-    @Schema(description = "身份证号")
     private String idCard;
 
     @Schema(description = "擅长领域")

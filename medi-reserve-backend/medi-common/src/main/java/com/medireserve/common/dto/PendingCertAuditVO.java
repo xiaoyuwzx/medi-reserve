@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * 待审核医生证件列表 VO（管理端）
  */
 @Data
-@Schema(description = "待审核医生证件信息")
+@Schema(description = "待审核医生证件信息 VO（管理端）")
 public class PendingCertAuditVO {
 
     @Schema(description = "医生ID")
@@ -36,6 +36,6 @@ public class PendingCertAuditVO {
     @Schema(description = "待审核的资格证URL（新上传）")
     private String pendingQualificationUrl;
 
-    @Schema(description = "提交时间（申请变更时间）")
+    @Schema(description = "提交时间")
     private LocalDateTime submittedAt;
 }

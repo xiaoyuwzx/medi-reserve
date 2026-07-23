@@ -1,6 +1,7 @@
 package com.medireserve.common.dto;
 
 import com.medireserve.common.constant.MessageConstant;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -14,20 +15,21 @@ import java.time.LocalDate;
  * 医生端 POST /doctor/schedules 接收的参数
  */
 @Data
+@Schema(description = "新增排班请求 DTO")
 public class ScheduleCreateDTO {
 
-    /*@NotNull(message = "医生ID不能为空")
-    private Long doctorId;*/
-
+    @Schema(description = "排班日期（yyyy-MM-dd）", required = true)
     @NotNull(message = "排班日期不能为空")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate scheduleDate;
 
+    @Schema(description = "时段：1=上午，2=下午", required = true, allowableValues = {"1", "2"})
     @NotNull(message = "时段不能为空")
     @Min(value = 1, message = "时段参数错误（1=上午，2=下午）")
     @Max(value = 2, message = "时段参数错误（1=上午，2=下午）")
     private Integer period;
 
+    @Schema(description = "最大挂号数（1-100）", required = true)
     @NotNull(message = "最大挂号数不能为空")
     @Min(value = 1, message = "最大挂号数至少为1")
     @Max(value = 100, message = "最大挂号数不能超过100")
