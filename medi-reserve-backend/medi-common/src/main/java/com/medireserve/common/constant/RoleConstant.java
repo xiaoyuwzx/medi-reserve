@@ -11,7 +11,7 @@ public class RoleConstant {
     public static final String PATIENT = "PATIENT";   // 患者
     public static final String DOCTOR = "DOCTOR";     // 医生
     public static final String SUPER_ADMIN = "SUPER_ADMIN";  // 超级管理员
-    public static final String NORMAL_ADMIN = "NORMAL_ADMIN"; // 普通管理员
+    public static final String ADMIN = "ADMIN";
 
     // ========== 管理员角色（存储于 admin.role 字段） ==========
     public static final Integer ADMIN_SUPER = 1;      // 超级管理员
@@ -24,7 +24,7 @@ public class RoleConstant {
         if (ADMIN_SUPER.equals(roleId)) {
             return SUPER_ADMIN;
         } else if (ADMIN_NORMAL.equals(roleId)) {
-            return NORMAL_ADMIN;
+            return ADMIN;
         }
         throw new SystemException("未知的管理员角色: " + roleId);
     }

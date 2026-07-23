@@ -40,7 +40,7 @@ public interface AppointmentMapper {
             "remaining_count = remaining_count - 1, " +
             "status = case " +
             "  when remaining_count - 1 = 0 then 3 " +
-            "  else status " +  // ✅ 保留原有状态
+            "  else status " +
             "end " +
             "where id = #{scheduleId} and remaining_count > 0")
     int decrementRemainingCount(@Param("scheduleId") Long scheduleId);
@@ -117,7 +117,7 @@ public interface AppointmentMapper {
      * 用于初始化布隆过滤器
      */
     @Select("SELECT id FROM schedule WHERE schedule_date >= CURDATE()")
-    List<Long> findFutureScheduleIds(@Param("startDate") LocalDate startDate);
+    List<Long> findFutureScheduleIds();
 
     /**
      * 分页查询我的预约列表（含关联医生、科室、职称、排班信息）

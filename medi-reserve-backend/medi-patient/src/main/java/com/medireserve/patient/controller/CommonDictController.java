@@ -28,18 +28,21 @@ public class CommonDictController {
     @GetMapping("/departments")
     @Operation(summary = "获取科室列表")
     public Result<List<DepartmentVO>> getDepartments() {
+        log.info("获取科室列表");
         return Result.success(patientDoctorService.getAllDepartments());
     }
 
     @GetMapping("/titles")
     @Operation(summary = "获取职称列表")
     public Result<List<Title>> getTitles() {
+        log.info("获取职称列表");
         return Result.success(patientDoctorService.getAllTitles());
     }
 
     @GetMapping("/all")
     @Operation(summary = "获取所有字典数据：获取科室、职称列表")
     public Result<Map<String, Object>> getAll() {
+        log.info("获取所有字典数据：获取科室、职称列表");
         Map<String, Object> data = new HashMap<>();
         data.put("departments", patientDoctorService.getAllDepartments());
         data.put("titles", patientDoctorService.getAllTitles());

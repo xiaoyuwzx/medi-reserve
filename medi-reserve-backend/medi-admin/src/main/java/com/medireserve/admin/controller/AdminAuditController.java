@@ -66,6 +66,7 @@ public class AdminAuditController {
      * @return
      */
     @GetMapping("/doctors/{id}/audit-detail")
+    @RequireRole(RoleConstant.SUPER_ADMIN)
     @Operation(summary = "查看医生审核详细", description = "查看某位医生的完整注册信息和审核资料")
     public Result<DoctorAudit> getAuditDetail(@PathVariable Long id){
 
@@ -95,12 +96,6 @@ public class AdminAuditController {
 
         log.info("审核通过请求，医生ID：{}，操作人：{}，角色：{}", id, currentAdminId, currentRole);
 
-        //权限校验(仅超级管理员)
-        if(!RoleConstant.SUPER_ADMIN.equals(currentRole)){
-            log.warn("权限不足，当前角色：{}，需要：{}", currentRole, RoleConstant.SUPER_ADMIN);
-            throw new PermissionDeniedException("只有超级管理员才能执行审核操作");
-        }
-
         adminAuditService.approve(id, currentAdminId);
 
         return Result.success(MessageConstant.DOCTOR_AUDIT_APPROVE_SUCCESS);
@@ -126,12 +121,6 @@ public class AdminAuditController {
             @RequestAttribute("role") String currentRole){
 
         log.info("审核驳回请求，医生ID：{}，操作人：{}，角色：{}，驳回原因：{}", id, currentAdminId, currentRole, rejectDTO.getRejectReason());
-
-        //权限校验(仅超级管理员)
-        if(!RoleConstant.SUPER_ADMIN.equals(currentRole)){
-            log.warn("权限不足，当前角色：{}，需要：{}", currentRole, RoleConstant.SUPER_ADMIN);
-            throw new PermissionDeniedException("只有超级管理员才能执行审核操作");
-        }
 
         adminAuditService.reject(id, currentAdminId, rejectDTO.getRejectReason());
 

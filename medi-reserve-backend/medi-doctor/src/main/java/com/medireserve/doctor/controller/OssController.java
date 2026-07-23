@@ -36,7 +36,7 @@ public class OssController {
      * @param doctorId 当前登录医生的 ID（从 JWT 中提取）
      * @return 包含临时 AK/SK/Token 及上传路径的凭证对象
      */
-    @GetMapping("/sts-token")
+    @GetMapping({"/sts-token", "/sts"})
     @RequireRole(RoleConstant.DOCTOR)
     @Operation(summary = "获取 OSS 上传凭证", description = "返回 STS 临时凭证，供前端直传文件使用（有效期30分钟）")
     public Result<OssStsVO> getStsToken(@RequestAttribute("userId") Long doctorId) {

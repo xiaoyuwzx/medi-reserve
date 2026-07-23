@@ -71,7 +71,7 @@ public class BloomFilterService {
      * 加载所有有效排班ID（今天及未来）
      */
     private void loadScheduleIds() {
-        List<Long> ids = appointmentMapper.findFutureScheduleIds(LocalDate.now());
+        List<Long> ids = appointmentMapper.findFutureScheduleIds();
         int count = 0;
         for (Long id : ids) {
             scheduleBloomFilter.put(id);

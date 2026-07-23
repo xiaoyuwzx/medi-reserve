@@ -43,8 +43,7 @@ public interface AdminAuditMapper {
     /**
      * 查询待审核证件列表（证件变更审核）
      */
-    List<PendingCertAuditVO> findCertPendingList(@Param("pageSize") int pageSize,
-                                                 @Param("offset") int offset);
+    List<PendingCertAuditVO> findCertPendingList();
 
     /**
      * 统计待审核证件数量

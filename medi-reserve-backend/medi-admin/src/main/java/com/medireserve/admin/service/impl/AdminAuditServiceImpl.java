@@ -206,8 +206,7 @@ public class AdminAuditServiceImpl implements AdminAuditService {
     @Override
     public PageInfo<PendingCertAuditVO> listCertPending(int pageNum, int pageSize) {
         PageHelper.startPage(pageNum, pageSize);
-        List<PendingCertAuditVO> list = adminAuditMapper.findCertPendingList(pageSize,
-                (pageNum - 1) * pageSize);
+        List<PendingCertAuditVO> list = adminAuditMapper.findCertPendingList();
         return new PageInfo<>(list);
     }
 

@@ -126,7 +126,7 @@ public class ChatController {
         chatMessageVO.setSenderRole(senderRole);
         chatMessageVO.setContent(safeContent);
         chatMessageVO.setSendTime(message.getSendTime());
-        chatMessageVO.setIsSelf(false);
+        //chatMessageVO.setIsSelf(false);
 
         // ================================================================
         //  ========== 9. 广播到房间频道（按预约ID隔离） ==========
@@ -138,19 +138,9 @@ public class ChatController {
         log.info("消息已广播到房间频道 {}", roomTopic);
 
         // ========== 10. 点对点推送（备用，兼容旧客户端） ==========
+        // 2. 仅当接收者离线时，才使用点对点渠道推送离线消息（上线后补发）
         boolean isReceiverOnline = consultationRedisService.isOnline(receiverId);
-        if (isReceiverOnline) {
-            try {
-                messagingTemplate.convertAndSendToUser(
-                        String.valueOf(receiverId),
-                        "/queue/messages",
-                        chatMessageVO
-                );
-                log.debug("点对点消息已推送给用户 {}", receiverId);
-            } catch (Exception e) {
-                log.warn("点对点推送失败: {}", e.getMessage());
-            }
-        } else {
+        if (!isReceiverOnline) {
             consultationRedisService.storeOfflineMessage(receiverId, chatMessageVO);
             log.info("用户 {} 离线，消息已暂存", receiverId);
         }

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medireserve.doctor.mapper.DoctorStatisticsMapper">
+
+    <!-- ========== 总览统计 ========== -->
+    <select id="countTotalPatients" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM appointment
+        WHERE doctor_id = #{doctorId}
+        AND status IN (1, 2)   <!-- 1=已支付，2=已完成 -->
+    </select>
+
+    <select id="countTodayPatients" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM appointment
+        WHERE doctor_id = #{doctorId}
+          AND status IN (1, 2)
+          AND DATE(created_at) = CURDATE()
+    </select>
+
+    <select id="avgScore" resultType="java.math.BigDecimal">
+        SELECT ROUND(AVG(score), 2)
+        FROM evaluation
+        WHERE doctor_id = #{doctorId}
+        AND status = 1          <!-- 已发布的评价 -->
+    </select>
+
+    <select id="positiveRate" resultType="java.math.BigDecimal">
+        SELECT
+            ROUND(
+                    SUM(CASE WHEN score >= 4 THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
+                    1
+            )
+        FROM evaluation
+        WHERE doctor_id = #{doctorId}
+          AND status = 1
+    </select>
+
+    <select id="countPendingConsultations" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM appointment
+        WHERE doctor_id = #{doctorId}
+        AND status = 1            <!-- 已支付但未就诊（已完成=2） -->
+    </select>
+
+    <!-- ========== 趋势数据 ========== -->
+    <select id="selectDailyTrend" resultType="com.medireserve.common.dto.DailyTrendVO">
+        SELECT
+            DATE(created_at) AS date,
+            COUNT(*) AS count
+        FROM appointment
+        WHERE doctor_id = #{doctorId}
+          AND status IN (1, 2)
+          AND created_at BETWEEN #{startDate} AND #{endDate} + INTERVAL 1 DAY
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+    </select>
+
+    <!-- ========== 评价列表（分页） ========== -->
+    <select id="selectEvaluations" resultType="com.medireserve.common.dto.DoctorEvaluationVO">
+        SELECT
+            e.id AS evaluationId,
+            CASE
+                WHEN e.is_anonymous = 1 THEN '匿名用户'
+                ELSE p.name
+                END AS patientName,
+            e.score,
+            e.content,
+            e.is_anonymous AS isAnonymous,
+            e.created_at AS createdAt
+        FROM evaluation e
+                 LEFT JOIN patient p ON e.patient_id = p.id
+        WHERE e.doctor_id = #{doctorId}
+          AND e.status = 1
+        ORDER BY e.created_at DESC
+    </select>
+
+    <select id="countEvaluations" resultType="long">
+        SELECT COUNT(*)
+        FROM evaluation
+        WHERE doctor_id = #{doctorId}
+          AND status = 1
+    </select>
+
+</mapper>
