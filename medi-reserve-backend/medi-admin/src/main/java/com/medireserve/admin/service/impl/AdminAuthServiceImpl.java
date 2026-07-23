@@ -155,13 +155,13 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         // 不允许禁用自己
         if (adminId.equals(currentAdminId) && StatusConstant.ACCOUNT_DISABLED.equals(status)) {
             log.warn("尝试禁用自己，管理员ID：{}", adminId);
-            throw new BusinessException("不能禁用当前登录的管理员账号");
+            throw new SelfDisableException();
         }
 
         int rows = adminAuthMapper.updateStatus(adminId, status);
         if (rows == 0) {
             log.warn("修改管理员状态失败，管理员不存在，ID：{}", adminId);
-            throw new BusinessException("管理员不存在");
+            throw new AccountNotFoundException("管理员不存在");
         }
 
         log.info("管理员状态修改成功，ID：{}，状态：{}", adminId, status);
@@ -180,11 +180,11 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         }
 
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new BusinessException("两次密码输入不一致");
+            throw new PasswordConfirmException();
         }
 
         if (dto.getOldPassword().equals(dto.getNewPassword())) {
-            throw new BusinessException("新密码不能与旧密码相同");
+            throw new PasswordSameException();
         }
 
         adminAuthMapper.updatePassword(adminId, PasswordUtil.encode(dto.getNewPassword()));

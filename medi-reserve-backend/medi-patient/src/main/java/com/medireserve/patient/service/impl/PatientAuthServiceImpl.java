@@ -100,6 +100,12 @@ public class PatientAuthServiceImpl implements PatientAuthService {
 
     }
 
+    /**
+     * 修改个人信息
+     * @param patientId 当前患者ID
+     * @param dto 修改参数
+     * @return
+     */
     @Override
     public Map<String, Object> updateProfile(Long patientId, PatientUpdateDTO dto) {
 
@@ -148,6 +154,11 @@ public class PatientAuthServiceImpl implements PatientAuthService {
 
     }
 
+    /**
+     * 修改密碼
+     * @param patientId
+     * @param dto
+     */
     @Override
     public void updatePassword(Long patientId, PasswordUpdateDTO dto) {
 
@@ -163,12 +174,12 @@ public class PatientAuthServiceImpl implements PatientAuthService {
 
         // 校验新密码与确认密码一致
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new BusinessException("两次密码输入不一致");
+            throw new PasswordConfirmException();
         }
 
         // 校验新旧密码不同
         if (dto.getOldPassword().equals(dto.getNewPassword())) {
-            throw new BusinessException("新密码不能与旧密码相同");
+            throw new PasswordSameException();
         }
 
         // 加密并更新

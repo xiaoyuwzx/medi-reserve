@@ -2,6 +2,7 @@ package com.medireserve.websocket.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.medireserve.common.annotation.RequireRole;
+import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.ChatMessageVO;
 import com.medireserve.common.dto.ConsultationRoomVO;
@@ -75,6 +76,6 @@ public class ConsultationController {
 
         consultationService.endConsultation(appointmentId, userId, role);
 
-        return Result.success("问诊已结束");
+        return Result.success(MessageConstant.CONSULTATION_ENDED);
     }
 }

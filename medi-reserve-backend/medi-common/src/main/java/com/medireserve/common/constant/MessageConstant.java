@@ -10,6 +10,7 @@ public class MessageConstant {
     public static final String ERROR = "操作失败";
     public static final String UNKNOWN_ERROR = "未知错误，请稍后重试";
     public static final String USER_NOT_LOGIN = "用户未登录，请先登录";
+    public static final String DELETE_SUCCESS = "删除成功";
 
     // ========== 登录注册 ==========
     public static final String UPDATE_SUCCESS = "修改成功";
@@ -124,5 +125,45 @@ public class MessageConstant {
     // ========== 缓存相关 ==========
     public static final String CACHE_REFRESH_SUCCESS = "缓存刷新成功";
     public static final String CACHE_REFRESH_FAILED = "缓存刷新失败";
+
+    // ========== 密码修改 ==========
+    public static final String PASSWORD_UPDATE_SUCCESS = "密码修改成功，请重新登录";
+
+    // ========== 证件审核 ==========
+    public static final String CERT_AUDIT_APPROVED = "证件审核通过，已生效";
+    public static final String CERT_AUDIT_REJECTED = "证件审核驳回";
+
+    // ========== 问诊 ==========
+    public static final String CONSULTATION_ENDED = "问诊已结束";
+
+    // ========== 参数校验 ==========
+    public static final String INVALID_STATUS = "状态值无效";
+
+    // ========== 密码相关 ==========
+    public static final String PASSWORD_CONFIRM_ERROR = "两次密码输入不一致";
+    public static final String PASSWORD_SAME_ERROR = "新密码不能与旧密码相同";
+
+    // ========== 管理员相关 ==========
+    public static final String SELF_DISABLE_ERROR = "不能禁用当前登录的管理员账号";
+    public static final String ADMIN_NOT_FOUND = "管理员不存在";
+
+    // ========== 证件审核相关 ==========
+    public static final String NO_CERTIFICATE_PENDING = "该医生没有待审核的证件变更";
+    public static final String NO_CERTIFICATE_SUBMITTED = "该医生未提交证件变更申请";
+
+    // ========== 审核结果相关 ==========
+    public static final String INVALID_AUDIT_RESULT = "审核结果参数错误，请传入 1（通过）或 2（驳回）";
+
+    // ========== 权限更新 ==========
+    public static final String PERMISSION_UPDATE_SUCCESS = "权限更新成功";
+
+    // ========== 状态操作 ==========
+    public static final String STATUS_VALUE_INVALID = "状态值无效";
+    public static final String ACCOUNT_ENABLED = "已启用";
+    public static final String ACCOUNT_DISABLED_TEXT = "已禁用";
+
+    // ========== 其他通用 ==========
+    public static final String DOCTOR_AUDIT_DATA_NOT_EXIST = "医生资料不存在";
+    public static final String DOCTOR_AUDIT_DATA_NOT_FOUND = "医生资料不存在，请联系管理员";
 
 }

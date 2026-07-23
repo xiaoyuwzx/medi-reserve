@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.service.OperationLogService;
 import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
+import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.OperationLogQueryDTO;
 import com.medireserve.common.dto.OperationLogVO;
@@ -80,7 +81,7 @@ public class OperationLogController {
 
         operationLogService.deleteById(id);
 
-        return Result.success("删除成功", null);
+        return Result.success(MessageConstant.DELETE_SUCCESS, null);
 
     }
 

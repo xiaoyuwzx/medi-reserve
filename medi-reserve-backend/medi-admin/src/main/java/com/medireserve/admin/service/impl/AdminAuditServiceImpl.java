@@ -222,7 +222,7 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
         PendingCertAuditVO vo = adminAuditMapper.findCertPendingByDoctorId(doctorId);
         if (vo == null) {
-            throw new BusinessException("该医生未提交证件变更申请");
+            throw new NoCertificatePendingException("该医生未提交证件变更申请");
         }
         return vo;
     }
@@ -246,11 +246,11 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
         // 3. 验证是否有待审核的证件
         if (audit.getCertAuditStatus() == null || audit.getCertAuditStatus() != 0) {
-            throw new BusinessException("该医生没有待审核的证件变更");
+            throw new NoCertificatePendingException();
         }
         if (!StringUtils.hasText(audit.getPendingCertificateUrl())
                 && !StringUtils.hasText(audit.getPendingQualificationUrl())) {
-            throw new BusinessException("该医生没有待审核的证件变更");
+            throw new NoCertificatePendingException();
         }
 
         // 4. 执行审核
@@ -262,13 +262,13 @@ public class AdminAuditServiceImpl implements AdminAuditService {
         } else if (dto.getResult() == 2) {
             // 审核驳回：需要填写驳回原因
             if (!StringUtils.hasText(dto.getRemark())) {
-                throw new BusinessException("驳回时必须填写驳回原因");
+                throw new RejectReasonEmptyException();
             }
             rows = doctorAuditMapper.rejectCert(doctorId, adminId, dto.getRemark());
             log.info("证件审核驳回，医生ID：{}，管理员ID：{}，原因：{}",
                     doctorId, adminId, dto.getRemark());
         } else {
-            throw new BusinessException("审核结果参数错误，请传入 1（通过）或 2（驳回）");
+            throw new InvalidAuditResultException();
         }
 
         if (rows == 0) {

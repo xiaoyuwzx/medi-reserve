@@ -2,6 +2,7 @@ package com.medireserve.admin.controller;
 
 import com.medireserve.common.annotation.LogOperation;
 import com.medireserve.common.annotation.RequireRole;
+import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.PermissionNodeVO;
 import com.medireserve.common.dto.RolePermissionUpdateDTO;
@@ -102,7 +103,7 @@ public class PermissionController {
 
         permissionService.updateRolePermissions(roleId, dto);
 
-        return Result.success("权限更新成功", null);
+        return Result.success(MessageConstant.PERMISSION_UPDATE_SUCCESS, null);
 
     }
 

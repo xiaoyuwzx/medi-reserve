@@ -129,7 +129,7 @@ public class PatientAuthController {
         patientAuthService.updatePassword(userId, dto);
         log.info("密码修改成功，患者ID：{}", userId);
 
-        return Result.success("密码修改成功，请重新登录", null);
+        return Result.success(MessageConstant.PASSWORD_UPDATE_SUCCESS, null);
     }
 
 }

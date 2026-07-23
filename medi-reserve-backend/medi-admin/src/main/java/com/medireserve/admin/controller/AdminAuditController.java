@@ -174,7 +174,7 @@ public class AdminAuditController {
         log.info("审核医生证件变更，医生ID：{}，结果：{}", doctorId,
                 dto.getResult() == 1 ? "通过" : "驳回");
         adminAuditService.auditCertificate(doctorId, adminId, dto);
-        String msg = dto.getResult() == 1 ? "证件审核通过，已生效" : "证件审核驳回";
+        String msg = dto.getResult() == 1 ? MessageConstant.CERT_AUDIT_APPROVED : MessageConstant.CERT_AUDIT_REJECTED;
         return Result.success(msg, null);
     }
 

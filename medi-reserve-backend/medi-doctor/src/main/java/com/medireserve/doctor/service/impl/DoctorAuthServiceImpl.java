@@ -165,6 +165,11 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
 
     }
 
+    /**
+     * 修改密码
+     * @param doctorId
+     * @param dto
+     */
     @Override
     public void updatePassword(Long doctorId, PasswordUpdateDTO dto) {
 
@@ -178,11 +183,11 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
         }
 
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            throw new BusinessException("两次密码输入不一致");
+            throw new PasswordConfirmException();
         }
 
         if (dto.getOldPassword().equals(dto.getNewPassword())) {
-            throw new BusinessException("新密码不能与旧密码相同");
+            throw new PasswordSameException();
         }
 
         doctorAuthMapper.updatePassword(doctorId, PasswordUtil.encode(dto.getNewPassword()));
@@ -241,7 +246,7 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
         }
         if (rows == 0) {
             log.warn("医生审核资料不存在，医生ID：{}", doctorId);
-            throw new BusinessException("医生资料不存在，请联系管理员");
+            throw new DoctorAuditNotFoundException("医生资料不存在");
         }
 
         log.info("医生信息修改成功，ID：{}，手机号：{}，证件已提交审核", doctorId, dto.getPhone());
@@ -278,7 +283,7 @@ public class DoctorAuthServiceImpl implements DoctorAuthService {
     public DoctorAuditInfoVO getAuditStatus(Long doctorId) {
         DoctorAudit audit = doctorAuditMapper.findByDoctorId(doctorId);
         if (audit == null) {
-            throw new BusinessException("医生资料不存在");
+            throw new DoctorAuditNotFoundException();
         }
 
         DoctorAuditInfoVO vo = new DoctorAuditInfoVO();

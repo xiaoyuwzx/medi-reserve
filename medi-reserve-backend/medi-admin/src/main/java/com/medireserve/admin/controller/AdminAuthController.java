@@ -134,12 +134,12 @@ public class AdminAuthController {
 
         Integer status = body.get("status");
         if (status == null || (status != 0 && status != 1)) {
-            return Result.error("状态值无效");
+            return Result.error(MessageConstant.INVALID_STATUS);
         }
 
         // Service 层会校验不能禁用自己
         adminAuthService.updateAdminStatus(id, status, currentAdminId);
-        String msg = status == 0 ? "已禁用" : "已启用";
+        String msg = status == 0 ? MessageConstant.ACCOUNT_DISABLED : MessageConstant.ACCOUNT_ENABLED;
         return Result.success(msg);
     }
 
@@ -158,7 +158,7 @@ public class AdminAuthController {
         adminAuthService.updatePassword(userId, dto);
         log.info("密码修改成功，管理员ID：{}", userId);
 
-        return Result.success("密码修改成功，请重新登录", null);
+        return Result.success(MessageConstant.PASSWORD_UPDATE_SUCCESS, null);
     }
 
 }
