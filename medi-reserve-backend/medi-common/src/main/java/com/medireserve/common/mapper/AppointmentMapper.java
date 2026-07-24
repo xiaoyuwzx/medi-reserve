@@ -66,8 +66,8 @@ public interface AppointmentMapper {
     Appointment findPendingTimeout(@Param("id") Long id);
 
     /**
-     * 更新预约状态（仅当状态为待支付时生效）
-     * 更新状态时添加乐观锁条件
+     * 更新预约状态（乐观锁版本）
+     * 仅当当前状态为 0（待支付）时，才能更新为目标状态
      * @param id 预约ID
      * @param status 目标状态
      * @return 受影响行数

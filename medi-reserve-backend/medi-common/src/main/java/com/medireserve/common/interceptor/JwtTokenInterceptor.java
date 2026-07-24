@@ -24,17 +24,23 @@ import java.util.Set;
 /**
  * JWT 认证 + 权限校验拦截器
  * 支持 @RequireRole 和 @RequirePermission 两种注解
+ * 1. 判断需不需要登录（检查有无 @RequireRole/@RequirePermission）
+ * 2. 需要的话，解析 JWT Token，校验合法性
+ * 3. 校验通过后，把 userId 和 role 存入 request 属性（供 Controller 直接用）
+ * 4. 校验角色的权限是否匹配（RBAC）
  */
 @Slf4j
 @Component
 public class JwtTokenInterceptor implements HandlerInterceptor {
 
+    // PermissionService 允许为 null（因为患者/医生模块不引入该依赖，这里用 required=false）
     @Autowired(required = false)
     private PermissionService permissionService;  // 可选注入，兼容无权限模块
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 1. 非控制器方法直接放行（如静态资源）
+        // 只拦截 Controller 方法，静态资源（如 /doc.html）直接放行
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
@@ -60,6 +66,7 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
             handleUnauthorized(response, MessageConstant.TOKEN_MISSING);
             return false;
         }
+        // 前端习惯带 "Bearer " 前缀，剥掉它
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
@@ -75,7 +82,9 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         }
 
         // 5. 提取用户信息（安全转换，避免 ClassCastException）
+        // 从 Claims 中取用户信息，存到 request 属性中
         Object userIdObj = claims.get("userId");
+        // JWT 里的 userId 可能是 Integer 或 Long，用 Number 兼容取出来
         Long userId = userIdObj instanceof Number ? ((Number) userIdObj).longValue() : null;
         String username = claims.get("username", String.class);
         String roleName = claims.get("role", String.class);
@@ -87,6 +96,7 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         }
 
         // 存入 request 属性（供业务层使用）
+        // 把这些信息塞进 request 作用域，后续 Controller 用 @RequestAttribute("userId") 就能拿到
         request.setAttribute("userId", userId);
         request.setAttribute("username", username);
         request.setAttribute("role", roleName);

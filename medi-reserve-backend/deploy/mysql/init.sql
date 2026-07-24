@@ -10,7 +10,37 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ============================================================
--- 1. 管理员表（admin）
+-- 1. 科室表（department）
+-- 字典表，存储医院科室信息
+-- ============================================================
+DROP TABLE IF EXISTS `department`;
+CREATE TABLE `department` (
+                              `id` bigint NOT NULL AUTO_INCREMENT COMMENT '科室ID',
+                              `name` varchar(50) NOT NULL COMMENT '科室名称',
+                              `sort_order` int DEFAULT 0 COMMENT '排序序号（数值越小越靠前）',
+                              `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                              `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                              PRIMARY KEY (`id`),
+                              UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='科室字典表';
+
+-- ============================================================
+-- 2. 职称表（title）
+-- 字典表，存储医生职称信息
+-- ============================================================
+DROP TABLE IF EXISTS `title`;
+CREATE TABLE `title` (
+                         `id` bigint NOT NULL AUTO_INCREMENT COMMENT '职称ID',
+                         `name` varchar(30) NOT NULL COMMENT '职称名称',
+                         `sort_order` int DEFAULT 0 COMMENT '排序序号（数值越小越靠前）',
+                         `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                         `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                         PRIMARY KEY (`id`),
+                         UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='职称字典表';
+
+-- ============================================================
+-- 3. 管理员表（admin）
 -- 存储系统管理员账号，用于管理后台登录
 -- ============================================================
 DROP TABLE IF EXISTS `admin`;
@@ -33,7 +63,7 @@ CREATE TABLE `admin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员表';
 
 -- ============================================================
--- 2. 患者表（patient）
+-- 4. 患者表（patient）
 -- 存储患者注册信息，用于患者端登录和身份识别
 -- ============================================================
 DROP TABLE IF EXISTS `patient`;
@@ -53,7 +83,7 @@ CREATE TABLE `patient` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='患者认证表';
 
 -- ============================================================
--- 3. 医生表（doctor）
+-- 5. 医生表（doctor）
 -- 存储医生基本信息，与 doctor_audit 表联动
 -- ============================================================
 DROP TABLE IF EXISTS `doctor`;
@@ -80,7 +110,7 @@ CREATE TABLE `doctor` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='医生认证表';
 
 -- ============================================================
--- 4. 医生审核资料表（doctor_audit）
+-- 6. 医生审核资料表（doctor_audit）
 -- 存储医生注册时的审核资料、专业信息及证件审核状态
 -- ============================================================
 DROP TABLE IF EXISTS `doctor_audit`;
@@ -111,36 +141,6 @@ CREATE TABLE `doctor_audit` (
                                 KEY `idx_audit_status` (`audit_status`),
                                 CONSTRAINT `doctor_audit_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `doctor` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='医生审核资料表';
-
--- ============================================================
--- 5. 科室表（department）
--- 字典表，存储医院科室信息
--- ============================================================
-DROP TABLE IF EXISTS `department`;
-CREATE TABLE `department` (
-                              `id` bigint NOT NULL AUTO_INCREMENT COMMENT '科室ID',
-                              `name` varchar(50) NOT NULL COMMENT '科室名称',
-                              `sort_order` int DEFAULT 0 COMMENT '排序序号（数值越小越靠前）',
-                              `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                              `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                              PRIMARY KEY (`id`),
-                              UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='科室字典表';
-
--- ============================================================
--- 6. 职称表（title）
--- 字典表，存储医生职称信息
--- ============================================================
-DROP TABLE IF EXISTS `title`;
-CREATE TABLE `title` (
-                         `id` bigint NOT NULL AUTO_INCREMENT COMMENT '职称ID',
-                         `name` varchar(30) NOT NULL COMMENT '职称名称',
-                         `sort_order` int DEFAULT 0 COMMENT '排序序号（数值越小越靠前）',
-                         `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                         `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                         PRIMARY KEY (`id`),
-                         UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='职称字典表';
 
 -- ============================================================
 -- 7. 排班表（schedule）

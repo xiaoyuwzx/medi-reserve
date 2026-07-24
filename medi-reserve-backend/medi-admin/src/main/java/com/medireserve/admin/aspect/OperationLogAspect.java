@@ -80,7 +80,7 @@ public class OperationLogAspect {
             String params = Arrays.stream(args)
                     .filter(arg -> !(arg instanceof HttpServletRequest)
                             && !(arg instanceof HttpServletResponse))
-                    .map(JSONUtil::toJsonStr)   // ✅ 使用 Hutool 的 JSONUtil
+                    .map(JSONUtil::toJsonStr)   // 使用 Hutool 的 JSONUtil
                     .collect(Collectors.joining(", "));
             logEntity.setParams(params);
         }

@@ -81,6 +81,12 @@ public class AppointmentController {
 
     }
 
+    /**
+     * 模拟支付
+     * @param appointmentId
+     * @param patientId
+     * @return
+     */
     @PostMapping("/appointments/{appointmentId}/pay")
     @RequireRole(RoleConstant.PATIENT)
     @Operation(summary = "模拟支付", description = "模拟微信支付回调，将预约状态改为已支付")

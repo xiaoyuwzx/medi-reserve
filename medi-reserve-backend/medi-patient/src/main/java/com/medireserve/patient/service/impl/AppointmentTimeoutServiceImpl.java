@@ -21,9 +21,9 @@ import java.util.concurrent.TimeUnit;
 public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService {
 
     /**
-     * 自注入当前 Service 的代理对象（通过 @Lazy 避免循环依赖）。
+     * 自注入当前 Service 的代理对象（通过 @Lazy 避免循环依赖），解决 @Transactional 失效问题
      * 原因：Spring 的 @Transactional 通过代理生效，若在 cancelWithLock() 中
-     * 直接调用 this.cancelExpiredAppointment()，事务注解将失效。
+     * 直接调用 this.cancelExpiredAppointment()，事务注解会失效（因为没走代理）。
      * 通过 self.cancelExpiredAppointment() 调用，确保走代理链路，事务正常开启。
      */
     @Autowired
@@ -40,6 +40,33 @@ public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService 
     private RedissonClient redissonClient;
 
     /**
+     * 带分布式锁的取消方法（供时间轮和启动扫描调用）
+     */
+    @Override
+    public void cancelWithLock(Long appointmentId) {
+        String lockKey = "lock:cancel:" + appointmentId;
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            // 等待3秒，持有10秒（取消操作很快，10秒足够）
+            if (lock.tryLock(3, 10, TimeUnit.SECONDS)) {
+                // 调用事务方法（通过自注入代理）
+                self.cancelExpiredAppointment(appointmentId);
+            } else {
+                log.warn("获取取消任务锁失败，预约ID：{}，可能已被其他节点处理", appointmentId);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("获取取消锁被中断，预约ID：{}", appointmentId, e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    /**
+     * 实际取消逻辑
+     * 为什么单独拆出来？因为要让事务生效，必须由 Spring 代理调用。
      * 取消超时预约（带分布式锁 + 事务）
      * @param appointmentId 预约ID
      * @return 是否成功取消
@@ -56,9 +83,10 @@ public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService 
             return false;
         }
 
-        // 更新预约状态为已取消（3）
+        // 更新预约状态为 3-已取消（乐观锁条件：status=0）
         int rows = appointmentMapper.updateStatus(appointmentId, StatusConstant.APPOINTMENT_CANCELLED);
         if (rows == 0) {
+            // 更新失败（可能被支付抢先了）
             log.error("取消预约失败，更新数据库无影响，预约ID：{}", appointmentId);
             return false;
         }
@@ -67,7 +95,7 @@ public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService 
         Long scheduleId = appointment.getScheduleId();
         appointmentMapper.incrementRemainingCount(scheduleId);
 
-        // 清除排班缓存
+        // 清除该医生的排班缓存（让剩余号源对外可见）
         Schedule schedule = appointmentMapper.findByScheduleId(scheduleId);
         if (schedule != null) {
             patientDoctorService.clearScheduleCache(schedule.getDoctorId());
@@ -76,28 +104,5 @@ public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService 
 
         log.info("超时取消成功，预约ID：{}，排班ID：{}，号源已回滚", appointmentId, scheduleId);
         return true;
-    }
-
-    /**
-     * 带分布式锁的取消方法（供时间轮和启动扫描调用）
-     */
-    @Override
-    public void cancelWithLock(Long appointmentId) {
-        String lockKey = "lock:cancel:" + appointmentId;
-        RLock lock = redissonClient.getLock(lockKey);
-        try {
-            if (lock.tryLock(3, 10, TimeUnit.SECONDS)) {
-                self.cancelExpiredAppointment(appointmentId);
-            } else {
-                log.warn("获取取消任务锁失败，预约ID：{}，可能已被其他节点处理", appointmentId);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("获取取消锁被中断，预约ID：{}", appointmentId, e);
-        } finally {
-            if (lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
     }
 }

@@ -43,13 +43,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     private DoctorAuthMapper doctorAuthMapper;
 
     @Autowired
-    private RedissonClient redissonClient;// 分布式锁客户端
+    private RedissonClient redissonClient;              // 分布式锁客户端
 
     @Autowired
-    private AppointmentTimeoutTimer timeoutTimer;// 时间轮工具
+    private AppointmentTimeoutTimer timeoutTimer;       // 时间轮工具
 
     @Autowired
-    private PatientDoctorService patientDoctorService;
+    private PatientDoctorService patientDoctorService;  // 用于清除缓存
 
     /**
      * 查询排班详细
@@ -113,7 +113,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @return
      */
     @Override
-    @Transactional//事务控制
+    @Transactional//事务控制，Spring 事务包裹，保证原子性
     public Appointment createAppointment(Long patientId, AppointmentCreateDTO appointmentCreateDTO) {
 
         Long scheduleId = appointmentCreateDTO.getScheduleId();
@@ -150,22 +150,26 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AppointmentDuplicateException();
         }
 
-        //分布式锁扣除号源
+        //分布式锁扣除号源(防超卖的第一道防线)
+        //一个排班一把锁（lock:schedule:123）
+        // 为什么需要锁？因为即使乐观锁能保证数据库不超卖，但锁能减少无效的数据库更新冲突
         String lockKey = "lock:schedule:" + scheduleId;
         RLock lock = redissonClient.getLock(lockKey);
         boolean locked = false;
         try {
 
-            //尝试获取锁，等待3秒，锁持有时间最多15秒
+            //尝试获取锁，等待3秒，锁持有时间最多15秒（防止死锁）
             locked = lock.tryLock(3, 15, TimeUnit.SECONDS);
             if(!locked){
+                // 3秒内拿不到锁（说明有其他用户在操作该排班），提示系统繁忙
                 log.error("获取分布式锁失败，排班ID：{}", scheduleId);
                 throw new SystemBusyException();
             }
 
-            //扣减号源(数据库乐观锁)
+            //扣减号源(数据库乐观锁，这是防超卖的第二道防线)
             int rows = appointmentMapper.decrementRemainingCount(scheduleId);
             if(rows == 0){
+                // 号源在毫秒间被其他人抢光了
                 log.warn("扣减号源失败，号源不足，排班ID：{}", scheduleId);
                 throw new InsufficientQuotaException();
             }
@@ -175,15 +179,17 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         } catch (InterruptedException e) {
 
+            // 线程在等待锁时被中断（极少发生），重置中断标志
             Thread.currentThread().interrupt();
             log.error("获取分布式锁被中断：", e);
             throw new SystemException();
 
         } finally {
 
-            //释放锁
+            //释放分布式锁（必须执行，否则死锁）
             if (locked) {
                 try {
+                    // 只有当前线程持有锁时才能释放（防止误释放其他线程的锁）
                     if (lock.isHeldByCurrentThread()) {
                         lock.unlock();
                         log.debug("释放分布式锁成功，排班ID：{}", scheduleId);
@@ -204,7 +210,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setAppointmentNo(appointmentNo);
         appointment.setScheduleId(scheduleId);
         appointment.setPatientId(patientId);
-        appointment.setDoctorId(schedule.getDoctorId());
+        appointment.setDoctorId(schedule.getDoctorId());    // 冗余字段，方便查询
         appointment.setStatus(StatusConstant.APPOINTMENT_PENDING);
 
         //向数据库插入数据
@@ -213,11 +219,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         log.info("预约记录插入成功，预约ID：{}，预约单号：{}", appointment.getId(), appointment.getAppointmentNo());
 
         // 清除该医生的排班缓存（确保患者看到的剩余号源是最新的）
+        // 因为排班列表被 Redis 缓存了，如果不删，患者端看到的号源还是旧的
         patientDoctorService.clearScheduleCache(schedule.getDoctorId());
         log.info("已清除医生排班缓存，医生ID：{}", schedule.getDoctorId());
 
-        //启动超时取消倒计时
-        //30分钟后检查该预约是否仍为待支付，如果是则取消并回滚号源
+        // 启动超时取消倒计时（Netty 时间轮）
+        // 30分钟后检查该预约是否仍为待支付，如果是则取消并回滚号源
+        // 30分钟后执行 cancelWithLock（带分布式锁），自动取消未支付的预约
+        // 为什么用时间轮而不是 @Scheduled 扫表？因为时间轮是 O(1) 延迟任务，
+        // 不用每秒扫一次全表，性能极高，尤其适合大量预约场景
         timeoutTimer.scheduleCancel(appointment.getId(), 30, TimeUnit.MINUTES);
 
         log.info("已启动超时取消倒计时，预约ID：{}，30分钟后执行", appointment.getId());
@@ -232,7 +242,7 @@ public class AppointmentServiceImpl implements AppointmentService {
      * @param patientId
      */
     @Override
-    @Transactional //事务控制
+    @Transactional // 事务包裹，保证状态更新和后续操作原子性
     public void payAppointment(Long appointmentId, Long patientId) {
 
         log.info("模拟支付，预约ID：{}，患者ID：{}", appointmentId, patientId);
@@ -252,12 +262,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // 3. 已支付 → 抛异常
+        // 幂等性校验（重复支付不报错，友好提示）
         if (StatusConstant.APPOINTMENT_PAID.equals(appointment.getStatus())) {
             log.info("预约已支付，预约ID：{}", appointmentId);
             throw new AppointmentAlreadyPaidException();
         }
 
         // 4. 校验是否超时（只校验，不修改数据）
+        // 为什么时间轮已经触发了取消，这里还要校验？
+        // 1. 时间轮是内存任务，如果服务重启，任务会丢失，但数据库里的预约还处于待支付状态
+        // 2. 用户可能在 30 分钟刚过 1 秒时点支付，时间轮还没执行（调度误差）
+        // 所以数据库层必须做最终兜底校验
         LocalDateTime deadline = appointment.getCreatedAt().plusMinutes(30);
         if (LocalDateTime.now().isAfter(deadline)) {
             log.warn("预约已超时，无法支付，预约ID：{}，创建时间：{}，截止时间：{}",
@@ -265,7 +280,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AppointmentTimeoutException();
         }
 
-        // 5. 判断预约状态是否是待支付(0)
+        // 5. 判断预约状态是否是待支付(0)前置状态校验
         if (!StatusConstant.APPOINTMENT_PENDING.equals(appointment.getStatus())) {
             log.warn("预约状态不是待支付，当前状态：{}，预约ID：{}", appointment.getStatus(), appointmentId);
             throw new AppointmentNotPendingException();
@@ -288,6 +303,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // 7. 使用乐观锁更新状态（仅当状态为0时更新成功）
+        // 返回影响行数 rows：如果 rows = 0，说明状态已经不是 0（被并发支付或取消抢先了）
+        // 这是数据库层面的最后一道防线
         int rows = appointmentMapper.updateStatus(appointmentId, StatusConstant.APPOINTMENT_PAID);
         if (rows == 0) {
             // 并发情况：可能已被支付或已取消

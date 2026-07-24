@@ -7,12 +7,17 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -142,11 +147,40 @@ public class MultiLevelCacheService {
     }
 
     public void evictAll(String pattern) {
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
+        if (pattern == null || pattern.trim().isEmpty()) {
+            log.warn("evictAll 收到空 pattern，跳过缓存清除操作");
+            return;
         }
-        localCache.invalidateAll();
+
+        try {
+            redisTemplate.execute((RedisCallback<Void>) connection -> {
+                List<byte[]> batchKeys = new ArrayList<>(1000);
+                try (Cursor<byte[]> cursor = connection.scan(
+                        ScanOptions.scanOptions()
+                                .match(pattern)
+                                .count(100)
+                                .build())) {
+                    while (cursor.hasNext()) {
+                        batchKeys.add(cursor.next());
+                        if (batchKeys.size() >= 1000) {
+                            connection.del(batchKeys.toArray(new byte[0][]));
+                            batchKeys.clear();
+                        }
+                    }
+                    if (!batchKeys.isEmpty()) {
+                        connection.del(batchKeys.toArray(new byte[0][]));
+                    }
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            log.error("Redis SCAN 批量删除缓存失败，pattern: {}", pattern, e);
+            throw new RuntimeException("缓存清理失败", e);
+        }
+
+        String prefix = pattern.contains("*") ? pattern.substring(0, pattern.indexOf('*')) : pattern;
+        localCache.asMap().keySet().removeIf(key -> key.startsWith(prefix));
+        log.info("按模式清除缓存完成，pattern: {}，已清除本地缓存前缀: {}", pattern, prefix);
     }
 
     public String getLocalCacheStats() {
