@@ -14,6 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 问诊辅助接口（HTTP）
+ *
+ * 注意：这些接口走的是 HTTP，不是 WebSocket
+ * 用于进入问诊室前的信息查询和历史记录加载
+ */
 @Slf4j
 @RestController
 @RequestMapping("/consultation")
@@ -36,6 +42,7 @@ public class ConsultationController {
 
         log.info("获取问诊室信息，预约ID：{}，用户：{}", appointmentId, userId);
 
+        // 内部调用 checkConsultationAccess 进行权限校验
         ConsultationRoomVO roomVO = consultationService.getRoomInfo(appointmentId, userId, role);
 
         return Result.success(roomVO);
@@ -43,6 +50,9 @@ public class ConsultationController {
 
     /**
      * 获取聊天历史记录（分页）
+     *
+     * 加载策略：按时间正序排列（最新消息在最后）
+     * 前端滚动到顶部时加载更早的消息
      */
     @GetMapping("/history/{appointmentId}")
     @RequireRole({RoleConstant.PATIENT, RoleConstant.DOCTOR})
@@ -63,6 +73,14 @@ public class ConsultationController {
 
     /**
      * 结束问诊（患者或医生均可发起）
+     *
+     * 执行逻辑：
+     * 1. 校验权限
+     * 2. 更新预约状态为「已完成」（2）
+     * 3. 清理 Redis 房间成员
+     *
+     * 注意：结束问诊后，WebSocket 连接不会自动断开
+     * 前端需要监听状态变化，引导用户退出聊天室
      */
     @PostMapping("/end/{appointmentId}")
     @RequireRole({RoleConstant.PATIENT, RoleConstant.DOCTOR})

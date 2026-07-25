@@ -13,7 +13,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * 启用消息代理，配置端点与拦截器
  */
 @Configuration
-@EnableWebSocketMessageBroker
+@EnableWebSocketMessageBroker  // 启用 STOMP 消息代理
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
@@ -21,10 +21,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
      * 注册 STOMP 端点（前端连接入口）
+     * 注意：由于 SockJS 限制，Token 通过 URL 参数传递（?token=xxx）
+     * 生产环境建议启用 WSS 并过滤 Nginx 日志中的 token 参数
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws/chat")                // WebSocket 连接地址
+        registry.addEndpoint("/ws/chat")         // WebSocket 连接地址
                 .setAllowedOriginPatterns("*")          // 允许跨域（开发环境）
                 .addInterceptors(handshakeInterceptor)  // 注册认证拦截器
                 .withSockJS();                          // 开启 SockJS 支持（兼容不支持 WebSocket 的浏览器）

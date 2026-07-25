@@ -21,7 +21,17 @@ import java.util.Map;
  * 2. 从 URL 参数中提取 appointmentId（用于自动加入问诊室）
  * 3. 将用户信息存入 WebSocket Session 属性，供后续业务使用
  *
- * 前端连接示例：/ws/chat?token=xxx&appointmentId=1001
+ * 执行时机：前端发起 WebSocket 连接请求时（HTTP Upgrade 阶段）
+ *
+ * 执行流程：
+ * 1. 从 URL 参数中提取 token 和 appointmentId
+ * 2. 解析 JWT Token 获取 userId 和 role
+ * 3. 将用户信息存入 WebSocket Session 属性（attributes）
+ * 4. 后续业务处理时，从 Session 属性中获取用户信息
+ *
+ * 为什么用 URL 参数而不是 Header？
+ * - SockJS 的降级机制（HTTP 长轮询）无法自定义 Header
+ * - URL 参数是 SockJS 唯一支持的自定义传参方式
  */
 @Slf4j
 @Component
@@ -38,7 +48,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
             String token = servletRequest.getServletRequest().getParameter("token");
             if (!StringUtils.hasText(token)) {
                 log.warn("WebSocket 握手失败：未携带 Token");
-                return false;
+                return false;  // 拒绝连接
             }
 
             // ========== 2. 从 Query String 获取 appointmentId（用于自动加入房间） ==========

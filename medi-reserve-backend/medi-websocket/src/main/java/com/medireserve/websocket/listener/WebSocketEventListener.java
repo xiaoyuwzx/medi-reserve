@@ -32,7 +32,7 @@ public class WebSocketEventListener {
 
     /**
      * 监听连接建立事件
-     * 触发时机：WebSocket 握手成功后
+     * 触发时机：WebSocket 握手成功后（完成 STOMP CONNECT 帧）
      *
      * 处理逻辑：
      * 1. 标记用户在线（Redis 存储 sessionId）
@@ -65,7 +65,7 @@ public class WebSocketEventListener {
                 List<Object> offlineMessages = consultationRedisService.getAndClearOfflineMessages(userId);
                 if (offlineMessages != null && !offlineMessages.isEmpty()) {
                     for (Object msg : offlineMessages) {
-                        // 逐条推送给用户
+                        // 点对点逐条推送给用户
                         messagingTemplate.convertAndSendToUser(
                                 userId.toString(),
                                 "/queue/messages",

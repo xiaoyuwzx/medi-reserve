@@ -26,6 +26,11 @@ import java.time.LocalDateTime;
 /**
  * WebSocket 消息处理控制器
  * 处理 /app 前缀的 STOMP 消息
+ *
+ * 完整调用链：
+ * 前端发送 → /app/chat.send → ChatController.sendMessage()
+ *   → 校验权限 → 保存到 MySQL → 广播到 /topic/room/{appointmentId}
+ *   → 如果接收者离线 → 暂存 Redis 离线消息队列
  */
 @Slf4j
 @Controller
@@ -56,12 +61,14 @@ public class ChatController {
      * 消息路由：
      * 1. 广播到房间频道 /topic/room/{appointmentId}（按预约隔离，推荐）
      * 2. 点对点推送 /user/{receiverId}/queue/messages（备用）
+     * @param sendMessageDTO 消息内容
+     * @param headerAccessor 会话属性（包含用户信息）
      */
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload SendMessageDTO sendMessageDTO,
                             SimpMessageHeaderAccessor headerAccessor) {
 
-        // ========== 1. 认证校验 ==========
+        // ========== 1. 认证校验（从 WebSocket Session 属性中取用户信息） ==========
         Long senderId = (Long) headerAccessor.getSessionAttributes().get("userId");
         String senderRole = (String) headerAccessor.getSessionAttributes().get("role");
 
@@ -75,9 +82,10 @@ public class ChatController {
         log.info("收到消息：发送者 {}，接收者 {}，预约 {}", senderId, receiverId, appointmentId);
 
         // ========== 2. 业务校验 ==========
+        // 包含：预约是否存在、归属校验、状态校验（必须已支付）、日期校验（必须是今天）
         Appointment appointment = consultationService.checkConsultationAccess(appointmentId, senderId, senderRole);
 
-        // ========== 3. 接收者校验 ==========
+        // ========== 3. 接收者校验（患者只能发给自己的医生，医生只能发给自己的患者） ==========
         boolean isPatient = "PATIENT".equals(senderRole);
         if (isPatient) {
             if (!receiverId.equals(appointment.getDoctorId())) {
@@ -138,7 +146,7 @@ public class ChatController {
         log.info("消息已广播到房间频道 {}", roomTopic);
 
         // ========== 10. 点对点推送（备用，兼容旧客户端） ==========
-        // 2. 仅当接收者离线时，才使用点对点渠道推送离线消息（上线后补发）
+        // 仅当接收者离线时，才使用点对点渠道推送离线消息（上线后补发）
         boolean isReceiverOnline = consultationRedisService.isOnline(receiverId);
         if (!isReceiverOnline) {
             consultationRedisService.storeOfflineMessage(receiverId, chatMessageVO);

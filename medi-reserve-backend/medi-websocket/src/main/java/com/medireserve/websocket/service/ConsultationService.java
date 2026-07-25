@@ -51,6 +51,18 @@ public class ConsultationService {
 
     /**
      * 校验用户是否有权进入该问诊室
+     *
+     * 校验规则（严格）：
+     * 1. 预约存在
+     * 2. 用户是预约的患者 或 该预约对应的医生
+     * 3. 预约状态必须是「已支付」或「已完成」
+     * 4. 排班日期必须是今天（问诊通道仅在就诊日开放）
+     *
+     * 为什么限制必须是今天？
+     * - 防止患者提前进入问诊室（还没到就诊日）
+     * - 防止医生事后进入问诊室（已过就诊日）
+     * - 保证问诊的时效性
+     *
      * @param appointmentId 预约ID
      * @param userId 当前用户ID
      * @param role 当前用户角色
@@ -131,6 +143,7 @@ public class ConsultationService {
         // 校验权限
         checkConsultationAccess(appointmentId, userId, role);
 
+        // 分页查询
         PageHelper.startPage(page, size);
         List<ChatMessageVO> list = consultationMessageMapper.findByAppointmentId(appointmentId, userId);
         return new PageInfo<>(list);
@@ -140,6 +153,11 @@ public class ConsultationService {
 
     /**
      * 结束问诊（仅更新状态，实际业务中可扩展）
+     *
+     * 注意：使用 appointmentMapper.finishConsultation()
+     * 该 Mapper 方法带有状态条件：WHERE id = ? AND status = 1
+     * 如果预约状态不是「已支付」（1），则无法更新为「已完成」（2）
+     * 防止状态错乱（如已取消的预约不能变成已完成）
      */
     public void endConsultation(Long appointmentId, Long userId, String role) {
         // 校验权限
