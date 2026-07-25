@@ -1,11 +1,14 @@
 package com.medireserve.doctor.service.impl;
 
+import com.medireserve.common.constant.CacheKeyConstants;
 import com.medireserve.common.constant.MessageConstant;
 import com.medireserve.common.constant.StatusConstant;
 import com.medireserve.common.dto.ScheduleCreateDTO;
 import com.medireserve.common.dto.ScheduleQueryDTO;
 import com.medireserve.common.entity.Schedule;
 import com.medireserve.common.exception.*;
+import com.medireserve.common.service.BloomFilterService;
+import com.medireserve.common.service.MultiLevelCacheService;
 import com.medireserve.doctor.mapper.ScheduleMapper;
 import com.medireserve.doctor.service.ScheduleService;
 import jakarta.annotation.PostConstruct;
@@ -27,6 +30,13 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Autowired
     private ScheduleMapper scheduleMapper;
+
+    @Autowired
+    private BloomFilterService bloomFilterService;
+
+    @Autowired
+    private MultiLevelCacheService multiLevelCacheService;
+
 
     @PostConstruct
     public void init() {
@@ -63,29 +73,38 @@ public class ScheduleServiceImpl implements ScheduleService {
      * @return
      */
     @Override
-    @Transactional  //事务管理
+    @Transactional  // 事务管理
     public Schedule createSchedule(Long doctorId, ScheduleCreateDTO scheduleCreateDTO) {
 
         log.info("开始新增排班，医生ID：{}，日期：{}，时段：{}", doctorId, scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
 
-        //防重校验：检查同一时间段是否已有排班
+        // 防重校验：检查同一时间段是否已有排班
         int count = scheduleMapper.countByDoctorDatePeriod(doctorId, scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
         if(count > 0){
             log.warn("排班重复，医生ID：{}，日期：{}，时段：{}", doctorId, scheduleCreateDTO.getScheduleDate(), scheduleCreateDTO.getPeriod());
             throw new ScheduleDuplicateException();
         }
 
-        //构建排班实体
+        // 构建排班实体
         Schedule schedule = new Schedule();
         BeanUtils.copyProperties(scheduleCreateDTO, schedule);
         schedule.setDoctorId(doctorId);
         schedule.setRemainingCount(scheduleCreateDTO.getMaxCount());    //初始值 == 最大值
         schedule.setStatus(StatusConstant.SCHEDULE_NORMAL); //状态初始为正常
 
-        //保存进数据库
+        // 保存进数据库
         scheduleMapper.insert(schedule);
 
         log.info("排班创建成功，ID：{}，号源数：{}", schedule.getId(), schedule.getMaxCount());
+
+        // 将新排班加入布隆过滤器
+        bloomFilterService.addScheduleId(schedule.getId());
+        log.info("排班 {} 已加入布隆过滤器", schedule.getId());
+
+        // 清除该医生的排班日历缓存
+        multiLevelCacheService.evictAll(CacheKeyConstants.getSchedulesPattern(doctorId));
+
+        log.info("排班创建成功，已更新布隆过滤器并清除排班缓存，排班ID：{}", schedule.getId());
 
         return schedule;
 

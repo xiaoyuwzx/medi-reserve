@@ -30,10 +30,10 @@ import java.util.List;
 public class BloomFilterService {
 
     @Autowired
-    private BloomFilter<Long> doctorBloomFilter;
+    private BloomFilter<Long> doctorBloomFilter;    // 存医生ID
 
     @Autowired
-    private BloomFilter<Long> scheduleBloomFilter;
+    private BloomFilter<Long> scheduleBloomFilter;  // 存排班ID
 
     @Autowired
     private DoctorAuthMapper doctorAuthMapper;

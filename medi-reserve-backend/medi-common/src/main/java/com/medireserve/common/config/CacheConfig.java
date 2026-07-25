@@ -61,9 +61,9 @@ public class CacheConfig {
                 .withCacheConfiguration("departments", createCacheConfig(Duration.ofHours(1), true))
                 // 职称列表：变化极少，缓存1小时
                 .withCacheConfiguration("titles", createCacheConfig(Duration.ofHours(1), true))
-                // 医生列表：变化较少，缓存5分钟
-                .withCacheConfiguration("doctors", createCacheConfig(Duration.ofMinutes(5), false))
-                // 排班日历：允许缓存空值5分钟，防止缓存穿透
+                // 医生列表：变化较少，缓存10分钟
+                .withCacheConfiguration("doctors", createCacheConfig(Duration.ofMinutes(10), false))
+                // 排班日历：允许缓存空值1分钟，防止缓存穿透
                 .withCacheConfiguration("schedules", createCacheConfig(Duration.ofMinutes(1), true))
                 .build();
     }

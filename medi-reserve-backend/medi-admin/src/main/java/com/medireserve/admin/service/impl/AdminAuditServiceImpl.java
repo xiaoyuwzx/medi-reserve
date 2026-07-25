@@ -3,6 +3,7 @@ package com.medireserve.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.medireserve.admin.mapper.AdminAuditMapper;
+import com.medireserve.common.constant.CacheKeyConstants;
 import com.medireserve.common.dto.CertificateAuditDTO;
 import com.medireserve.common.dto.PendingCertAuditVO;
 import com.medireserve.common.mapper.DoctorAuditMapper;
@@ -13,13 +14,14 @@ import com.medireserve.common.dto.DoctorPendingVO;
 import com.medireserve.common.entity.Doctor;
 import com.medireserve.common.entity.DoctorAudit;
 import com.medireserve.common.exception.*;
+import com.medireserve.common.service.BloomFilterService;
+import com.medireserve.common.service.MultiLevelCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,6 +39,12 @@ public class AdminAuditServiceImpl implements AdminAuditService {
 
     @Autowired
     private DoctorAuditMapper doctorAuditMapper;
+
+    @Autowired
+    private BloomFilterService bloomFilterService;
+
+    @Autowired
+    private MultiLevelCacheService multiLevelCacheService;
 
 
     /**
@@ -144,6 +152,18 @@ public class AdminAuditServiceImpl implements AdminAuditService {
         }
 
         log.info("审核操作成功，医生ID：{}，审核人：{}", doctorId, auditorId);
+
+        // 将新审核通过的医生加入布隆过滤器
+        bloomFilterService.addDoctorId(doctorId);
+        log.info("医生 {} 已加入布隆过滤器", doctorId);
+
+        // 清除医生列表缓存（让新医生立即可见）
+        multiLevelCacheService.evictAll(CacheKeyConstants.getDoctorsPattern());
+
+        // 清除该医生的排班缓存（虽然刚审核通过可能还没排班，但预防性清除）
+        multiLevelCacheService.evictAll(CacheKeyConstants.getSchedulesPattern(doctorId));
+
+        log.info("医生审核通过，已更新布隆过滤器并清除相关缓存，医生ID：{}", doctorId);
 
     }
 
