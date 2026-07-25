@@ -24,8 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "医生端 - 文件上传", description = "获取 OSS STS 临时凭证")
 public class OssController {
 
-    private OssStsService ossStsService;
+    private final OssStsService ossStsService;
 
+    /**
+     * 构造器注入
+     */
     public OssController(OssStsService ossStsService) {
         this.ossStsService = ossStsService;
     }
@@ -33,6 +36,12 @@ public class OssController {
     /**
      * 获取 OSS STS 临时凭证
      * 前端根据返回的凭证和目录，直接上传文件到阿里云 OSS
+     *
+     * 安全机制：
+     * 1. @RequireRole(RoleConstant.DOCTOR) 保证只有已登录医生才能调用
+     * 2. doctorId 从 @RequestAttribute 中获取，由 JWT 拦截器注入（前端无法伪造）
+     * 3. 生成的 Policy 将 doctorId 硬编码到资源路径中
+     *
      * @param doctorId 当前登录医生的 ID（从 JWT 中提取）
      * @return 包含临时 AK/SK/Token 及上传路径的凭证对象
      */

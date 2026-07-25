@@ -24,6 +24,15 @@ import java.util.stream.Collectors;
 /**
  * 操作日志 AOP 切面
  * 拦截所有标注了 @LogOperation 注解的方法，自动记录操作日志
+ *
+ * 核心机制：环绕通知（@Around）
+ * - 在目标方法执行前：收集请求信息、开始计时
+ * - 在目标方法执行后：记录耗时、结果状态
+ * - 无论成功/失败：finally 块保证日志必定保存
+ *
+ * 为什么用 Around 而不是 AfterReturning + AfterThrowing？
+ * - 需要记录执行耗时（必须捕获前后时间差）
+ * - 需要统一处理成功和失败两种状态
  */
 @Slf4j
 @Aspect
@@ -34,7 +43,10 @@ public class OperationLogAspect {
     private OperationLogService operationLogService;
 
     /**
-     * 环绕通知：记录操作日志
+     * 环绕通知：拦截所有标注了 @LogOperation 的方法
+     *
+     * 切入点表达式：@annotation(com.medireserve.common.annotation.LogOperation)
+     * 只要方法上有这个注解，就会进入此通知
      */
     @Around("@annotation(com.medireserve.common.annotation.LogOperation)")
     public Object logOperation(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -105,11 +117,13 @@ public class OperationLogAspect {
             }
             // 若返回 void 或非 Result，默认成功
         } catch (Exception e) {
+            // 业务异常（由全局异常处理器处理），记录失败状态
             success = false;
             errorMsg = e.getMessage();
             statusCode = 500;
             throw e; // 继续向上抛出，不影响业务异常处理
         } finally {
+            // 填充日志剩余字段
             long duration = System.currentTimeMillis() - startTime;
             logEntity.setResult(success ? 1 : 0);
             logEntity.setStatusCode(statusCode);
@@ -117,6 +131,7 @@ public class OperationLogAspect {
             logEntity.setDurationMs((int) duration);
 
             // 7. 异步保存日志（避免影响主业务性能）
+            // 关键：调用异步方法，主线程立即返回，不等待日志写入
             operationLogService.saveLogAsync(logEntity);
         }
 
@@ -124,7 +139,12 @@ public class OperationLogAspect {
     }
 
     /**
-     * 获取客户端真实 IP（考虑代理等情况）
+     * 获取客户端真实 IP（考虑代理和负载均衡场景）
+     *
+     * 读取顺序：
+     * X-Forwarded-For → Proxy-Client-IP → WL-Proxy-Client-IP → RemoteAddr
+     *
+     * 如果通过 Nginx 代理，X-Forwarded-For 会记录真实客户端 IP
      */
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");

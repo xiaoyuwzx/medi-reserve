@@ -7,6 +7,11 @@ import org.springframework.stereotype.Component;
 /**
  * 阿里云 OSS / STS 配置属性类
  * 对应 application.yml 中的 aliyun.oss 配置
+ *
+ * 安全说明：
+ * - access-key-id 和 access-key-secret 是主账号或 RAM 子账号的永久密钥
+ * - 该密钥只具备「AssumeRole」权限，不具备直接操作 OSS 的权限
+ * - 即使泄露，攻击者也只能调用 STS，无法直接操作 OSS 资源
  */
 @Data
 @Component

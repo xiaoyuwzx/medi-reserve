@@ -7,6 +7,7 @@ import lombok.Data;
 /**
  * OSS STS 临时凭证返回对象
  * 用于前端直传 OSS 时所需的全部参数
+ * 前端拿到后，用这些参数初始化 OSS Client，实现文件直传
  */
 @Data
 @Builder

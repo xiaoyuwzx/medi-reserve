@@ -21,6 +21,17 @@ import java.util.Map;
 /**
  * OSS STS 临时凭证服务（经典 V1 客户端）
  * 负责调用阿里云 STS API，通过 AssumeRole 获取临时安全凭证
+ *
+ * 核心职责：
+ * 1. 调用阿里云 STS AssumeRole API 获取临时安全凭证
+ * 2. 构建最小权限 Policy（限制上传目录）
+ * 3. 封装返回给前端的 VO（含临时凭证 + 上传路径）
+ *
+ * 安全设计亮点：
+ * - 权限隔离：每个医生只能上传到自己的目录（medi/doctor/{doctorId}/）
+ * - 时效性：临时凭证 30 分钟过期，降低泄露风险
+ * - 最小权限：只授予 oss:PutObject 权限，无法下载、删除或列举
+ * - 后端校验：前端无法伪造 doctorId（从 JWT 中提取）
  */
 @Slf4j
 @Service
@@ -58,10 +69,11 @@ public class OssStsService {
 
             // 2. 构建 AssumeRole 请求
             AssumeRoleRequest request = new AssumeRoleRequest();
-            request.setMethod(MethodType.POST);   // 必须 POST
-            request.setRoleArn(ossProperties.getRoleArn());
-            request.setRoleSessionName("doctor-" + doctorId);
-            request.setDurationSeconds(ossProperties.getTimeout());
+            request.setMethod(MethodType.POST);                         // 必须 POST
+            request.setRoleArn(ossProperties.getRoleArn());             // RAM 角色 ARN
+            request.setRoleSessionName("doctor-" + doctorId);           // 会话名称（便于审计）
+            request.setDurationSeconds(ossProperties.getTimeout());     // 有效期（秒）
+
             // 【核心】设置最小权限策略（防止越权）
             request.setPolicy(buildCustomPolicy(doctorId));
 
@@ -75,13 +87,13 @@ public class OssStsService {
             String dir = ossProperties.getBaseDir() + "/doctor/" + doctorId + "/";
 
             return OssStsVO.builder()
-                    .accessKeyId(credentials.getAccessKeyId())
-                    .accessKeySecret(credentials.getAccessKeySecret())
-                    .securityToken(credentials.getSecurityToken())
-                    .expiration(credentials.getExpiration())
-                    .bucket(ossProperties.getBucket())
-                    .endpoint(ossProperties.getEndpoint())
-                    .dir(dir)
+                    .accessKeyId(credentials.getAccessKeyId())           // 临时 AK
+                    .accessKeySecret(credentials.getAccessKeySecret())   // 临时 SK
+                    .securityToken(credentials.getSecurityToken())       // 临时 Token
+                    .expiration(credentials.getExpiration())             // 过期时间
+                    .bucket(ossProperties.getBucket())                   // Bucket 名称
+                    .endpoint(ossProperties.getEndpoint())               // OSS 端点
+                    .dir(dir)                                            // 上传目录
                     .build();
 
         } catch (Exception e) {
@@ -93,6 +105,19 @@ public class OssStsService {
     /**
      * 构建最小权限的 RAM Policy（JSON 字符串）
      * 只允许用户上传到自己的目录下
+     *
+     * 权限限制：
+     * - 只允许上传（oss:PutObject）
+     * - 只能上传到指定目录（不允许跨目录）
+     * - 不允许下载（oss:GetObject）、删除（oss:DeleteObject）、列举（oss:ListObjects）
+     *
+     * 安全效果：
+     * - 前端拿到的临时凭证只能上传到 medi/doctor/123/ 目录
+     * - 即使前端篡改上传路径，OSS 会校验 Policy，拒绝非法请求
+     * - 医生 123 无法访问医生 456 的文件
+     *
+     * @param doctorId 医生 ID（用于构造资源路径）
+     * @return Policy JSON 字符串
      */
     private String buildCustomPolicy(Long doctorId) {
         // 资源路径示例：acs:oss:oss-cn-hangzhou.aliyuncs.com:medi-reserve-files/medi/doctor/123/*
@@ -100,16 +125,19 @@ public class OssStsService {
                 + ossProperties.getBucket() + "/"
                 + ossProperties.getBaseDir() + "/doctor/" + doctorId + "/*";
 
+        // ====== 2. 构建 Policy 结构 ======
         Map<String, Object> policy = new HashMap<>();
         policy.put("Version", "1");
 
+        // Statement：权限声明
         Map<String, Object> statement = new HashMap<>();
         statement.put("Effect", "Allow");
-        statement.put("Action", new String[]{"oss:PutObject"});
-        statement.put("Resource", new String[]{resource});
+        statement.put("Action", new String[]{"oss:PutObject"}); // 只允许上传
+        statement.put("Resource", new String[]{resource});      // 只允许该路径
 
         policy.put("Statement", new Object[]{statement});
 
+        // ====== 3. 序列化为 JSON ======
         try {
             return new ObjectMapper().writeValueAsString(policy);
         } catch (JsonProcessingException e) {

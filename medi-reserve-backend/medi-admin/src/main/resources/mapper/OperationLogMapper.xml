@@ -20,7 +20,7 @@
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
-    <!-- 插入 -->
+    <!-- 插入日志 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO operation_log (
             admin_id, admin_name, module, operation,
@@ -33,7 +33,7 @@
                  )
     </insert>
 
-    <!-- 动态查询列表 -->
+    <!-- 动态条件查询（支持按管理员、模块、时间范围、结果筛选） -->
     <select id="findList" resultMap="BaseResultMap">
         SELECT * FROM operation_log
         <where>
