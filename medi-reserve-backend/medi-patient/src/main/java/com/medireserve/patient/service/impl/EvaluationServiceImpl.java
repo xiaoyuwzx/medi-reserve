@@ -239,7 +239,18 @@ public class EvaluationServiceImpl implements EvaluationService {
     /**
      * 获取热门医生排行榜
      * 优先从Redis中读取，缓存为命中时查询数据库
-     * @return
+     *
+     * 执行流程：
+     * 1. 尝试从 Redis 读取（命中 → 直接返回）
+     * 2. Redis 未命中 → 查询数据库 → 写入 Redis → 返回
+     * 3. 无论 Redis 是否可用，都保证最终返回数据（降级到 DB）
+     *
+     * 为什么要把「空数据」也缓存？
+     * - 刚上线时，数据库里可能一条评价都没有
+     * - 如果不缓存空值，每次请求都会穿透到 DB（虽然数据少，但浪费连接）
+     * - 空值缓存有效期 5 分钟（比正常数据短，便于快速恢复）
+     *
+     * @return 热门医生列表（最多 10 条，按热度降序）
      */
     @Override
     public List<DoctorHotVO> getHotDoctors() {
@@ -264,11 +275,20 @@ public class EvaluationServiceImpl implements EvaluationService {
         //写入Redis缓存
         try {
             if(hotDoctors != null && !hotDoctors.isEmpty()){
-                redisTemplate.opsForValue().set(REDIS_HOT_DOCTORS_KEY, hotDoctors, CACHE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                // 正常数据：缓存 30 分钟
+                redisTemplate.opsForValue().set(
+                        REDIS_HOT_DOCTORS_KEY,
+                        hotDoctors,
+                        CACHE_TIMEOUT_MINUTES,
+                        TimeUnit.MINUTES);
                 log.info("热门医生排行榜缓存写入成功，共 {} 条", hotDoctors.size());
             }else {
                 //空数据也缓存(防穿透), 有效期缩短为5分钟
-                redisTemplate.opsForValue().set(REDIS_HOT_DOCTORS_KEY, hotDoctors, 5, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(
+                        REDIS_HOT_DOCTORS_KEY,
+                        hotDoctors,
+                        5,
+                        TimeUnit.MINUTES);
                 log.info("热门医生排行榜为空，缓存空值，有效期5分钟");
             }
         } catch (Exception e) {
@@ -282,6 +302,18 @@ public class EvaluationServiceImpl implements EvaluationService {
     /**
      * 刷新热门医生缓存
      * 重新从数据库计算排行榜并写入 Redis
+     *
+     * 调用时机（两路并进）：
+     * 1. 主动刷新：用户创建/删除评价后，立即刷新（保证数据一致性）
+     * 2. 定时任务：每 30 分钟刷新一次（兜底方案，防止评价更新时刷新失败）
+     *
+     * 为什么需要定时任务兜底？
+     * - 如果评价创建时刷新缓存失败（Redis 宕机、网络抖动）
+     * - 定时任务能在 30 分钟内修复，保证最终一致性
+     *
+     * 刷新策略：直接覆盖（SET），而非删除（DEL）
+     * - 删除（DEL）：下一个请求会触发回源，有短暂的 DB 压力
+     * - 覆盖（SET）：缓存始终有效，无空窗期
      */
     @Override
     public void refreshHotDoctorCache() {
@@ -293,11 +325,19 @@ public class EvaluationServiceImpl implements EvaluationService {
             List<DoctorHotVO> hotDoctors = evaluationMapper.findHotDoctors(10);
 
             if (hotDoctors != null && !hotDoctors.isEmpty()) {
-                redisTemplate.opsForValue().set(REDIS_HOT_DOCTORS_KEY, hotDoctors, CACHE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(
+                        REDIS_HOT_DOCTORS_KEY,
+                        hotDoctors,
+                        CACHE_TIMEOUT_MINUTES,
+                        TimeUnit.MINUTES);
                 log.info("热门医生缓存刷新成功，共 {} 条", hotDoctors.size());
             } else {
                 // 无数据时缓存空对象，有效期5分钟
-                redisTemplate.opsForValue().set(REDIS_HOT_DOCTORS_KEY, hotDoctors, 5, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(
+                        REDIS_HOT_DOCTORS_KEY,
+                        hotDoctors,
+                        5,
+                        TimeUnit.MINUTES);
                 log.info("热门医生数据为空，缓存空值");
             }
         } catch (Exception e) {

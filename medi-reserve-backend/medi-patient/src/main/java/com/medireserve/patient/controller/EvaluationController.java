@@ -146,6 +146,10 @@ public class EvaluationController {
 
     /**
      * 获取热门医生排行榜(公开访问)
+     *
+     * 特点：
+     * - 无需 JWT Token，所有用户（包括未登录患者）都能看
+     * - 用于首页展示，提升用户体验
      * @return
      */
     @GetMapping("/doctors/hot")
@@ -162,6 +166,14 @@ public class EvaluationController {
 
     /**
      * 手动刷新热门医生缓存(管理员专用)
+     *
+     * 使用场景：
+     * - 运营人员发现排行榜数据异常，需要立即修复
+     * - 系统刚上线，缓存为空，需要预热
+     *
+     * 为什么不开放给普通用户？
+     * - 频繁刷新会导致 Redis 写入压力
+     * - 只有管理员有维护权限
      * @return
      */
     @PostMapping("/admin/refresh-hot-cache")

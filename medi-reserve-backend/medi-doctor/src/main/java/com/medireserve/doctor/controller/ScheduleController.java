@@ -37,11 +37,19 @@ public class ScheduleController {
     private ScheduleService scheduleService;
 
     /**
-     * 获取推荐号源数
-     * @param currentDoctorId
-     * @param scheduleDate
-     * @param userInputMax
-     * @return
+     * 获取推荐号源数（医生端「新增排班」页面调用）
+     *
+     * 前端交互场景：
+     * 1. 医生选择日期、时段后，输入一个「基准值」（如 20）
+     * 2. 系统基于历史数据返回一个「推荐值」（如 24）
+     * 3. 医生可以采纳推荐值，也可以手动修改
+     *
+     * 这个接口只做「参考建议」，不强求医生采纳
+     *
+     * @param currentDoctorId 当前登录医生ID（从 JWT 中提取）
+     * @param scheduleDate    排班日期（前端传 yyyy-MM-dd）
+     * @param userInputMax    用户输入的基准值（默认 20）
+     * @return 包含推荐值、差值、变化百分比的 Map
      */
     @GetMapping("/schedules/recommend")
     @Operation(summary = "获取推荐号源数", description = "基于历史就诊数据，智能推荐号源数量（仅做参考，用户可自行修改）")
@@ -56,6 +64,7 @@ public class ScheduleController {
         // 调用 Service 计算推荐值
         Integer recommended = scheduleService.getRecommendedMaxCount(currentDoctorId, scheduleDate, userInputMax);
 
+        // 组装返回数据（前端需要看到对比信息）
         Map<String, Object> map = new HashMap<>();
         map.put("userInputMax", userInputMax);  //用户输入的基准值
         map.put("recommendedMax", recommended); //算法推荐值

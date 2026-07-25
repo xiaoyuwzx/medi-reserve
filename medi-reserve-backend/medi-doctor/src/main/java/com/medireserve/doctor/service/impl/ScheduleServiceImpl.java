@@ -248,25 +248,36 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     /**
      * 智能推荐初始号源数算法（基于历史就诊热度）
-     * @param doctorId
-     * @param scheduleDate
-     * @param userRequestedMax
-     * @return
+     * @param doctorId          医生ID
+     * @param scheduleDate      目标排班日期
+     * @param userRequestedMax  用户输入的基准值
+     * @return 推荐号源数
      */
     private int recommendMaxCount(Long doctorId, LocalDate scheduleDate, Integer userRequestedMax) {
         /*
+         * 算法逻辑：
+         * 1. 查询该医生「过去 4 周」内「同一天（如周三）」的「平均就诊率」
+         * 2. 根据平均就诊率调整号源数：
+         *    - 就诊率 >= 85%  →  加号 20%（供不应求）
+         *    - 就诊率 <= 40%  →  减号 20%（供过于求）
+         *    - 40% < 就诊率 < 85% →  保持不变（供需平衡）
+         * 3. 边界保护：号源数 ∈ [1, 100]
          *
-         * 查询该医生过去四周同一天的历史就诊数据，计算出平均就诊率 historicalOccupancyRate
-         * 根据 平均就诊率 计算推荐值 recommended
-         * historicalOccupancyRate <= 40%     减号20%
-         * historicalOccupancyRate >= 85%     加好20%
-         *     40%  < 正常范围 < 85%          保持不变
+         * 为什么用「过去 4 周」？
+         * - 太短（1周）：样本量太小，波动大
+         * - 太长（12周）：数据陈旧，无法反映近期趋势（如季节变化）
+         * - 4周 = 1个月，既有足够样本，又能反映近期热度
+         *
+         * 为什么用「同一天」？
+         * - 周一和周六的就诊需求差异极大
+         * - 按星期几分组，保证对比基准一致
          *
          * */
 
         //获取当前时间是星期几
         int dayOfWeek = scheduleDate.getDayOfWeek().getValue();
 
+        // 查询该医生在过去 4 周内，同一天（如周三）的平均就诊率
         Double historicalOccupancyRate = scheduleMapper.getHistoricalOccupancyRate(doctorId, dayOfWeek ,scheduleDate);
 
         //如果没有历史数据(新医生或者首次排班), 返回用户输入值
