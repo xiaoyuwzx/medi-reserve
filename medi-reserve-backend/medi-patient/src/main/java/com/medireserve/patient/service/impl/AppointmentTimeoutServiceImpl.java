@@ -21,10 +21,15 @@ import java.util.concurrent.TimeUnit;
 public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService {
 
     /**
-     * 自注入当前 Service 的代理对象（通过 @Lazy 避免循环依赖），解决 @Transactional 失效问题
-     * 原因：Spring 的 @Transactional 通过代理生效，若在 cancelWithLock() 中
-     * 直接调用 this.cancelExpiredAppointment()，事务注解会失效（因为没走代理）。
-     * 通过 self.cancelExpiredAppointment() 调用，确保走代理链路，事务正常开启。
+     * 关键技巧：自注入当前 Service 的代理对象（通过 @Lazy 避免循环依赖），解决 @Transactional 失效问题
+     *
+     * 为什么要这么做？
+     * - Spring 的 @Transactional 通过 AOP 代理生效
+     * - 如果在 cancelWithLock() 中直接调用 this.cancelExpiredAppointment()
+     * - 事务注解会失效（因为 this 是原始对象，不是代理对象）
+     * - 通过 self.cancelExpiredAppointment() 调用，确保走代理链路，事务正常开启
+     *
+     * 这是 Spring 事务的经典坑：自调用事务失效
      */
     @Autowired
     @Lazy
@@ -41,6 +46,15 @@ public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService 
 
     /**
      * 带分布式锁的取消方法（供时间轮和启动扫描调用）
+     * 为什么需要分布式锁？
+     * - 多实例部署时，时间轮任务在每个实例上都触发了
+     * - 如果不加锁，同一个预约可能被取消两次（导致号源多回滚一次）
+     * - 分布式锁保证只有一个实例执行取消逻辑
+     *
+     * 锁的粒度：lock:cancel:{appointmentId}
+     * - 每个预约一把锁，精细控制
+     *
+     * @param appointmentId 预约ID
      */
     @Override
     public void cancelWithLock(Long appointmentId) {
@@ -68,8 +82,19 @@ public class AppointmentTimeoutServiceImpl implements AppointmentTimeoutService 
      * 实际取消逻辑
      * 为什么单独拆出来？因为要让事务生效，必须由 Spring 代理调用。
      * 取消超时预约（带分布式锁 + 事务）
+     *
+     * 执行流程：
+     * 1. 查询预约：必须是「待支付状态」且「创建时间超过 30 分钟」
+     * 2. 更新预约状态为「已取消」（3）
+     * 3. 回滚号源（remaining_count + 1）
+     * 4. 清除该医生的排班缓存（让患者看到最新剩余号源）
+     *
+     * 为什么要在查询时加时间条件？
+     * - 防止时间轮精度问题：如果时间轮在 29分59秒触发了，不应取消
+     * - 双重校验：时间轮只负责「触发」，数据库层做「最终判断」
+     *
      * @param appointmentId 预约ID
-     * @return 是否成功取消
+     * @return true-成功取消，false-无需取消（已支付或已取消）
      */
     @Override
     @Transactional

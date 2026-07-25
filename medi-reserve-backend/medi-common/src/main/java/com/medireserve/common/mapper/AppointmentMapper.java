@@ -56,7 +56,11 @@ public interface AppointmentMapper {
     int insert(Appointment appointment);
 
     /**
-     * 查询超时未支付的预约
+     * 查询超时未支付的预约（供启动扫描和时间轮双重校验）
+     *
+     * 说明：时间轮触发时，可能因为服务重启导致任务延迟，
+     * 这里用数据库时间做最终判断，确保不会误取消
+     *
      * @param id
      * @return
      */
@@ -67,7 +71,15 @@ public interface AppointmentMapper {
 
     /**
      * 更新预约状态（乐观锁版本）
-     * 仅当当前状态为 0（待支付）时，才能更新为目标状态
+     *
+     * 核心：WHERE id = #{id} AND status = 0
+     * - 只有当前状态是「待支付」时才能更新
+     * - 返回 0 表示更新失败（状态已被其他操作改变）
+     *
+     * 为什么不用 CAS（Compare And Set）？
+     * - 这是数据库级别的乐观锁，等价于 CAS
+     * - 保证并发安全：支付和取消同时发生时，只有一个会成功
+     *
      * @param id 预约ID
      * @param status 目标状态
      * @return 受影响行数
@@ -78,6 +90,15 @@ public interface AppointmentMapper {
     /**
      * 回滚号源（取消预约时调用）
      * 剩余号源+1，如果当前状态为已满(3)则恢复为正常(1)
+     *
+     * 智能状态恢复逻辑：
+     * - 如果排班当前是「已满（3）」状态，回滚号源后恢复为「正常（1）」
+     * - 如果排班本来就是「正常（1）」或「停诊（2）」，保持原状态
+     *
+     * 为什么需要这个 CASE？
+     * - 排班「已满」状态是系统自动设置的（remaining_count=0）
+     * - 号源回滚后，剩余号源 > 0，应该自动恢复为「正常」
+     * - 否则患者看到「已满」就不敢挂号了
      */
     @Update("update schedule set " +
             "remaining_count = remaining_count + 1, " +
