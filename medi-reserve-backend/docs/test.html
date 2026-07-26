@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 问诊室测试（按房间隔离）</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            margin: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 22px; }
+        .header p { margin: 6px 0 0; opacity: 0.85; font-size: 14px; }
+
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+
+        .panel {
+            flex: 1;
+            min-width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .panel-header {
+            padding: 12px 20px;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e8ecf1;
+        }
+        .panel-body { padding: 16px 20px; }
+
+        .tag-patient .panel-header { background: #e8f8f0; color: #1a7a42; }
+        .tag-doctor .panel-header { background: #e8f0fe; color: #1a5276; }
+        .tag-room .panel-header { background: #fef9e7; color: #7d6608; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .status-online { background: #a6e3a1; color: #1a7a42; }
+        .status-offline { background: #f5b7b1; color: #7b241c; }
+
+        .log-box {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            padding: 12px;
+            border-radius: 8px;
+            height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .log-box .time { color: #6c7086; }
+        .log-box .info { color: #89b4fa; }
+        .log-box .success { color: #a6e3a1; }
+        .log-box .error { color: #f38ba8; }
+        .log-box .warning { color: #f9e2af; }
+        .log-box .recv { color: #f5c2e7; }
+        .log-box .send { color: #94e2d5; }
+        .log-box .room { color: #f9e2af; }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .input-row input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-row input[type="text"]:focus { border-color: #667eea; }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-success { background: #2ecc71; color: white; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+        .config-area {
+            background: #f8f9fa;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .config-area label { font-weight: 600; font-size: 13px; color: #555; }
+        .config-area input[type="text"], .config-area input[type="number"] {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 200px;
+        }
+        .config-area input[type="text"].token-input { width: 280px; font-size: 11px; }
+
+        .info-text { font-size: 13px; color: #888; margin: 6px 0; }
+
+        .flex { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .flex-grow { flex: 1; }
+        .mr-8 { margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🏥 问诊室测试（按预约ID隔离房间）</h1>
+    <p>消息自动路由到 <strong>/topic/room/{预约ID}</strong>，不同预约的消息互相隔离</p>
+</div>
+
+<!-- ========== 配置区域 ========== -->
+<div class="config-area">
+    <label>预约ID：</label>
+    <input type="number" id="appointmentId" value="4" style="width:80px;">
+
+    <label>患者Token：</label>
+    <input type="text" id="patientToken" class="token-input" placeholder="粘贴患者JWT Token..." style="width:250px;">
+
+    <label>医生Token：</label>
+    <input type="text" id="doctorToken" class="token-input" placeholder="粘贴医生JWT Token..." style="width:250px;">
+
+    <button class="btn btn-success" onclick="connectPatient()">🟢 连接患者</button>
+    <button class="btn btn-primary" onclick="connectDoctor()">🔵 连接医生</button>
+    <button class="btn btn-danger" onclick="disconnectAll()">🔴 断开全部</button>
+    <button class="btn btn-warning" onclick="clearAllLogs()">🗑️ 清空日志</button>
+</div>
+
+<div class="container">
+    <!-- ========== 患者面板 ========== -->
+    <div class="panel tag-patient">
+        <div class="panel-header">
+            <span>🟢 患者端</span>
+            <span>
+                <span id="patientStatus" class="status-badge status-offline">离线</span>
+                <span style="margin-left:10px;font-size:13px;color:#888;">ID: <span id="patientUserId">-</span></span>
+            </span>
+        </div>
+        <div class="panel-body">
+            <div class="input-row">
+                <input type="text" id="patientMsg" placeholder="输入消息..." onkeypress="if(event.key==='Enter') sendPatientMsg()">
+                <button class="btn btn-success btn-sm" onclick="sendPatientMsg()">发送</button>
+            </div>
+            <div class="info-text">
+                接收者ID（医生）：<input type="number" id="patientReceiver" value="1" style="width:60px;display:inline-block;padding:2px 6px;">
+            </div>
+            <div class="log-box" id="patientLog">
+                <span class="warning">⏳ 等待连接...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 医生面板 ========== -->
+    <div class="panel tag-doctor">
+        <div class="panel-header">
+            <span>🔵 医生端</span>
+            <span>
+                <span id="doctorStatus" class="status-badge status-offline">离线</span>
+                <span style="margin-left:10px;font-size:13px;color:#888;">ID: <span id="doctorUserId">-</span></span>
+            </span>
+        </div>
+        <div class="panel-body">
+            <div class="input-row">
+                <input type="text" id="doctorMsg" placeholder="输入消息..." onkeypress="if(event.key==='Enter') sendDoctorMsg()">
+                <button class="btn btn-primary btn-sm" onclick="sendDoctorMsg()">发送</button>
+            </div>
+            <div class="info-text">
+                接收者ID（患者）：<input type="number" id="doctorReceiver" value="7" style="width:60px;display:inline-block;padding:2px 6px;">
+            </div>
+            <div class="log-box" id="doctorLog">
+                <span class="warning">⏳ 等待连接...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 房间频道面板 ========== -->
+    <div class="panel tag-room" style="flex: 0 0 100%;">
+        <div class="panel-header">
+            <span>📡 房间频道 <span id="roomTopicDisplay">/topic/room/4</span></span>
+            <span style="font-size:13px;font-weight:normal;color:#888;">同一预约的用户共享此频道</span>
+        </div>
+        <div class="panel-body">
+            <div class="log-box" id="roomLog" style="height:160px;">
+                <span class="warning">⏳ 等待消息...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 使用 cdnjs 加载依赖库（稳定可靠）                              -->
+<!-- ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script>
+    // ==============================================================
+    //  全局变量
+    // ==============================================================
+    let patientClient = null;
+    let doctorClient = null;
+    let patientConnected = false;
+    let doctorConnected = false;
+    let patientSub = null;
+    let doctorSub = null;
+
+    // ==============================================================
+    //  日志函数
+    // ==============================================================
+    function addLog(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const time = new Date().toLocaleTimeString();
+        const colors = {
+            time: '#6c7086', info: '#89b4fa', success: '#a6e3a1',
+            error: '#f38ba8', warning: '#f9e2af', recv: '#f5c2e7',
+            send: '#94e2d5', room: '#f9e2af'
+        };
+        const prefix = {
+            info: 'ℹ️', success: '✅', error: '❌',
+            warning: '⚠️', recv: '📩', send: '📤', room: '📡'
+        };
+        const color = colors[type] || '#cdd6f4';
+        const pre = prefix[type] || '📌';
+        const line = `<span class="time">[${time}]</span> <span style="color:${color}">${pre} ${message}</span>\n`;
+        el.innerHTML += line;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    // ==============================================================
+    //  获取配置
+    // ==============================================================
+    function getConfig() {
+        const appointmentId = parseInt(document.getElementById('appointmentId').value) || 0;
+        const patientToken = document.getElementById('patientToken').value.trim();
+        const doctorToken = document.getElementById('doctorToken').value.trim();
+        return { appointmentId, patientToken, doctorToken };
+    }
+
+    // ==============================================================
+    //  状态更新
+    // ==============================================================
+    function updateStatus(elementId, userId, connected) {
+        const el = document.getElementById(elementId);
+        const userIdEl = document.getElementById(elementId.replace('Status', 'UserId'));
+        if (connected) {
+            el.textContent = '在线';
+            el.className = 'status-badge status-online';
+            if (userIdEl) userIdEl.textContent = userId || '?';
+        } else {
+            el.textContent = '离线';
+            el.className = 'status-badge status-offline';
+            if (userIdEl) userIdEl.textContent = '-';
+        }
+    }
+
+    // ==============================================================
+    //  获取房间主题
+    // ==============================================================
+    function getRoomTopic(appointmentId) {
+        return '/topic/room/' + appointmentId;
+    }
+
+    // ==============================================================
+    //  连接患者
+    // ==============================================================
+    function connectPatient() {
+        const config = getConfig();
+        if (!config.patientToken) { alert('请粘贴患者 Token！'); return; }
+        if (patientConnected) { addLog('patientLog', '已连接，请勿重复操作', 'warning'); return; }
+
+        // 更新房间显示
+        document.getElementById('roomTopicDisplay').textContent = getRoomTopic(config.appointmentId);
+
+        addLog('patientLog', '正在连接患者端...', 'info');
+
+        const wsUrl = 'http://localhost:8084/ws/chat?token=' + config.patientToken + '&appointmentId=' + config.appointmentId;
+        const socket = new SockJS(wsUrl);
+        patientClient = Stomp.over(socket);
+
+        patientClient.connect({}, function(frame) {
+            patientConnected = true;
+            updateStatus('patientStatus', '患者', true);
+            addLog('patientLog', '连接成功！', 'success');
+
+            // ---- 订阅个人消息队列（备用） ----
+            patientClient.subscribe('/user/queue/messages', function(response) {
+                const msg = JSON.parse(response.body);
+                addLog('patientLog', '📩 [点对点] ' + msg.senderName + ': ' + msg.content, 'recv');
+            });
+
+            // ---- 订阅房间频道（核心） ----
+            const roomTopic = getRoomTopic(config.appointmentId);
+            patientSub = patientClient.subscribe(roomTopic, function(response) {
+                const msg = JSON.parse(response.body);
+                const sender = msg.senderRole === 'PATIENT' ? '患者' : '医生';
+                const logMsg = '🏠 [房间] ' + sender + ' (' + msg.senderName + '): ' + msg.content;
+                addLog('patientLog', logMsg, 'room');
+                addLog('roomLog', logMsg, 'room');
+            });
+
+            addLog('patientLog', '已订阅房间频道 ' + roomTopic, 'info');
+
+        }, function(error) {
+            addLog('patientLog', '连接失败: ' + error, 'error');
+        });
+    }
+
+    // ==============================================================
+    //  连接医生
+    // ==============================================================
+    function connectDoctor() {
+        const config = getConfig();
+        if (!config.doctorToken) { alert('请粘贴医生 Token！'); return; }
+        if (doctorConnected) { addLog('doctorLog', '已连接，请勿重复操作', 'warning'); return; }
+
+        // 更新房间显示
+        document.getElementById('roomTopicDisplay').textContent = getRoomTopic(config.appointmentId);
+
+        addLog('doctorLog', '正在连接医生端...', 'info');
+
+        const wsUrl = 'http://localhost:8084/ws/chat?token=' + config.doctorToken + '&appointmentId=' + config.appointmentId;
+        const socket = new SockJS(wsUrl);
+        doctorClient = Stomp.over(socket);
+
+        doctorClient.connect({}, function(frame) {
+            doctorConnected = true;
+            updateStatus('doctorStatus', '医生', true);
+            addLog('doctorLog', '连接成功！', 'success');
+
+            // ---- 订阅个人消息队列（备用） ----
+            doctorClient.subscribe('/user/queue/messages', function(response) {
+                const msg = JSON.parse(response.body);
+                addLog('doctorLog', '📩 [点对点] ' + msg.senderName + ': ' + msg.content, 'recv');
+            });
+
+            // ---- 订阅房间频道（核心） ----
+            const roomTopic = getRoomTopic(config.appointmentId);
+            doctorSub = doctorClient.subscribe(roomTopic, function(response) {
+                const msg = JSON.parse(response.body);
+                const sender = msg.senderRole === 'PATIENT' ? '患者' : '医生';
+                const logMsg = '🏠 [房间] ' + sender + ' (' + msg.senderName + '): ' + msg.content;
+                addLog('doctorLog', logMsg, 'room');
+                addLog('roomLog', logMsg, 'room');
+            });
+
+            addLog('doctorLog', '已订阅房间频道 ' + roomTopic, 'info');
+
+        }, function(error) {
+            addLog('doctorLog', '连接失败: ' + error, 'error');
+        });
+    }
+
+    // ==============================================================
+    //  发送消息
+    // ==============================================================
+    function sendPatientMsg() {
+        if (!patientConnected) { alert('请先连接患者端！'); return; }
+        const config = getConfig();
+        const content = document.getElementById('patientMsg').value.trim();
+        const receiverId = parseInt(document.getElementById('patientReceiver').value) || 0;
+        if (!content) { alert('请输入消息内容'); return; }
+        if (!receiverId) { alert('请输入接收者ID（医生ID）'); return; }
+
+        patientClient.send('/app/chat.send', {}, JSON.stringify({
+            appointmentId: config.appointmentId,
+            receiverId: receiverId,
+            content: content,
+            msgType: 1
+        }));
+        addLog('patientLog', '📤 [发送] ' + content, 'send');
+        document.getElementById('patientMsg').value = '';
+    }
+
+    function sendDoctorMsg() {
+        if (!doctorConnected) { alert('请先连接医生端！'); return; }
+        const config = getConfig();
+        const content = document.getElementById('doctorMsg').value.trim();
+        const receiverId = parseInt(document.getElementById('doctorReceiver').value) || 0;
+        if (!content) { alert('请输入消息内容'); return; }
+        if (!receiverId) { alert('请输入接收者ID（患者ID）'); return; }
+
+        doctorClient.send('/app/chat.send', {}, JSON.stringify({
+            appointmentId: config.appointmentId,
+            receiverId: receiverId,
+            content: content,
+            msgType: 1
+        }));
+        addLog('doctorLog', '📤 [发送] ' + content, 'send');
+        document.getElementById('doctorMsg').value = '';
+    }
+
+    // ==============================================================
+    //  断开全部
+    // ==============================================================
+    function disconnectAll() {
+        if (patientClient && patientConnected) {
+            patientClient.disconnect();
+            patientConnected = false;
+            updateStatus('patientStatus', null, false);
+            addLog('patientLog', '已断开', 'warning');
+        }
+        if (doctorClient && doctorConnected) {
+            doctorClient.disconnect();
+            doctorConnected = false;
+            updateStatus('doctorStatus', null, false);
+            addLog('doctorLog', '已断开', 'warning');
+        }
+        // 清空订阅引用
+        patientSub = null;
+        doctorSub = null;
+    }
+
+    // ==============================================================
+    //  清空日志
+    // ==============================================================
+    function clearAllLogs() {
+        document.getElementById('patientLog').innerHTML = '';
+        document.getElementById('doctorLog').innerHTML = '';
+        document.getElementById('roomLog').innerHTML = '';
+        addLog('patientLog', '日志已清空', 'info');
+        addLog('doctorLog', '日志已清空', 'info');
+        addLog('roomLog', '日志已清空', 'info');
+    }
+
+    // ==============================================================
+    //  初始化
+    // ==============================================================
+    addLog('patientLog', '💡 请配置 Token 和预约ID，点击"连接患者"', 'info');
+    addLog('doctorLog', '💡 请配置 Token 和预约ID，点击"连接医生"', 'info');
+    addLog('roomLog', '💡 所有房间消息将显示在此处', 'info');
+
+    console.log('✅ 测试页面加载完成（按房间隔离版）');
+    console.log('📌 请先配置 Token 和预约ID，然后点击连接按钮');
+</script>
+</body>
+</html>
