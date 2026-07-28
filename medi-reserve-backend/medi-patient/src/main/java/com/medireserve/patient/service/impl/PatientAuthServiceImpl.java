@@ -64,6 +64,12 @@ public class PatientAuthServiceImpl implements PatientAuthService {
 
     }
 
+    /**
+     * 患者登录
+     * @param phone
+     * @param password
+     * @return
+     */
     @Override
     public Patient login(String phone, String password) {
 

@@ -1,0 +1,3148 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "MediReserve 智慧医疗平台 API",
+    "description": "患者端 / 医生端 / 管理端 接口文档",
+    "contact": {
+      "name": "wzx",
+      "url": "https://github.com/xiaoyuwzx",
+      "email": "2846334903@qq.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8083",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "管理端 - 数据统计看板",
+      "description": "提供各类运营统计指标"
+    },
+    {
+      "name": "管理端 - 医生审核",
+      "description": "管理员审核医生账号"
+    },
+    {
+      "name": "管理端 - 权限管理",
+      "description": "权限树、角色权限分配"
+    },
+    {
+      "name": "管理端 - 操作日志",
+      "description": "查询和管理操作日志"
+    },
+    {
+      "name": "管理员 - 认证管理",
+      "description": "管理员登录、注册相关接口"
+    }
+  ],
+  "paths": {
+    "/admin/permissions/roles/{roleId}/permissions": {
+      "get": {
+        "tags": [
+          "管理端 - 权限管理"
+        ],
+        "summary": "查询角色拥有的权限ID列表",
+        "operationId": "getRolePermissionIds",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "角色ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListLong"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "管理端 - 权限管理"
+        ],
+        "summary": "更新角色权限",
+        "operationId": "updateRolePermissions",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "角色ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePermissionUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/password": {
+      "put": {
+        "tags": [
+          "管理员 - 认证管理"
+        ],
+        "summary": "修改密码",
+        "description": "验证旧密码后更新为新密码",
+        "operationId": "updatePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/register": {
+      "post": {
+        "tags": [
+          "管理员 - 认证管理"
+        ],
+        "summary": "管理员注册",
+        "description": "创建管理员账号（仅限超级管理员操作）",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRegisterDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/login": {
+      "post": {
+        "tags": [
+          "管理员 - 认证管理"
+        ],
+        "summary": "管理员登录",
+        "description": "用户名 + 密码登录，成功后返回 JWT 令牌",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{id}/status": {
+      "patch": {
+        "tags": [
+          "管理员 - 认证管理"
+        ],
+        "summary": "修改管理员状态",
+        "description": "禁用或启用管理员账号",
+        "operationId": "updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{doctorId}/cert-audit": {
+      "patch": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "审核医生证件变更",
+        "description": "通过：新证件生效；驳回：清空待审核数据，记录驳回原因",
+        "operationId": "auditCertificate",
+        "parameters": [
+          {
+            "name": "doctorId",
+            "in": "path",
+            "description": "医生ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CertificateAuditDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/doctors/{id}/reject": {
+      "patch": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "审核驳回",
+        "description": "管理员审核驳回医生注册申请，需填写驳回原因(仅限超级管理员)",
+        "operationId": "reject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditRejectDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/doctors/{id}/approve": {
+      "patch": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "审核通过",
+        "description": "管理员审核医生注册申请(仅限超级管理员)",
+        "operationId": "approve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{doctorId}/cert-pending-detail": {
+      "get": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "待审核证件详情",
+        "operationId": "getCertPendingDetail",
+        "parameters": [
+          {
+            "name": "doctorId",
+            "in": "path",
+            "description": "医生ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPendingCertAuditVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/permissions/tree": {
+      "get": {
+        "tags": [
+          "管理端 - 权限管理"
+        ],
+        "summary": "获取权限树",
+        "operationId": "getPermissionTree",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListPermissionNodeVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/permissions/roles": {
+      "get": {
+        "tags": [
+          "管理端 - 权限管理"
+        ],
+        "summary": "查询所有角色及其权限",
+        "operationId": "getAllRolesWithPermissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListRoleVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/operation-logs": {
+      "get": {
+        "tags": [
+          "管理端 - 操作日志"
+        ],
+        "summary": "查询日志列表",
+        "description": "支持按操作人、模块、时间范围、结果状态筛选",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OperationLogQueryDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageInfoOperationLogVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/operation-logs/{id}": {
+      "get": {
+        "tags": [
+          "管理端 - 操作日志"
+        ],
+        "summary": "查看日志详情",
+        "operationId": "detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "日志ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOperationLogVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "管理端 - 操作日志"
+        ],
+        "summary": "删除日志",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "日志ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/list": {
+      "get": {
+        "tags": [
+          "管理员 - 认证管理"
+        ],
+        "summary": "管理员列表",
+        "description": "获取所有管理员账号列表（仅超级管理员）",
+        "operationId": "listAdmins",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageInfoAdmin"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/doctors/{id}/audit-detail": {
+      "get": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "查看医生审核详细",
+        "description": "查看某位医生的完整注册信息和审核资料",
+        "operationId": "getAuditDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoctorAudit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/doctors/pending": {
+      "get": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "查询待审核医生列表",
+        "description": "分页查询所有待审核的医生(按注册时间升序)",
+        "operationId": "listPending",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageInfoDoctorPendingVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/trend": {
+      "get": {
+        "tags": [
+          "管理端 - 数据统计看板"
+        ],
+        "summary": "趋势数据",
+        "description": "近N天每日挂号/支付/收入趋势",
+        "operationId": "getTrend",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "查询天数，默认7，最大90",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListTrendDataVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/status-distribution": {
+      "get": {
+        "tags": [
+          "管理端 - 数据统计看板"
+        ],
+        "summary": "预约状态分布",
+        "description": "统计各状态预约数量",
+        "operationId": "getStatusDistribution",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListStatusDistributionVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/overview": {
+      "get": {
+        "tags": [
+          "管理端 - 数据统计看板"
+        ],
+        "summary": "总览统计",
+        "description": "返回今日关键指标及总量",
+        "operationId": "getOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDashboardOverviewVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/doctor-ranking": {
+      "get": {
+        "tags": [
+          "管理端 - 数据统计看板"
+        ],
+        "summary": "医生排行",
+        "description": "按挂号量或评分排序医生",
+        "operationId": "getDoctorRanking",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回前N条，默认10，最大50",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "排序字段：appointment（挂号量）或 score（评分）",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "appointment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListDoctorRankingVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/department-ranking": {
+      "get": {
+        "tags": [
+          "管理端 - 数据统计看板"
+        ],
+        "summary": "科室排行",
+        "description": "按挂号量降序返回科室排名",
+        "operationId": "getDepartmentRanking",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回前N条，默认10，最大50",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListDepartmentRankingVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/cert-pending": {
+      "get": {
+        "tags": [
+          "管理端 - 医生审核"
+        ],
+        "summary": "待审核证件列表",
+        "description": "返回已提交证件变更申请的医生列表",
+        "operationId": "listCertPending",
+        "parameters": [
+          {
+            "name": "pageNum",
+            "in": "query",
+            "description": "页码",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页大小",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageInfoPendingCertAuditVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResultVoid": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "RolePermissionUpdateDTO": {
+        "required": [
+          "permissionIds"
+        ],
+        "type": "object",
+        "properties": {
+          "permissionIds": {
+            "type": "array",
+            "description": "权限ID列表",
+            "items": {
+              "type": "integer",
+              "description": "权限ID列表",
+              "format": "int64"
+            }
+          }
+        },
+        "description": "角色权限更新请求 DTO"
+      },
+      "PasswordUpdateDTO": {
+        "required": [
+          "confirmPassword",
+          "newPassword",
+          "oldPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "oldPassword": {
+            "type": "string",
+            "description": "旧密码"
+          },
+          "newPassword": {
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$",
+            "type": "string",
+            "description": "新密码（6-20位字母和数字组合）"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "确认密码"
+          }
+        },
+        "description": "密码修改请求 DTO"
+      },
+      "AdminRegisterDTO": {
+        "required": [
+          "name",
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "pattern": "^[a-zA-Z0-9_]{4,20}$",
+            "type": "string",
+            "description": "用户名（4-20位字母数字下划线）",
+            "refType": null
+          },
+          "password": {
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$",
+            "type": "string",
+            "description": "密码（6-20位字母和数字组合）",
+            "refType": null
+          },
+          "name": {
+            "type": "string",
+            "description": "真实姓名",
+            "refType": null
+          },
+          "phone": {
+            "pattern": "^1[3-9]\\d{9}$",
+            "type": "string",
+            "description": "手机号（11位）",
+            "example": "13800138000",
+            "refType": null
+          },
+          "email": {
+            "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+            "type": "string",
+            "description": "邮箱",
+            "example": "admin@example.com",
+            "refType": null
+          },
+          "role": {
+            "type": "integer",
+            "description": "角色（1=超级管理员，2=普通管理员），默认普通管理员",
+            "format": "int32",
+            "refType": null
+          }
+        },
+        "description": "管理员注册请求 DTO"
+      },
+      "ResultMapStringObject": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "LoginDTO": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "登录账号（手机号或用户名）"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码"
+          }
+        },
+        "description": "通用登录请求 DTO（患者/医生使用手机号，管理员使用用户名）"
+      },
+      "ResultString": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      },
+      "CertificateAuditDTO": {
+        "required": [
+          "result"
+        ],
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "integer",
+            "description": "审核结果：1-通过，2-驳回",
+            "format": "int32",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "remark": {
+            "type": "string",
+            "description": "驳回原因（驳回时必填）"
+          }
+        },
+        "description": "证件审核请求 DTO（管理端）"
+      },
+      "AuditRejectDTO": {
+        "required": [
+          "rejectReason"
+        ],
+        "type": "object",
+        "properties": {
+          "rejectReason": {
+            "type": "string",
+            "description": "驳回原因"
+          }
+        },
+        "description": "审核驳回请求 DTO"
+      },
+      "PendingCertAuditVO": {
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "integer",
+            "description": "医生ID",
+            "format": "int64"
+          },
+          "doctorName": {
+            "type": "string",
+            "description": "医生姓名"
+          },
+          "departmentName": {
+            "type": "string",
+            "description": "科室名称"
+          },
+          "titleName": {
+            "type": "string",
+            "description": "职称名称"
+          },
+          "currentCertificateUrl": {
+            "type": "string",
+            "description": "当前生效的执业证书URL"
+          },
+          "currentQualificationUrl": {
+            "type": "string",
+            "description": "当前生效的资格证URL"
+          },
+          "pendingCertificateUrl": {
+            "type": "string",
+            "description": "待审核的执业证书URL（新上传）"
+          },
+          "pendingQualificationUrl": {
+            "type": "string",
+            "description": "待审核的资格证URL（新上传）"
+          },
+          "submittedAt": {
+            "type": "string",
+            "description": "提交时间",
+            "format": "date-time"
+          }
+        },
+        "description": "待审核医生证件信息 VO（管理端）"
+      },
+      "ResultPendingCertAuditVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PendingCertAuditVO"
+          }
+        }
+      },
+      "PermissionNodeVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "权限ID",
+            "format": "int64"
+          },
+          "code": {
+            "type": "string",
+            "description": "权限代码（如 admin:audit:view）"
+          },
+          "name": {
+            "type": "string",
+            "description": "权限名称"
+          },
+          "type": {
+            "type": "integer",
+            "description": "类型：1-菜单，2-按钮，3-接口",
+            "format": "int32"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "排序",
+            "format": "int32"
+          },
+          "children": {
+            "type": "array",
+            "description": "子权限列表",
+            "items": {
+              "$ref": "#/components/schemas/PermissionNodeVO"
+            }
+          }
+        },
+        "description": "权限树节点 VO"
+      },
+      "ResultListPermissionNodeVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionNodeVO"
+            }
+          }
+        }
+      },
+      "ResultListRoleVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleVO"
+            }
+          }
+        }
+      },
+      "RoleVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "角色ID",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称"
+          },
+          "description": {
+            "type": "string",
+            "description": "角色描述"
+          },
+          "permissionIds": {
+            "type": "array",
+            "description": "拥有的权限ID列表",
+            "items": {
+              "type": "integer",
+              "description": "拥有的权限ID列表",
+              "format": "int64"
+            }
+          }
+        },
+        "description": "角色信息 VO"
+      },
+      "ResultListLong": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "OperationLogQueryDTO": {
+        "type": "object",
+        "properties": {
+          "adminId": {
+            "type": "integer",
+            "description": "操作管理员ID（精确查询）",
+            "format": "int64"
+          },
+          "module": {
+            "type": "string",
+            "description": "操作模块（如：审核管理）"
+          },
+          "result": {
+            "type": "integer",
+            "description": "操作结果：1-成功，0-失败",
+            "format": "int32"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "开始日期（yyyy-MM-dd）",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "结束日期（yyyy-MM-dd）",
+            "format": "date"
+          },
+          "pageNum": {
+            "type": "integer",
+            "description": "页码（从1开始）",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页大小（默认10）",
+            "format": "int32"
+          }
+        },
+        "description": "操作日志查询条件 DTO"
+      },
+      "OperationLogVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "日志ID",
+            "format": "int64"
+          },
+          "adminId": {
+            "type": "integer",
+            "description": "管理员ID",
+            "format": "int64"
+          },
+          "adminName": {
+            "type": "string",
+            "description": "管理员姓名"
+          },
+          "module": {
+            "type": "string",
+            "description": "操作模块"
+          },
+          "operation": {
+            "type": "string",
+            "description": "操作描述"
+          },
+          "method": {
+            "type": "string",
+            "description": "请求方法"
+          },
+          "path": {
+            "type": "string",
+            "description": "请求路径"
+          },
+          "params": {
+            "type": "string",
+            "description": "请求参数（JSON）"
+          },
+          "ip": {
+            "type": "string",
+            "description": "客户端IP"
+          },
+          "result": {
+            "type": "integer",
+            "description": "操作结果：1-成功，0-失败",
+            "format": "int32"
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "HTTP状态码",
+            "format": "int32"
+          },
+          "errorMsg": {
+            "type": "string",
+            "description": "错误信息（失败时）"
+          },
+          "durationMs": {
+            "type": "integer",
+            "description": "操作耗时（毫秒）",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "操作时间",
+            "format": "date-time"
+          }
+        },
+        "description": "操作日志响应 VO"
+      },
+      "PageInfoOperationLogVO": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OperationLogVO"
+            }
+          },
+          "pageNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prePage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "navigatePages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigatepageNums": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "navigateFirstPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigateLastPage": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultPageInfoOperationLogVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageInfoOperationLogVO"
+          }
+        }
+      },
+      "ResultOperationLogVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OperationLogVO"
+          }
+        }
+      },
+      "Admin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastLoginIp": {
+            "type": "string"
+          },
+          "lastLoginTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageInfoAdmin": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Admin"
+            }
+          },
+          "pageNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prePage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "navigatePages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigatepageNums": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "navigateFirstPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigateLastPage": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultPageInfoAdmin": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageInfoAdmin"
+          }
+        }
+      },
+      "DoctorAudit": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "doctorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "certificateUrl": {
+            "type": "string"
+          },
+          "qualificationUrl": {
+            "type": "string"
+          },
+          "pendingCertificateUrl": {
+            "type": "string"
+          },
+          "pendingQualificationUrl": {
+            "type": "string"
+          },
+          "certAuditStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "certAuditRemark": {
+            "type": "string"
+          },
+          "certAuditTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "certAuditorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "specialty": {
+            "type": "string"
+          },
+          "introduction": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "auditStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "auditRemark": {
+            "type": "string"
+          },
+          "auditTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "auditorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ResultDoctorAudit": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoctorAudit"
+          }
+        }
+      },
+      "DoctorPendingVO": {
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "integer",
+            "description": "医生ID",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "description": "姓名"
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号"
+          },
+          "departmentName": {
+            "type": "string",
+            "description": "科室名称"
+          },
+          "titleName": {
+            "type": "string",
+            "description": "职称名称"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "注册时间",
+            "format": "date-time"
+          },
+          "specialty": {
+            "type": "string",
+            "description": "擅长领域"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          },
+          "certificateUrl": {
+            "type": "string",
+            "description": "执业证书URL"
+          },
+          "qualificationUrl": {
+            "type": "string",
+            "description": "资格证URL"
+          }
+        },
+        "description": "待审核医生列表返回 VO（管理端）"
+      },
+      "PageInfoDoctorPendingVO": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DoctorPendingVO"
+            }
+          },
+          "pageNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prePage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "navigatePages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigatepageNums": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "navigateFirstPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigateLastPage": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultPageInfoDoctorPendingVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageInfoDoctorPendingVO"
+          }
+        }
+      },
+      "ResultListTrendDataVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrendDataVO"
+            }
+          }
+        }
+      },
+      "TrendDataVO": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "日期",
+            "format": "date"
+          },
+          "appointments": {
+            "type": "integer",
+            "description": "当日挂号量",
+            "format": "int64"
+          },
+          "paid": {
+            "type": "integer",
+            "description": "当日支付量",
+            "format": "int64"
+          },
+          "income": {
+            "type": "number",
+            "description": "当日收入（固定单价估算）"
+          }
+        },
+        "description": "每日趋势数据点"
+      },
+      "ResultListStatusDistributionVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatusDistributionVO"
+            }
+          }
+        }
+      },
+      "StatusDistributionVO": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "状态码：0-待支付，1-已支付，2-已就诊，3-已取消，4-已过期",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string",
+            "description": "状态描述"
+          },
+          "count": {
+            "type": "integer",
+            "description": "数量",
+            "format": "int64"
+          }
+        },
+        "description": "预约状态分布 VO"
+      },
+      "DashboardOverviewVO": {
+        "type": "object",
+        "properties": {
+          "todayAppointments": {
+            "type": "integer",
+            "description": "今日挂号总数（含待支付、已支付、已就诊）",
+            "format": "int64"
+          },
+          "todayPaid": {
+            "type": "integer",
+            "description": "今日已支付数",
+            "format": "int64"
+          },
+          "todayIncome": {
+            "type": "number",
+            "description": "今日收入（固定单价计算）"
+          },
+          "totalAppointments": {
+            "type": "integer",
+            "description": "历史总挂号数（有效预约）",
+            "format": "int64"
+          },
+          "totalIncome": {
+            "type": "number",
+            "description": "历史总收入（固定单价估算）"
+          },
+          "totalPatients": {
+            "type": "integer",
+            "description": "总患者数",
+            "format": "int64"
+          },
+          "totalDoctors": {
+            "type": "integer",
+            "description": "总医生数（审核通过且启用）",
+            "format": "int64"
+          },
+          "totalEvaluations": {
+            "type": "integer",
+            "description": "总评价数",
+            "format": "int64"
+          }
+        },
+        "description": "管理端总览统计数据 VO"
+      },
+      "ResultDashboardOverviewVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DashboardOverviewVO"
+          }
+        }
+      },
+      "DoctorRankingVO": {
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "integer",
+            "description": "医生ID",
+            "format": "int64"
+          },
+          "doctorName": {
+            "type": "string",
+            "description": "医生姓名"
+          },
+          "departmentName": {
+            "type": "string",
+            "description": "科室名称"
+          },
+          "appointmentCount": {
+            "type": "integer",
+            "description": "预约总数",
+            "format": "int64"
+          },
+          "avgScore": {
+            "type": "number",
+            "description": "平均评分（5分制）"
+          },
+          "rank": {
+            "type": "integer",
+            "description": "排名",
+            "format": "int32"
+          }
+        },
+        "description": "医生排行数据 VO"
+      },
+      "ResultListDoctorRankingVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DoctorRankingVO"
+            }
+          }
+        }
+      },
+      "DepartmentRankingVO": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "integer",
+            "description": "科室ID",
+            "format": "int64"
+          },
+          "departmentName": {
+            "type": "string",
+            "description": "科室名称"
+          },
+          "appointmentCount": {
+            "type": "integer",
+            "description": "预约总数",
+            "format": "int64"
+          },
+          "ratio": {
+            "type": "number",
+            "description": "占比（百分比）"
+          }
+        },
+        "description": "科室排行数据 VO"
+      },
+      "ResultListDepartmentRankingVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DepartmentRankingVO"
+            }
+          }
+        }
+      },
+      "PageInfoPendingCertAuditVO": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PendingCertAuditVO"
+            }
+          },
+          "pageNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prePage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "navigatePages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigatepageNums": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "navigateFirstPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigateLastPage": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultPageInfoPendingCertAuditVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageInfoPendingCertAuditVO"
+          }
+        }
+      }
+    }
+  },
+  "x-openapi": {
+    "x-setting": {
+      "customCode": 200,
+      "language": "zh-CN",
+      "enableSwaggerModels": true,
+      "swaggerModelName": "Swagger Models",
+      "enableReloadCacheParameter": false,
+      "enableAfterScript": true,
+      "enableDocumentManage": true,
+      "enableVersion": false,
+      "enableRequestCache": true,
+      "enableFilterMultipartApis": false,
+      "enableFilterMultipartApiMethodType": "POST",
+      "enableHost": false,
+      "enableHostText": "",
+      "enableDynamicParameter": false,
+      "enableDebug": true,
+      "enableFooter": true,
+      "enableFooterCustom": false,
+      "enableSearch": true,
+      "enableOpenApi": true,
+      "enableHomeCustom": false,
+      "enableGroup": true,
+      "enableResponseCode": true
+    },
+    "x-markdownFiles": []
+  }
+}

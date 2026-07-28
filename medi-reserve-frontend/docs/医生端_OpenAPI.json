@@ -1,0 +1,2060 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "MediReserve 智慧医疗平台 API",
+    "description": "患者端 / 医生端 / 管理端 接口文档",
+    "contact": {
+      "name": "wzx",
+      "url": "https://github.com/xiaoyuwzx",
+      "email": "2846334903@qq.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8082",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "医生端 - 数据统计",
+      "description": "医生个人运营数据"
+    },
+    {
+      "name": "医生端 - 认证管理",
+      "description": "医生登录、注册相关接口"
+    },
+    {
+      "name": "医生端 - 在线问诊",
+      "description": "查询预约患者列表"
+    },
+    {
+      "name": "医生端 - 排班管理",
+      "description": "医生设置排班、查询、停诊、删除"
+    },
+    {
+      "name": "医生端 - 文件上传",
+      "description": "获取 OSS STS 临时凭证"
+    }
+  ],
+  "paths": {
+    "/doctor/profile": {
+      "put": {
+        "tags": [
+          "医生端 - 认证管理"
+        ],
+        "summary": "修改个人信息",
+        "description": "普通信息立即生效，证件信息提交审核（需管理员审批）",
+        "operationId": "updateProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctorUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/password": {
+      "put": {
+        "tags": [
+          "医生端 - 认证管理"
+        ],
+        "summary": "修改密码",
+        "description": "验证旧密码后更新为新密码",
+        "operationId": "updatePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/schedules": {
+      "get": {
+        "tags": [
+          "医生端 - 排班管理"
+        ],
+        "summary": "查询我的排班",
+        "description": "医生查看自己的排班列表，支持按日期范围筛选",
+        "operationId": "listSchedules",
+        "parameters": [
+          {
+            "name": "scheduleQueryDTO",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScheduleQueryDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "医生端 - 排班管理"
+        ],
+        "summary": "新增排班",
+        "description": "医生选择日期和时段，设置最大挂号数（系统会基于历史数据智能推荐）",
+        "operationId": "createSchedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleCreateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/register": {
+      "post": {
+        "tags": [
+          "医生端 - 认证管理"
+        ],
+        "summary": "医生注册",
+        "description": "填写个人信息注册医生账号，提交后进入待审核状态",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctorRegisterDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/login": {
+      "post": {
+        "tags": [
+          "医生端 - 认证管理"
+        ],
+        "summary": "医生登录",
+        "description": "手机号 + 密码登录，成功后返回 JWT 令牌",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/schedules/{id}/status": {
+      "patch": {
+        "tags": [
+          "医生端 - 排班管理"
+        ],
+        "summary": "停诊/恢复排班",
+        "description": "传入 status=2 停诊，status=1 恢复",
+        "operationId": "updateScheduleStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/statistics/trend": {
+      "get": {
+        "tags": [
+          "医生端 - 数据统计"
+        ],
+        "summary": "每日接诊趋势",
+        "description": "近 N 天每日接诊量，默认 7 天，最大 90 天",
+        "operationId": "getTrend",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "天数，默认 7，最大 90",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListDailyTrendVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/statistics/overview": {
+      "get": {
+        "tags": [
+          "医生端 - 数据统计"
+        ],
+        "summary": "总览统计",
+        "description": "返回总接诊数、好评率、平均评分、今日接诊数、待处理问诊数",
+        "operationId": "getOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoctorStatisticsOverviewVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/statistics/evaluations": {
+      "get": {
+        "tags": [
+          "医生端 - 数据统计"
+        ],
+        "summary": "评价列表",
+        "description": "分页获取患者对医生的评价",
+        "operationId": "getEvaluations",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码，默认 1",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "每页大小，默认 10，最大 50",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageInfoDoctorEvaluationVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/schedules/recommend": {
+      "get": {
+        "tags": [
+          "医生端 - 排班管理"
+        ],
+        "summary": "获取推荐号源数",
+        "description": "基于历史就诊数据，智能推荐号源数量（仅做参考，用户可自行修改）",
+        "operationId": "getRecommendedMaxCount",
+        "parameters": [
+          {
+            "name": "scheduleDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "userInputMax",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultMapStringObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/profile/audit-status": {
+      "get": {
+        "tags": [
+          "医生端 - 认证管理"
+        ],
+        "summary": "查询证件审核状态",
+        "description": "返回当前证件审核状态：待审核/已通过/已驳回/未提交",
+        "operationId": "getAuditStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDoctorAuditInfoVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/oss/sts": {
+      "get": {
+        "tags": [
+          "医生端 - 文件上传"
+        ],
+        "summary": "获取 OSS 上传凭证",
+        "description": "返回 STS 临时凭证，供前端直传文件使用（有效期30分钟）",
+        "operationId": "getStsToken",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOssStsVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/oss/sts-token": {
+      "get": {
+        "tags": [
+          "医生端 - 文件上传"
+        ],
+        "summary": "获取 OSS 上传凭证",
+        "description": "返回 STS 临时凭证，供前端直传文件使用（有效期30分钟）",
+        "operationId": "getStsToken_1",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOssStsVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/appointments": {
+      "get": {
+        "tags": [
+          "医生端 - 在线问诊"
+        ],
+        "summary": "查询医生预约列表",
+        "description": "查询已支付的预约，默认查今天",
+        "operationId": "getDoctorAppointments",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultPageInfoAppointmentListVO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctor/schedules/{id}": {
+      "delete": {
+        "tags": [
+          "医生端 - 排班管理"
+        ],
+        "summary": "删除排班",
+        "description": "物理删除排班（仅当该排班下无预约记录时允许）",
+        "operationId": "deleteSchedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultString"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Request Timeout",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResultVoid": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "DoctorUpdateDTO": {
+        "required": [
+          "name",
+          "phone"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "姓名"
+          },
+          "phone": {
+            "pattern": "^1[3-9]\\d{9}$",
+            "type": "string",
+            "description": "手机号（11位）"
+          },
+          "gender": {
+            "type": "integer",
+            "description": "性别：0=未知，1=男，2=女",
+            "format": "int32"
+          },
+          "idCard": {
+            "pattern": "^[1-9]\\d{16}[0-9Xx]$",
+            "type": "string",
+            "description": "身份证号（18位）"
+          },
+          "specialty": {
+            "type": "string",
+            "description": "擅长领域"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          },
+          "certificateUrl": {
+            "type": "string",
+            "description": "新执业证书图片URL（提交审核，需管理员审批）"
+          },
+          "qualificationUrl": {
+            "type": "string",
+            "description": "新资格证图片URL（提交审核，需管理员审批）"
+          }
+        },
+        "description": "医生个人信息更新请求 DTO（普通信息立即生效，证件提交审核）"
+      },
+      "ResultMapStringObject": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "PasswordUpdateDTO": {
+        "required": [
+          "confirmPassword",
+          "newPassword",
+          "oldPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "oldPassword": {
+            "type": "string",
+            "description": "旧密码"
+          },
+          "newPassword": {
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$",
+            "type": "string",
+            "description": "新密码（6-20位字母和数字组合）"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "确认密码"
+          }
+        },
+        "description": "密码修改请求 DTO"
+      },
+      "ScheduleCreateDTO": {
+        "required": [
+          "maxCount",
+          "period",
+          "scheduleDate"
+        ],
+        "type": "object",
+        "properties": {
+          "scheduleDate": {
+            "type": "string",
+            "description": "排班日期（yyyy-MM-dd）",
+            "format": "date"
+          },
+          "period": {
+            "maximum": 2,
+            "minimum": 1,
+            "type": "integer",
+            "description": "时段：1=上午，2=下午",
+            "format": "int32",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "maxCount": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "description": "最大挂号数（1-100）",
+            "format": "int32"
+          }
+        },
+        "description": "新增排班请求 DTO"
+      },
+      "DoctorRegisterDTO": {
+        "required": [
+          "departmentId",
+          "name",
+          "password",
+          "phone",
+          "titleId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "姓名"
+          },
+          "phone": {
+            "pattern": "^1[3-9]\\d{9}$",
+            "type": "string",
+            "description": "手机号（11位）"
+          },
+          "password": {
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$",
+            "type": "string",
+            "description": "密码（6-20位字母和数字组合）"
+          },
+          "departmentId": {
+            "type": "integer",
+            "description": "科室ID",
+            "format": "int64"
+          },
+          "titleId": {
+            "type": "integer",
+            "description": "职称ID",
+            "format": "int64"
+          },
+          "idCard": {
+            "pattern": "^[1-9]\\d{16}[0-9Xx]$",
+            "type": "string",
+            "description": "身份证号（18位）"
+          },
+          "gender": {
+            "maximum": 2,
+            "minimum": 0,
+            "type": "integer",
+            "description": "性别：0=未知，1=男，2=女",
+            "format": "int32"
+          },
+          "specialty": {
+            "type": "string",
+            "description": "擅长领域"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          }
+        },
+        "description": "医生注册请求 DTO（含审核资料）"
+      },
+      "LoginDTO": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "登录账号（手机号或用户名）"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码"
+          }
+        },
+        "description": "通用登录请求 DTO（患者/医生使用手机号，管理员使用用户名）"
+      },
+      "ResultString": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      },
+      "DailyTrendVO": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "日期",
+            "format": "date"
+          },
+          "count": {
+            "type": "integer",
+            "description": "当日接诊量",
+            "format": "int64"
+          }
+        },
+        "description": "每日趋势数据点"
+      },
+      "ResultListDailyTrendVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyTrendVO"
+            }
+          }
+        }
+      },
+      "DoctorStatisticsOverviewVO": {
+        "type": "object",
+        "properties": {
+          "totalPatients": {
+            "type": "integer",
+            "description": "总接诊人数（已支付+已完成）",
+            "format": "int64"
+          },
+          "todayPatients": {
+            "type": "integer",
+            "description": "今日接诊人数（已支付+已完成）",
+            "format": "int64"
+          },
+          "avgScore": {
+            "type": "number",
+            "description": "平均评分（0-5，保留2位）"
+          },
+          "positiveRate": {
+            "type": "number",
+            "description": "好评率（评分>=4的比例，百分比）"
+          },
+          "evaluationCount": {
+            "type": "integer",
+            "description": "评价总数",
+            "format": "int64"
+          },
+          "pendingConsultations": {
+            "type": "integer",
+            "description": "待处理问诊数（已支付未就诊）",
+            "format": "int64"
+          }
+        },
+        "description": "医生端统计总览数据 VO"
+      },
+      "ResultDoctorStatisticsOverviewVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoctorStatisticsOverviewVO"
+          }
+        }
+      },
+      "DoctorEvaluationVO": {
+        "type": "object",
+        "properties": {
+          "evaluationId": {
+            "type": "integer",
+            "description": "评价ID",
+            "format": "int64"
+          },
+          "patientName": {
+            "type": "string",
+            "description": "患者姓名（匿名时显示'匿名用户'）"
+          },
+          "score": {
+            "type": "integer",
+            "description": "评分（1-5）",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string",
+            "description": "评价内容"
+          },
+          "isAnonymous": {
+            "type": "boolean",
+            "description": "是否匿名"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "评价时间",
+            "format": "date-time"
+          }
+        },
+        "description": "医生收到的评价列表项 VO"
+      },
+      "PageInfoDoctorEvaluationVO": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DoctorEvaluationVO"
+            }
+          },
+          "pageNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prePage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "navigatePages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigatepageNums": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "navigateFirstPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigateLastPage": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultPageInfoDoctorEvaluationVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageInfoDoctorEvaluationVO"
+          }
+        }
+      },
+      "ScheduleQueryDTO": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "description": "查询开始日期（yyyy-MM-dd）",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "查询结束日期（yyyy-MM-dd）",
+            "format": "date"
+          },
+          "status": {
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer",
+            "description": "排班状态：1-正常，2-停诊，3-已满",
+            "format": "int32"
+          },
+          "endDateAfterStartDate": {
+            "type": "boolean"
+          }
+        },
+        "description": "排班查询请求 DTO"
+      },
+      "ResultListSchedule": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Schedule"
+            }
+          }
+        }
+      },
+      "Schedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "doctorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "scheduleDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "period": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DoctorAuditInfoVO": {
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "integer",
+            "description": "医生ID",
+            "format": "int64"
+          },
+          "certificateUrl": {
+            "type": "string",
+            "description": "当前生效的执业证书URL"
+          },
+          "qualificationUrl": {
+            "type": "string",
+            "description": "当前生效的资格证URL"
+          },
+          "pendingCertificateUrl": {
+            "type": "string",
+            "description": "待审核的执业证书URL"
+          },
+          "pendingQualificationUrl": {
+            "type": "string",
+            "description": "待审核的资格证URL"
+          },
+          "certAuditStatus": {
+            "type": "integer",
+            "description": "证件审核状态：0-待审核，1-已通过，2-已驳回",
+            "format": "int32"
+          },
+          "certAuditStatusText": {
+            "type": "string",
+            "description": "审核状态描述"
+          },
+          "certAuditRemark": {
+            "type": "string",
+            "description": "审核备注（驳回原因）"
+          },
+          "certAuditTime": {
+            "type": "string",
+            "description": "审核时间",
+            "format": "date-time"
+          },
+          "specialty": {
+            "type": "string",
+            "description": "擅长领域"
+          },
+          "introduction": {
+            "type": "string",
+            "description": "个人简介"
+          }
+        },
+        "description": "医生审核资料信息 VO（医生端查询审核状态）"
+      },
+      "ResultDoctorAuditInfoVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DoctorAuditInfoVO"
+          }
+        }
+      },
+      "OssStsVO": {
+        "type": "object",
+        "properties": {
+          "accessKeyId": {
+            "type": "string",
+            "description": "临时 AccessKeyId"
+          },
+          "accessKeySecret": {
+            "type": "string",
+            "description": "临时 AccessKeySecret"
+          },
+          "securityToken": {
+            "type": "string",
+            "description": "安全令牌（STS）"
+          },
+          "expiration": {
+            "type": "string",
+            "description": "凭证过期时间（ISO 8601）"
+          },
+          "bucket": {
+            "type": "string",
+            "description": "OSS 存储空间名称"
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "OSS 访问端点"
+          },
+          "dir": {
+            "type": "string",
+            "description": "上传目标目录（需前端拼接）"
+          }
+        },
+        "description": "OSS STS 临时凭证返回对象"
+      },
+      "ResultOssStsVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OssStsVO"
+          }
+        }
+      },
+      "AppointmentListVO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "预约ID",
+            "format": "int64"
+          },
+          "appointmentNo": {
+            "type": "string",
+            "description": "预约单号"
+          },
+          "scheduleId": {
+            "type": "integer",
+            "description": "排班ID",
+            "format": "int64"
+          },
+          "patientId": {
+            "type": "integer",
+            "description": "患者ID",
+            "format": "int64"
+          },
+          "doctorId": {
+            "type": "integer",
+            "description": "医生ID",
+            "format": "int64"
+          },
+          "status": {
+            "type": "integer",
+            "description": "预约状态：0-待支付，1-已支付，2-已就诊，3-已取消，4-已过期",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "创建时间",
+            "format": "date-time"
+          },
+          "doctorName": {
+            "type": "string",
+            "description": "医生姓名"
+          },
+          "departmentName": {
+            "type": "string",
+            "description": "科室名称"
+          },
+          "titleName": {
+            "type": "string",
+            "description": "职称名称"
+          },
+          "scheduleDate": {
+            "type": "string",
+            "description": "就诊日期",
+            "format": "date"
+          },
+          "period": {
+            "type": "integer",
+            "description": "时段：1=上午，2=下午",
+            "format": "int32"
+          },
+          "periodText": {
+            "type": "string",
+            "description": "时段文本（上午/下午）"
+          },
+          "patientName": {
+            "type": "string",
+            "description": "患者姓名（医生端查询）"
+          },
+          "patientPhone": {
+            "type": "string",
+            "description": "患者手机号（医生端查询）"
+          }
+        },
+        "description": "预约列表返回 VO（患者端/医生端通用）"
+      },
+      "PageInfoAppointmentListVO": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppointmentListVO"
+            }
+          },
+          "pageNum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prePage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "navigatePages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigatepageNums": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "navigateFirstPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "navigateLastPage": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultPageInfoAppointmentListVO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageInfoAppointmentListVO"
+          }
+        }
+      }
+    }
+  },
+  "x-openapi": {
+    "x-setting": {
+      "customCode": 200,
+      "language": "zh-CN",
+      "enableSwaggerModels": true,
+      "swaggerModelName": "Swagger Models",
+      "enableReloadCacheParameter": false,
+      "enableAfterScript": true,
+      "enableDocumentManage": true,
+      "enableVersion": false,
+      "enableRequestCache": true,
+      "enableFilterMultipartApis": false,
+      "enableFilterMultipartApiMethodType": "POST",
+      "enableHost": false,
+      "enableHostText": "",
+      "enableDynamicParameter": false,
+      "enableDebug": true,
+      "enableFooter": true,
+      "enableFooterCustom": false,
+      "enableSearch": true,
+      "enableOpenApi": true,
+      "enableHomeCustom": false,
+      "enableGroup": true,
+      "enableResponseCode": true
+    },
+    "x-markdownFiles": []
+  }
+}
