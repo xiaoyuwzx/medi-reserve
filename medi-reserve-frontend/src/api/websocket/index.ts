@@ -1,4 +1,6 @@
 import { Api } from './websocketApi'
-import request from '@/api/request'
+import { websocketInstance } from '@/api/instances'
 
-export const websocketApi = new Api(request as any)
+const api = new Api()
+api.instance = websocketInstance
+export const websocketApi = api

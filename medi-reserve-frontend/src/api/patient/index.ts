@@ -1,4 +1,6 @@
 import { Api } from './patientApi'
-import request from '@/api/request'
+import { patientInstance } from '@/api/instances'
 
-export const patientApi = new Api(request as any)
+const api = new Api()
+api.instance = patientInstance
+export const patientApi = api
