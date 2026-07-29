@@ -21,6 +21,18 @@ const router = createRouter({
       path: '/patient',
       name: 'PatientHome',
       component: Home
+    },
+    {
+      path: '/patient/doctors',
+      name: 'DoctorList',
+      component: () => import('@/views/patient/DoctorList.vue'),
+      meta: { title: '医生列表' }
+    },
+    {
+      path: '/patient/doctor/:doctorId',
+      name: 'DoctorDetail',
+      component: () => import('@/views/patient/DoctorDetail.vue'),
+      meta: { title: '医生详情' }
     }
   ]
 })
