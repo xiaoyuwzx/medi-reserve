@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import HotDoctors from '@/components/patient/HotDoctors.vue'
+import { Search, Calendar, Star } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -16,7 +17,11 @@ function goToDoctorList() {
 }
 
 function goToMyAppointments() {
-  // 我的预约（后续阶段实现，当前先占位）
+  router.push({ name: 'MyAppointments' })
+}
+
+function goToMyEvaluations() {
+  router.push({ name: 'MyEvaluations' })
 }
 
 function handleHotDoctorNavigate(doctorId: number) {
@@ -48,6 +53,11 @@ function handleHotDoctorNavigate(doctorId: number) {
         <el-icon :size="28"><Calendar /></el-icon>
         <span class="action-label">我的预约</span>
         <span class="action-desc">查看预约记录</span>
+      </div>
+      <div class="action-card" @click="goToMyEvaluations">
+        <el-icon :size="28"><Star /></el-icon>
+        <span class="action-label">我的评价</span>
+        <span class="action-desc">查看已发表的评价</span>
       </div>
     </div>
 

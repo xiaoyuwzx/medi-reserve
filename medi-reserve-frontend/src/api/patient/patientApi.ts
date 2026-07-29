@@ -182,6 +182,8 @@ export interface ScheduleDetailVO {
   status?: number;
   /** 状态文本 */
   statusText?: string;
+  /** 挂号费（元） */
+  price?: number;
 }
 
 /** 我的评价返回 VO（患者端查看自己的评价） */

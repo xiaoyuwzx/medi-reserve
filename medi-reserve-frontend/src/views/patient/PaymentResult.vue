@@ -15,8 +15,7 @@ function goHome() {
 }
 
 function goMyAppointments() {
-  // 阶段 1.4 开发，暂时跳转首页
-  router.push({ name: 'PatientHome' })
+  router.push({ name: 'MyAppointments' })
 }
 
 function retryPay() {

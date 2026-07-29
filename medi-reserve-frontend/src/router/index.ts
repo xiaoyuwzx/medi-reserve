@@ -41,10 +41,34 @@ const router = createRouter({
       meta: { title: '确认挂号' }
     },
     {
+      path: '/patient/payment',
+      name: 'PaymentPage',
+      component: () => import('@/views/patient/PaymentPage.vue'),
+      meta: { title: '确认支付' }
+    },
+    {
       path: '/patient/payment/result',
       name: 'PaymentResult',
       component: () => import('@/views/patient/PaymentResult.vue'),
       meta: { title: '支付结果' }
+    },
+    {
+      path: '/patient/appointments',
+      name: 'MyAppointments',
+      component: () => import('@/views/patient/MyAppointments.vue'),
+      meta: { title: '我的预约' }
+    },
+    {
+      path: '/patient/evaluation/create/:appointmentId',
+      name: 'EvaluationCreate',
+      component: () => import('@/views/patient/EvaluationCreate.vue'),
+      meta: { title: '评价医生' }
+    },
+    {
+      path: '/patient/my-evaluations',
+      name: 'MyEvaluations',
+      component: () => import('@/views/patient/MyEvaluations.vue'),
+      meta: { title: '我的评价' }
     }
   ]
 })

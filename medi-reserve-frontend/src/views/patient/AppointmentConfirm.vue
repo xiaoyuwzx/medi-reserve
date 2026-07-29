@@ -37,28 +37,17 @@ async function handleConfirm() {
   confirming.value = true
 
   try {
-    // 步骤 1：创建预约
     const createRes = (await patientApi.patient.createAppointment({
       scheduleId
     })) as unknown as Record<string, unknown>
 
     const appointmentId = createRes.appointmentId as number
-
-    // 步骤 2：模拟支付
-    try {
-      const payMsg = await patientApi.patient.payAppointment(appointmentId)
-      ElMessage.success((payMsg as unknown as string) || '支付成功')
-      router.push({
-        name: 'PaymentResult',
-        query: { status: 'success', appointmentId: String(appointmentId) }
-      })
-    } catch {
-      // 支付失败，跳转失败页
-      router.push({
-        name: 'PaymentResult',
-        query: { status: 'fail', appointmentId: String(appointmentId) }
-      })
-    }
+    ElMessage.success('挂号成功，请确认支付')
+    router.push({
+      name: 'PaymentPage',
+      query: { appointmentId: String(appointmentId) },
+      state: { detail: detail.value }
+    })
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '创建预约失败')
     confirming.value = false
@@ -126,7 +115,7 @@ onMounted(() => {
           ⚠️ 该医生当前停诊，无法挂号
         </div>
         <div v-else class="tip success">
-          ✅ 该时段可挂号，确认后系统将自动完成支付
+          ✅ 该时段可挂号，确认后进入支付页面
         </div>
 
         <!-- 操作按钮 -->
@@ -138,7 +127,7 @@ onMounted(() => {
             :loading="confirming"
             @click="handleConfirm"
           >
-            {{ confirming ? '处理中...' : '确认挂号并支付' }}
+            {{ confirming ? '处理中...' : '确认挂号' }}
           </el-button>
           <el-button size="large" @click="goBack">取消</el-button>
         </div>
