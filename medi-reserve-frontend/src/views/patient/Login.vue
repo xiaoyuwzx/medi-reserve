@@ -26,7 +26,15 @@ async function handleLogin() {
     })) as unknown as Record<string, string | number>
 
     userStore.setToken(res.token as string)
-    userStore.setUserInfo(res.id as number, res.phone as string, 'PATIENT')
+    userStore.setUserInfo(
+      res.id as number,
+      res.phone as string,
+      'PATIENT',
+      (res.name as string) || '',
+      (res.phone as string) || '',
+      (res.idCard as string) || '',
+      (res.gender as number) || 0
+    )
     ElMessage.success('登录成功')
     router.push('/patient')
   } catch (error) {

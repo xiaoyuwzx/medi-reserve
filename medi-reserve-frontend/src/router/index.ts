@@ -69,6 +69,18 @@ const router = createRouter({
       name: 'MyEvaluations',
       component: () => import('@/views/patient/MyEvaluations.vue'),
       meta: { title: '我的评价' }
+    },
+    {
+      path: '/patient/profile',
+      name: 'PatientProfile',
+      component: () => import('@/views/patient/Profile.vue'),
+      meta: { title: '个人信息' }
+    },
+    {
+      path: '/patient/password',
+      name: 'PatientPassword',
+      component: () => import('@/views/patient/Password.vue'),
+      meta: { title: '修改密码' }
     }
   ]
 })

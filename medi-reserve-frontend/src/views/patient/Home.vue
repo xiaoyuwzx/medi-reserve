@@ -2,14 +2,24 @@
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import HotDoctors from '@/components/patient/HotDoctors.vue'
-import { Search, Calendar, Star } from '@element-plus/icons-vue'
+import { Search, Calendar, Star, ArrowDown } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-function handleLogout() {
-  userStore.clearToken()
-  router.push('/patient/login')
+function handleDropdownCommand(command: string) {
+  switch (command) {
+    case 'profile':
+      router.push({ name: 'PatientProfile' })
+      break
+    case 'password':
+      router.push({ name: 'PatientPassword' })
+      break
+    case 'logout':
+      userStore.clearToken()
+      router.push('/patient/login')
+      break
+  }
 }
 
 function goToDoctorList() {
@@ -37,9 +47,22 @@ function handleHotDoctorNavigate(doctorId: number) {
     <!-- 顶部导航 -->
     <div class="top-bar">
       <div class="welcome">
-        👋 欢迎回来，<strong>{{ userStore.username || '患者' }}</strong>
+        👋 欢迎使用 MediReserve
       </div>
-      <el-button text type="danger" @click="handleLogout">退出登录</el-button>
+      <el-dropdown @command="handleDropdownCommand">
+        <span class="user-info">
+          <el-avatar :size="32">{{ (userStore.name || userStore.username || 'U').charAt(0) }}</el-avatar>
+          <span class="username">{{ userStore.name || userStore.username }}</span>
+          <el-icon><ArrowDown /></el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="profile">查看个人信息</el-dropdown-item>
+            <el-dropdown-item command="password">修改密码</el-dropdown-item>
+            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
 
     <!-- 快捷入口 -->
@@ -93,6 +116,18 @@ function handleHotDoctorNavigate(doctorId: number) {
 
 .welcome {
   font-size: 18px;
+  color: #303133;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.user-info .username {
+  font-size: 14px;
   color: #303133;
 }
 
