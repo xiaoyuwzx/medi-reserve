@@ -33,6 +33,18 @@ const router = createRouter({
       name: 'DoctorDetail',
       component: () => import('@/views/patient/DoctorDetail.vue'),
       meta: { title: '医生详情' }
+    },
+    {
+      path: '/patient/appointment/:scheduleId',
+      name: 'AppointmentConfirm',
+      component: () => import('@/views/patient/AppointmentConfirm.vue'),
+      meta: { title: '确认挂号' }
+    },
+    {
+      path: '/patient/payment/result',
+      name: 'PaymentResult',
+      component: () => import('@/views/patient/PaymentResult.vue'),
+      meta: { title: '支付结果' }
     }
   ]
 })
