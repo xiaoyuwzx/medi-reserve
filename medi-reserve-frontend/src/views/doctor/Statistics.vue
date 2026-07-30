@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { doctorApi } from '@/api/doctor'
 import type { DailyTrendVO } from '@/api/doctor/doctorApi'
@@ -217,32 +218,27 @@ function renderRateChart(data: RateTrendVO[]) {
 }
 
 // ========== 评价列表 ==========
+const router = useRouter()
 const evalsLoading = ref(false)
 const evaluations = ref<Record<string, unknown>[]>([])
 const evalTotal = ref(0)
-const evalPage = reactive({ page: 1, size: 10 })
 
 async function loadEvaluations() {
   evalsLoading.value = true
   try {
     const res = await doctorApi.doctor.getEvaluations({
-      page: evalPage.page,
-      size: evalPage.size
+      page: 1,
+      size: 10
     })
     const data = res as unknown as { list?: Record<string, unknown>[]; total?: number }
     evaluations.value = data.list ?? []
-    evalTotal.value = data.total ?? 0
+    evalTotal.value = (data.total as number) ?? (data.totalElements as number) ?? 0
   } catch {
     evaluations.value = []
     evalTotal.value = 0
   } finally {
     evalsLoading.value = false
   }
-}
-
-function onEvalPageChange(page: number) {
-  evalPage.page = page
-  loadEvaluations()
 }
 
 // ========== 全局 resize ==========
@@ -331,7 +327,17 @@ onUnmounted(() => {
 
     <!-- 评价列表 -->
     <div class="evaluation-section" v-loading="evalsLoading">
-      <div class="section-header">患者评价</div>
+      <div class="section-header">
+        <span>患者评价（最新 10 条）</span>
+        <el-button
+          v-if="evaluations.length > 0"
+          text
+          size="small"
+          @click="router.push({ name: 'DoctorEvaluations' })"
+        >
+          查看全部评价 →
+        </el-button>
+      </div>
       <template v-if="evaluations.length > 0">
         <div
           v-for="(item, index) in evaluations"
@@ -346,17 +352,6 @@ onUnmounted(() => {
             <span class="eval-date">{{ item.createdAt as string }}</span>
           </div>
           <div class="eval-content">{{ (item.content as string) || '（无文字评价）' }}</div>
-        </div>
-        <div v-if="evalTotal > evalPage.size" class="pagination-wrapper">
-          <el-pagination
-            v-model:current-page="evalPage.page"
-            :page-size="evalPage.size"
-            :total="evalTotal"
-            layout="prev, pager, next"
-            background
-            small
-            @current-change="onEvalPageChange"
-          />
         </div>
       </template>
       <el-empty v-else-if="!evalsLoading" description="暂无评价" />
@@ -484,9 +479,4 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-}
 </style>
