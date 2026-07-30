@@ -124,6 +124,12 @@ const router = createRouter({
       name: 'DoctorScheduleCreate',
       component: () => import('@/views/doctor/ScheduleCreate.vue'),
       meta: { title: '新增排班' }
+    },
+    {
+      path: '/doctor/patients',
+      name: 'DoctorPatients',
+      component: () => import('@/views/doctor/PatientList.vue'),
+      meta: { title: '问诊患者' }
     }
   ]
 })

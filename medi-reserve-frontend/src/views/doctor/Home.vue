@@ -6,6 +6,10 @@ import { Calendar, User, DataLine, ArrowDown } from '@element-plus/icons-vue'
 const router = useRouter()
 const userStore = useUserStore()
 
+function goToPatients() {
+  router.push({ name: 'DoctorPatients' })
+}
+
 function handleDropdownCommand(command: string) {
   switch (command) {
     case 'profile':
@@ -52,10 +56,10 @@ function handleDropdownCommand(command: string) {
         <span class="action-label">排班管理</span>
         <span class="action-desc">管理我的排班</span>
       </div>
-      <div class="action-card">
+      <div class="action-card" @click="goToPatients">
         <el-icon :size="28"><User /></el-icon>
-        <span class="action-label">我的患者</span>
-        <span class="action-desc">开发中...</span>
+        <span class="action-label">问诊患者</span>
+        <span class="action-desc">查看今日问诊患者</span>
       </div>
       <div class="action-card">
         <el-icon :size="28"><DataLine /></el-icon>
