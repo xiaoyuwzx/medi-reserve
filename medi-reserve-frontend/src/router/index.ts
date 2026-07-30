@@ -112,6 +112,18 @@ const router = createRouter({
       name: 'DoctorPassword',
       component: () => import('@/views/doctor/Password.vue'),
       meta: { title: '修改密码' }
+    },
+    {
+      path: '/doctor/schedules',
+      name: 'DoctorSchedules',
+      component: () => import('@/views/doctor/ScheduleList.vue'),
+      meta: { title: '排班管理' }
+    },
+    {
+      path: '/doctor/schedules/create',
+      name: 'DoctorScheduleCreate',
+      component: () => import('@/views/doctor/ScheduleCreate.vue'),
+      meta: { title: '新增排班' }
     }
   ]
 })
