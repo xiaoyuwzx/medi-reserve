@@ -130,6 +130,12 @@ const router = createRouter({
       name: 'DoctorPatients',
       component: () => import('@/views/doctor/PatientList.vue'),
       meta: { title: '问诊患者' }
+    },
+    {
+      path: '/doctor/statistics',
+      name: 'DoctorStatistics',
+      component: () => import('@/views/doctor/Statistics.vue'),
+      meta: { title: '数据统计' }
     }
   ]
 })

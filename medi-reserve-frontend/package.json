@@ -20,6 +20,7 @@
     "@stomp/stompjs": "^7.3.0",
     "@vueuse/core": "^14.3.0",
     "axios": "^1.18.1",
+    "echarts": "^6.1.0",
     "element-plus": "^2.14.3",
     "pinia": "^4.0.2",
     "sockjs-client": "^1.6.1",
