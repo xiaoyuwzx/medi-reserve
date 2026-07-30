@@ -2,6 +2,7 @@ package com.medireserve.doctor.mapper;
 
 import com.medireserve.common.dto.DailyTrendVO;
 import com.medireserve.common.dto.DoctorEvaluationVO;
+import com.medireserve.common.dto.RateTrendVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -61,4 +62,15 @@ public interface DoctorStatisticsMapper {
      * 统计评价总数
      */
     long countEvaluations(@Param("doctorId") Long doctorId);
+
+    /**
+     * 查询医生近 N 天每日评分和好评率趋势
+     * @param doctorId 医生ID
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 每日评分/好评率列表
+     */
+    List<RateTrendVO> selectRateTrend(@Param("doctorId") Long doctorId,
+                                      @Param("startDate") LocalDate startDate,
+                                      @Param("endDate") LocalDate endDate);
 }

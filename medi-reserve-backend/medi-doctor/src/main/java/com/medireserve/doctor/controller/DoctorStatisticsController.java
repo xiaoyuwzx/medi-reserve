@@ -6,6 +6,7 @@ import com.medireserve.common.constant.RoleConstant;
 import com.medireserve.common.dto.DailyTrendVO;
 import com.medireserve.common.dto.DoctorEvaluationVO;
 import com.medireserve.common.dto.DoctorStatisticsOverviewVO;
+import com.medireserve.common.dto.RateTrendVO;
 import com.medireserve.common.result.Result;
 import com.medireserve.doctor.service.DoctorStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,5 +88,22 @@ public class DoctorStatisticsController {
 
         return Result.success(pageInfo);
 
+    }
+
+    /**
+     * 评分/好评率趋势
+     */
+    @GetMapping("/rate-trend")
+    @Operation(summary = "评分与好评率趋势", description = "近 N 天每日平均评分和好评率，默认 7 天，最大 90 天")
+    public Result<List<RateTrendVO>> getRateTrend(
+            @RequestAttribute("userId") Long doctorId,
+            @Parameter(description = "天数，默认 7，最大 90")
+            @RequestParam(defaultValue = "7") int days) {
+
+        log.info("医生 {} 请求评分趋势数据，天数：{}", doctorId, days);
+
+        List<RateTrendVO> list = statisticsService.getRateTrend(doctorId, days);
+
+        return Result.success(list);
     }
 }

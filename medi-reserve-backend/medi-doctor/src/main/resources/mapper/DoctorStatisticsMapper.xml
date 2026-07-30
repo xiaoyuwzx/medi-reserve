@@ -83,4 +83,22 @@
           AND status = 1
     </select>
 
+    <!-- ========== 评分/好评率趋势 ========== -->
+    <select id="selectRateTrend" resultType="com.medireserve.common.dto.RateTrendVO">
+        SELECT
+            DATE(e.created_at) AS date,
+            ROUND(AVG(e.score), 2) AS avgScore,
+            ROUND(
+                    SUM(CASE WHEN e.score >= 4 THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
+                    1
+            ) AS positiveRate,
+            COUNT(*) AS count
+        FROM evaluation e
+        WHERE e.doctor_id = #{doctorId}
+          AND e.status = 1
+          AND DATE(e.created_at) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(e.created_at)
+        ORDER BY date ASC
+    </select>
+
 </mapper>

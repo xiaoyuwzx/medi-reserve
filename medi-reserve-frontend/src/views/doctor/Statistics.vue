@@ -4,6 +4,14 @@ import * as echarts from 'echarts'
 import { doctorApi } from '@/api/doctor'
 import type { DailyTrendVO } from '@/api/doctor/doctorApi'
 
+// ========== 类型定义 ==========
+interface RateTrendVO {
+  date: string
+  avgScore: number
+  positiveRate: number
+  count: number
+}
+
 // ========== 总览统计 ==========
 const overviewLoading = ref(false)
 const overview = ref<Record<string, unknown>>({})
@@ -20,7 +28,7 @@ async function loadOverview() {
   }
 }
 
-// ========== 趋势图 ==========
+// ========== 接诊趋势图 ==========
 const trendLoading = ref(false)
 const chartRef = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
@@ -83,13 +91,130 @@ function renderChart(data: DailyTrendVO[]) {
   })
 }
 
-function onResize() {
-  chartInstance?.resize()
-}
-
 watch(selectedDays, (val) => {
   loadTrend(val)
 })
+
+// ========== 评分与好评率趋势图 ==========
+const rateTrendLoading = ref(false)
+const rateDays = ref(7)
+const scoreChartRef = ref<HTMLDivElement>()
+const rateChartRef = ref<HTMLDivElement>()
+let scoreChartInstance: echarts.ECharts | null = null
+let rateChartInstance: echarts.ECharts | null = null
+
+async function loadRateTrend() {
+  rateTrendLoading.value = true
+  try {
+    const response = await doctorApi.instance.request<RateTrendVO[]>({
+      url: '/doctor/statistics/rate-trend',
+      method: 'GET',
+      params: { days: rateDays.value }
+    })
+    const data = response.data ?? []
+    renderScoreChart(data)
+    renderRateChart(data)
+  } catch {
+    renderScoreChart([])
+    renderRateChart([])
+  } finally {
+    rateTrendLoading.value = false
+  }
+}
+
+function renderScoreChart(data: RateTrendVO[]) {
+  if (!scoreChartRef.value) return
+
+  if (!scoreChartInstance) {
+    scoreChartInstance = echarts.init(scoreChartRef.value)
+  }
+
+  scoreChartInstance.setOption({
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params: any) => {
+        const p = params?.[0]
+        const d = data[p?.dataIndex ?? 0]
+        if (!d) return ''
+        return `日期：${d.date}<br/>平均评分：${d.avgScore}<br/>评价数：${d.count}`
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map((d) => d.date),
+      axisLabel: { rotate: 30 }
+    },
+    yAxis: {
+      type: 'value',
+      name: '评分',
+      min: 0,
+      max: 5
+    },
+    series: [
+      {
+        type: 'line',
+        data: data.map((d) => d.avgScore),
+        smooth: true,
+        lineStyle: { color: '#e6a23c' },
+        itemStyle: { color: '#e6a23c' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(230, 162, 60, 0.35)' },
+            { offset: 1, color: 'rgba(230, 162, 60, 0.05)' }
+          ])
+        }
+      }
+    ],
+    grid: { left: 50, right: 20, top: 30, bottom: 50 }
+  })
+}
+
+function renderRateChart(data: RateTrendVO[]) {
+  if (!rateChartRef.value) return
+
+  if (!rateChartInstance) {
+    rateChartInstance = echarts.init(rateChartRef.value)
+  }
+
+  rateChartInstance.setOption({
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params: any) => {
+        const p = params?.[0]
+        const d = data[p?.dataIndex ?? 0]
+        if (!d) return ''
+        return `日期：${d.date}<br/>好评率：${d.positiveRate}%<br/>评价数：${d.count}`
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map((d) => d.date),
+      axisLabel: { rotate: 30 }
+    },
+    yAxis: {
+      type: 'value',
+      name: '好评率 (%)',
+      min: 0,
+      max: 100
+    },
+    series: [
+      {
+        type: 'line',
+        data: data.map((d) => d.positiveRate),
+        smooth: true,
+        lineStyle: { color: '#67c23a' },
+        itemStyle: { color: '#67c23a' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(103, 194, 58, 0.35)' },
+            { offset: 1, color: 'rgba(103, 194, 58, 0.05)' }
+          ])
+        }
+      }
+    ],
+    grid: { left: 50, right: 20, top: 30, bottom: 50 }
+  })
+}
 
 // ========== 评价列表 ==========
 const evalsLoading = ref(false)
@@ -120,10 +245,18 @@ function onEvalPageChange(page: number) {
   loadEvaluations()
 }
 
+// ========== 全局 resize ==========
+function onResize() {
+  chartInstance?.resize()
+  scoreChartInstance?.resize()
+  rateChartInstance?.resize()
+}
+
 onMounted(async () => {
   await loadOverview()
   nextTick(() => {
     loadTrend(selectedDays.value)
+    loadRateTrend()
   })
   loadEvaluations()
   window.addEventListener('resize', onResize)
@@ -133,6 +266,10 @@ onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   chartInstance?.dispose()
   chartInstance = null
+  scoreChartInstance?.dispose()
+  scoreChartInstance = null
+  rateChartInstance?.dispose()
+  rateChartInstance = null
 })
 </script>
 
@@ -172,6 +309,24 @@ onUnmounted(() => {
         </div>
       </div>
       <div ref="chartRef" class="chart-container"></div>
+    </div>
+
+    <!-- 评分与好评率趋势 -->
+    <div class="trend-section" v-loading="rateTrendLoading">
+      <div class="section-header">
+        <span>评分与好评率趋势</span>
+        <div class="days-switch">
+          <el-radio-group v-model="rateDays" size="small" @change="loadRateTrend">
+            <el-radio-button v-for="opt in daysOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </el-radio-button>
+          </el-radio-group>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div ref="scoreChartRef" class="chart-container-half"></div>
+        <div ref="rateChartRef" class="chart-container-half"></div>
+      </div>
     </div>
 
     <!-- 评价列表 -->
@@ -274,6 +429,16 @@ onUnmounted(() => {
 
 .chart-container {
   width: 100%;
+  height: 300px;
+}
+
+.chart-row {
+  display: flex;
+  gap: 16px;
+}
+
+.chart-container-half {
+  flex: 1;
   height: 300px;
 }
 

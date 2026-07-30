@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.medireserve.common.dto.DailyTrendVO;
 import com.medireserve.common.dto.DoctorEvaluationVO;
 import com.medireserve.common.dto.DoctorStatisticsOverviewVO;
+import com.medireserve.common.dto.RateTrendVO;
 import com.medireserve.common.exception.DoctorNotFoundException;
 import com.medireserve.common.mapper.DoctorAuthMapper;
 import com.medireserve.doctor.mapper.DoctorStatisticsMapper;
@@ -141,4 +142,39 @@ public class DoctorStatisticsServiceImpl implements DoctorStatisticsService {
         log.info("医生 {} 评价列表查询完成，共 {} 条", doctorId, total);
         return pageInfo;
     }
+
+    @Override
+    public List<RateTrendVO> getRateTrend(Long doctorId, int days) {
+        // 校验医生是否存在
+        if (doctorAuthMapper.findById(doctorId) == null) {
+            throw new DoctorNotFoundException();
+        }
+
+        if (days < 1) days = 1;
+        if (days > 90) days = 90;
+
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(days - 1);
+
+        List<RateTrendVO> dbList = statisticsMapper.selectRateTrend(doctorId, startDate, endDate);
+
+        // 补全缺失日期
+        Map<LocalDate, RateTrendVO> dateMap = dbList.stream()
+                .collect(Collectors.toMap(RateTrendVO::getDate, Function.identity()));
+
+        List<RateTrendVO> fullList = new ArrayList<>();
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            RateTrendVO vo = dateMap.getOrDefault(date, new RateTrendVO());
+            vo.setDate(date);
+            if (!dateMap.containsKey(date)) {
+                vo.setAvgScore(BigDecimal.ZERO);
+                vo.setPositiveRate(BigDecimal.ZERO);
+                vo.setCount(0);
+            }
+            fullList.add(vo);
+        }
+
+        return fullList;
+    }
+
 }
