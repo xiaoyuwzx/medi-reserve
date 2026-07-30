@@ -81,15 +81,56 @@ const router = createRouter({
       name: 'PatientPassword',
       component: () => import('@/views/patient/Password.vue'),
       meta: { title: '修改密码' }
+    },
+    // 医生端路由
+    {
+      path: '/doctor/login',
+      name: 'DoctorLogin',
+      component: () => import('@/views/doctor/Login.vue'),
+      meta: { title: '医生登录' }
+    },
+    {
+      path: '/doctor/register',
+      name: 'DoctorRegister',
+      component: () => import('@/views/doctor/Register.vue'),
+      meta: { title: '医生注册' }
+    },
+    {
+      path: '/doctor',
+      name: 'DoctorHome',
+      component: () => import('@/views/doctor/Home.vue'),
+      meta: { title: '医生首页' }
+    },
+    {
+      path: '/doctor/profile',
+      name: 'DoctorProfile',
+      component: () => import('@/views/doctor/Profile.vue'),
+      meta: { title: '个人信息' }
+    },
+    {
+      path: '/doctor/password',
+      name: 'DoctorPassword',
+      component: () => import('@/views/doctor/Password.vue'),
+      meta: { title: '修改密码' }
     }
   ]
 })
 
 router.beforeEach((to) => {
+  const userStore = useUserStore()
+
+  // 医生端路由守卫
+  if (to.path.startsWith('/doctor')) {
+    const isAuthPage = ['/doctor/login', '/doctor/register'].includes(to.path)
+    if (!userStore.token && !isAuthPage) return '/doctor/login'
+    if (userStore.token && isAuthPage) return '/doctor'
+    return true
+  }
+
+  // 患者端路由守卫
   const isPatientRoute = to.path.startsWith('/patient')
   if (!isPatientRoute) return true
 
-  const userStore = useUserStore()
   const isAuthPage = ['/patient/login', '/patient/register'].includes(to.path)
 
   if (!userStore.token && !isAuthPage) return '/patient/login'
