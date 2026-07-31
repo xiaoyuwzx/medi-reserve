@@ -157,7 +157,7 @@ const router = createRouter({
         {
           path: '',
           name: 'AdminHome',
-          component: () => import('@/views/admin/Home.vue'),
+          component: () => import('@/views/admin/Dashboard.vue'),
           meta: { title: '首页' }
         },
         {
@@ -201,6 +201,12 @@ const router = createRouter({
           name: 'AdminLogList',
           component: () => import('@/views/admin/LogList.vue'),
           meta: { title: '操作日志' }
+        },
+        {
+          path: 'logs/:id',
+          name: 'AdminLogDetail',
+          component: () => import('@/views/admin/LogDetail.vue'),
+          meta: { title: '日志详情' }
         }
       ]
     }
