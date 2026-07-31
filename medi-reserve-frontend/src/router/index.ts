@@ -207,6 +207,18 @@ const router = createRouter({
           name: 'AdminLogDetail',
           component: () => import('@/views/admin/LogDetail.vue'),
           meta: { title: '日志详情' }
+        },
+        {
+          path: 'permissions/tree',
+          name: 'AdminPermissionTree',
+          component: () => import('@/views/admin/PermissionTree.vue'),
+          meta: { title: '权限树' }
+        },
+        {
+          path: 'permissions/roles',
+          name: 'AdminRolePermission',
+          component: () => import('@/views/admin/RolePermission.vue'),
+          meta: { title: '角色权限' }
         }
       ]
     }

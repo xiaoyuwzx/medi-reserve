@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { House, User, Document, Setting, Lock, DocumentCopy } from '@element-plus/icons-vue'
+import { House, User, Document, Setting, Lock, DocumentCopy, Key, Collection } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,7 +21,9 @@ const menuItems = [
   { path: '/admin/audit/cert', title: '证件审核', icon: Document },
   { path: '/admin/admins', title: '管理员管理', icon: Setting },
   { path: '/admin/password', title: '修改密码', icon: Lock },
-  { path: '/admin/logs', title: '操作日志', icon: DocumentCopy }
+  { path: '/admin/logs', title: '操作日志', icon: DocumentCopy },
+  { path: '/admin/permissions/tree', title: '权限树', icon: Collection, adminOnly: true },
+  { path: '/admin/permissions/roles', title: '角色权限', icon: Key, adminOnly: true }
 ]
 </script>
 
@@ -40,10 +42,15 @@ const menuItems = [
         text-color="#bfcbd9"
         active-text-color="#409eff"
       >
-        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
-          <el-icon><component :is="item.icon" /></el-icon>
-          <span>{{ item.title }}</span>
-        </el-menu-item>
+        <template v-for="item in menuItems" :key="item.path">
+          <el-menu-item
+            v-if="!item.adminOnly || userStore.role === 'SUPER_ADMIN'"
+            :index="item.path"
+          >
+            <el-icon><component :is="item.icon" /></el-icon>
+            <span>{{ item.title }}</span>
+          </el-menu-item>
+        </template>
       </el-menu>
     </el-aside>
 
