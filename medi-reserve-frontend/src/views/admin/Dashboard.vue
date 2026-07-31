@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
 import { adminApi } from '@/api/admin'
 
@@ -111,6 +111,7 @@ async function loadDeptRanking() {
   try {
     const res = await adminApi.admin.getDepartmentRanking({ limit: 10 })
     deptList.value = (res as unknown as Record<string, unknown>[]) ?? []
+    nextTick(() => renderDeptPieChart(deptList.value))
   } catch {
     deptList.value = []
   } finally {
@@ -146,8 +147,12 @@ async function loadPie() {
   pieLoading.value = true
   try {
     const res = await adminApi.admin.getStatusDistribution()
-    const data = (res as unknown as { name: string; value: number }[]) ?? []
-    renderPieChart(data)
+    const rawData = (res as unknown as { status: number; label: string; count: number }[]) ?? []
+    const pieData = rawData.map(item => ({
+      name: item.label,
+      value: item.count
+    }))
+    renderPieChart(pieData)
   } catch {
     renderPieChart([])
   } finally {
@@ -171,10 +176,59 @@ function renderPieChart(data: { name: string; value: number }[]) {
   })
 }
 
+// ========== 科室饼图 ==========
+const pieDeptRef = ref<HTMLDivElement>()
+let pieDeptInstance: echarts.ECharts | null = null
+
+function renderDeptPieChart(data: Record<string, unknown>[]) {
+  if (!pieDeptRef.value) return
+
+  // 过滤掉挂号量为0的科室，并确保数值为数字类型
+  const filteredData = data.filter(item => {
+    const count = Number(item.appointmentCount) || 0
+    return count > 0
+  })
+
+  if (!pieDeptInstance) pieDeptInstance = echarts.init(pieDeptRef.value)
+
+  if (filteredData.length === 0) {
+    pieDeptInstance.setOption({
+      title: {
+        text: '暂无数据',
+        left: 'center',
+        top: 'center',
+        textStyle: { color: '#909399', fontSize: 14 }
+      },
+      series: [{ type: 'pie', data: [], label: { show: false } }]
+    })
+    return
+  }
+
+  const pieData = filteredData.map((item) => ({
+    name: (item.departmentName as string) || '未知科室',
+    value: Number(item.appointmentCount) || 0
+  }))
+
+  pieDeptInstance.setOption({
+    title: undefined,
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { orient: 'vertical', right: 10, top: 'center' },
+    series: [{
+      type: 'pie',
+      radius: ['40%', '70%'],
+      center: ['40%', '50%'],
+      data: pieData,
+      label: { formatter: '{b}\n{d}%' }
+    }],
+    color: ['#409eff', '#67c23a', '#e6a23c', '#f56c6c', '#909399', '#b37feb', '#5cdbd3', '#85a5ff', '#ffc069', '#95de64']
+  })
+}
+
 // ========== 全局 ==========
 function onResize() {
   chartInstance?.resize()
   pieInstance?.resize()
+  pieDeptInstance?.resize()
 }
 
 onMounted(async () => {
@@ -191,6 +245,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   chartInstance?.dispose(); chartInstance = null
+  pieDeptInstance?.dispose(); pieDeptInstance = null
   pieInstance?.dispose(); pieInstance = null
 })
 </script>
@@ -237,10 +292,10 @@ onUnmounted(() => {
           <div class="section-header">科室排行</div>
           <el-table :data="deptList" stripe size="small" empty-text="暂无数据">
             <el-table-column prop="departmentName" label="科室" />
-            <el-table-column prop="count" label="挂号量" width="100" />
-            <el-table-column label="占比" width="80">
+            <el-table-column prop="appointmentCount" label="挂号量" width="120" />
+            <el-table-column label="占比" width="100">
               <template #default="{ row }">
-                {{ row.percentage ? `${row.percentage}%` : '-' }}
+                {{ row.ratio ? `${row.ratio}%` : '-' }}
               </template>
             </el-table-column>
           </el-table>
@@ -252,7 +307,7 @@ onUnmounted(() => {
         <div class="table-section" v-loading="doctorLoading">
           <div class="section-header">
             <span>医生排行</span>
-            <el-select v-model="sortBy" size="small" style="width: 100px">
+            <el-select v-model="sortBy" size="small" style="width: 100px" @change="loadDoctorRanking">
               <el-option label="挂号量" value="appointmentCount" />
               <el-option label="评分" value="avgScore" />
             </el-select>
@@ -260,7 +315,11 @@ onUnmounted(() => {
           <el-table :data="doctorList" stripe size="small" empty-text="暂无数据">
             <el-table-column prop="doctorName" label="医生" />
             <el-table-column prop="departmentName" label="科室" />
-            <el-table-column prop="count" label="挂号量" width="80" />
+            <el-table-column label="挂号量" width="80">
+              <template #default="{ row }">
+                {{ row.appointmentCount ?? 0 }}
+              </template>
+            </el-table-column>
             <el-table-column label="评分" width="70">
               <template #default="{ row }">
                 {{ row.avgScore ? Number(row.avgScore).toFixed(1) : '-' }}
@@ -271,11 +330,21 @@ onUnmounted(() => {
       </el-col>
     </el-row>
 
-    <!-- 饼图 -->
-    <div class="chart-section" v-loading="pieLoading">
-      <div class="section-header">预约状态分布</div>
-      <div ref="pieRef" class="chart-box" style="height: 320px"></div>
-    </div>
+    <!-- 双饼图行 -->
+    <el-row :gutter="16">
+      <el-col :span="12">
+        <div class="chart-section" v-loading="deptLoading">
+          <div class="section-header">科室挂号量占比</div>
+          <div ref="pieDeptRef" class="chart-box-half"></div>
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="chart-section" v-loading="pieLoading">
+          <div class="section-header">预约状态分布</div>
+          <div ref="pieRef" class="chart-box-half"></div>
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -319,6 +388,7 @@ onUnmounted(() => {
 }
 
 .chart-box { width: 100%; height: 320px; }
+.chart-box-half { width: 100%; height: 250px; }
 
 /* 表格区 */
 .table-section {

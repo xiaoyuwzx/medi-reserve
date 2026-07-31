@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medireserve.admin.mapper.AdminPatientManageMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="AdminPatientVOMap" type="com.medireserve.common.dto.AdminPatientVO">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="idCard" column="id_card"/>
+        <result property="gender" column="gender"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 分页查询患者账号列表 -->
+    <select id="findPatientList" resultMap="AdminPatientVOMap">
+        SELECT
+        id,
+        name,
+        phone,
+        id_card,
+        gender,
+        status,
+        created_at,
+        updated_at
+        FROM patient
+        <where>
+            <if test="q.keyword != null and q.keyword != ''">
+                AND (name LIKE CONCAT('%', #{q.keyword}, '%')
+                OR phone LIKE CONCAT('%', #{q.keyword}, '%'))
+            </if>
+            <if test="q.status != null">
+                AND status = #{q.status}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 统计符合条件的患者总数 -->
+    <select id="countPatientList" resultType="long">
+        SELECT COUNT(*)
+        FROM patient
+        <where>
+            <if test="q.keyword != null and q.keyword != ''">
+                AND (name LIKE CONCAT('%', #{q.keyword}, '%')
+                OR phone LIKE CONCAT('%', #{q.keyword}, '%'))
+            </if>
+            <if test="q.status != null">
+                AND status = #{q.status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

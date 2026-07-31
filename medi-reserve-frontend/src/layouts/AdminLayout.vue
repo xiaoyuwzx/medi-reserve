@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { House, User, Document, Setting, Lock, DocumentCopy, Key, Collection } from '@element-plus/icons-vue'
+import { House, User, Document, Setting, Lock, DocumentCopy, Key, Collection, UserFilled } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +20,8 @@ const menuItems = [
   { path: '/admin/audit/doctors', title: '医生审核', icon: User },
   { path: '/admin/audit/cert', title: '证件审核', icon: Document },
   { path: '/admin/admins', title: '管理员管理', icon: Setting },
+  { path: '/admin/doctors', title: '医生管理', icon: User },
+  { path: '/admin/patients', title: '患者管理', icon: UserFilled },
   { path: '/admin/password', title: '修改密码', icon: Lock },
   { path: '/admin/logs', title: '操作日志', icon: DocumentCopy },
   { path: '/admin/permissions/tree', title: '权限树', icon: Collection, adminOnly: true },

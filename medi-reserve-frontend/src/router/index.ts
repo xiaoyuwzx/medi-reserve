@@ -197,6 +197,18 @@ const router = createRouter({
           meta: { title: '修改密码' }
         },
         {
+          path: 'doctors',
+          name: 'AdminDoctorManage',
+          component: () => import('@/views/admin/DoctorManageList.vue'),
+          meta: { title: '医生管理' }
+        },
+        {
+          path: 'patients',
+          name: 'AdminPatientManage',
+          component: () => import('@/views/admin/PatientManageList.vue'),
+          meta: { title: '患者管理' }
+        },
+        {
           path: 'logs',
           name: 'AdminLogList',
           component: () => import('@/views/admin/LogList.vue'),
