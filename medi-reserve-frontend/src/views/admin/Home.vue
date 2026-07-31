@@ -1,50 +1,39 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
-const router = useRouter()
 const userStore = useUserStore()
-
-function handleLogout() {
-  userStore.clearToken()
-  router.push('/admin/login')
-}
 </script>
 
 <template>
-  <div class="home-page">
-    <div class="top-bar">
-      <h1>欢迎使用 MediReserve 管理端</h1>
-      <el-button type="danger" @click="handleLogout">退出登录</el-button>
-    </div>
-    <p class="hint">管理端功能开发中...</p>
+  <div class="admin-home">
+    <h2 class="welcome-title">👋 欢迎回来，{{ userStore.name || userStore.username }}</h2>
+    <p class="welcome-desc">MediReserve 管理端为您提供医生审核、证件审核、管理员管理等管理功能。</p>
+    <el-divider />
+    <p class="welcome-hint">请从左侧菜单选择功能模块</p>
   </div>
 </template>
 
 <style scoped>
-.home-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  min-height: 100vh;
+.admin-home {
+  padding: 24px 0;
 }
 
-.top-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.top-bar h1 {
-  margin: 0;
+.welcome-title {
+  margin: 0 0 8px;
+  font-size: 22px;
   color: #303133;
 }
 
-.hint {
-  color: #909399;
+.welcome-desc {
+  margin: 0 0 0;
   font-size: 14px;
+  color: #909399;
+}
+
+.welcome-hint {
+  text-align: center;
+  font-size: 14px;
+  color: #c0c4cc;
+  padding: 32px 0;
 }
 </style>

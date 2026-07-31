@@ -152,15 +152,57 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: 'AdminHome',
-      component: () => import('@/views/admin/Home.vue'),
-      meta: { title: '管理端首页' }
-    },
-    {
-      path: '/admin/password',
-      name: 'AdminPassword',
-      component: () => import('@/views/admin/Password.vue'),
-      meta: { title: '修改密码' }
+      component: () => import('@/layouts/AdminLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'AdminHome',
+          component: () => import('@/views/admin/Home.vue'),
+          meta: { title: '首页' }
+        },
+        {
+          path: 'audit/doctors',
+          name: 'AdminDoctorAudit',
+          component: () => import('@/views/admin/DoctorAuditList.vue'),
+          meta: { title: '医生审核' }
+        },
+        {
+          path: 'audit/doctors/:doctorId',
+          name: 'AdminDoctorAuditDetail',
+          component: () => import('@/views/admin/DoctorAuditDetail.vue'),
+          meta: { title: '审核详情' }
+        },
+        {
+          path: 'audit/cert',
+          name: 'AdminCertAudit',
+          component: () => import('@/views/admin/CertAuditList.vue'),
+          meta: { title: '证件审核' }
+        },
+        {
+          path: 'audit/cert/:doctorId',
+          name: 'AdminCertAuditDetail',
+          component: () => import('@/views/admin/CertAuditDetail.vue'),
+          meta: { title: '证件审核详情' }
+        },
+        {
+          path: 'admins',
+          name: 'AdminList',
+          component: () => import('@/views/admin/AdminList.vue'),
+          meta: { title: '管理员管理' }
+        },
+        {
+          path: 'password',
+          name: 'AdminPassword',
+          component: () => import('@/views/admin/Password.vue'),
+          meta: { title: '修改密码' }
+        },
+        {
+          path: 'logs',
+          name: 'AdminLogList',
+          component: () => import('@/views/admin/LogList.vue'),
+          meta: { title: '操作日志' }
+        }
+      ]
     }
   ]
 })
