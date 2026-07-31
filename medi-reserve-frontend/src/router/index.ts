@@ -142,12 +142,39 @@ const router = createRouter({
       name: 'DoctorEvaluations',
       component: () => import('@/views/doctor/Evaluations.vue'),
       meta: { title: '患者评价' }
+    },
+    // 管理端路由
+    {
+      path: '/admin/login',
+      name: 'AdminLogin',
+      component: () => import('@/views/admin/Login.vue'),
+      meta: { title: '管理员登录' }
+    },
+    {
+      path: '/admin',
+      name: 'AdminHome',
+      component: () => import('@/views/admin/Home.vue'),
+      meta: { title: '管理端首页' }
+    },
+    {
+      path: '/admin/password',
+      name: 'AdminPassword',
+      component: () => import('@/views/admin/Password.vue'),
+      meta: { title: '修改密码' }
     }
   ]
 })
 
 router.beforeEach((to) => {
   const userStore = useUserStore()
+
+  // 管理端路由守卫
+  if (to.path.startsWith('/admin')) {
+    const isAuthPage = to.path === '/admin/login'
+    if (!userStore.token && !isAuthPage) return '/admin/login'
+    if (userStore.token && isAuthPage) return '/admin'
+    return true
+  }
 
   // 医生端路由守卫
   if (to.path.startsWith('/doctor')) {
