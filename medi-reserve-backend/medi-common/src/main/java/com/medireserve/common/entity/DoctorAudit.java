@@ -37,4 +37,10 @@ public class DoctorAudit {
     private LocalDateTime createdAt;//注册时间
     private LocalDateTime updatedAt;//更新时间
 
+    // ===== 医生基本信息（联表查询用，不存数据库） =====
+    private String doctorName;      // 医生姓名（来自 doctor 表）
+    private String doctorPhone;     // 医生手机号（来自 doctor 表）
+    private String departmentName;  // 科室名称（来自 department 表）
+    private String titleName;       // 职称名称（来自 title 表）
+
 }

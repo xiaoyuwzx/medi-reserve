@@ -27,9 +27,8 @@ public interface AdminAuditMapper {
     long countPending();
 
     /**
-     * 根据医生ID查询审核资料
+     * 根据医生ID查询审核资料（联表查询医生基本信息）
      */
-    @Select("SELECT * FROM doctor_audit WHERE doctor_id = #{doctorId}")
     DoctorAudit findByDoctorId(@Param("doctorId") Long doctorId);
 
     /**

@@ -71,7 +71,9 @@ const menuItems = [
 
       <!-- 内容区 -->
       <el-main class="admin-main">
-        <router-view />
+        <div class="admin-content-wrapper">
+          <router-view />
+        </div>
       </el-main>
     </el-container>
   </el-container>
@@ -141,5 +143,10 @@ const menuItems = [
 .admin-main {
   background: #f0f2f5;
   min-height: 0;
+}
+
+.admin-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>

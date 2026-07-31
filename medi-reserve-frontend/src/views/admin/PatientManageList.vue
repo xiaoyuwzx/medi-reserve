@@ -20,18 +20,24 @@ const patientDetail = ref<Record<string, unknown>>({})
 
 async function loadList() {
   loading.value = true
+  console.log('🔍 PatientManageList 搜索参数:', {
+    keyword: queryParams.keyword,
+    status: queryParams.status
+  })
   try {
+    const params: Record<string, unknown> = {}
+    if (queryParams.keyword) params.keyword = queryParams.keyword
+    if (queryParams.status !== undefined && queryParams.status !== null) {
+      params.status = queryParams.status
+    }
+    params.page = queryParams.page
+    params.size = queryParams.size
     const res = await adminApi.instance.request({
       url: '/admin/patients',
       method: 'GET',
-      params: {
-        keyword: queryParams.keyword || undefined,
-        status: queryParams.status,
-        page: queryParams.page,
-        size: queryParams.size
-      }
+      params
     })
-    const data = res.data as { list?: Record<string, unknown>[]; total?: number }
+    const data = res as { list?: Record<string, unknown>[]; total?: number }
     list.value = data.list ?? []
     total.value = data.total ?? 0
   } catch {
@@ -40,6 +46,15 @@ async function loadList() {
   } finally {
     loading.value = false
   }
+}
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+function debouncedSearch() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    onSearch()
+  }, 500)
 }
 
 function onSearch() {
@@ -55,7 +70,7 @@ function onPageChange(page: number) {
 async function handleStatusChange(row: Record<string, unknown>) {
   const newStatus = (row.status as number) === 1 ? 0 : 1
   try {
-    const res = await adminApi.instance.request({
+    await adminApi.instance.request({
       url: `/admin/patients/${row.id}/status`,
       method: 'PATCH',
       data: { status: newStatus }
@@ -76,7 +91,7 @@ async function viewDetail(patientId: unknown) {
       url: `/admin/patients/${patientId}`,
       method: 'GET'
     })
-    patientDetail.value = (res.data as Record<string, unknown>) ?? {}
+    patientDetail.value = (res as Record<string, unknown>) ?? {}
   } catch {
     patientDetail.value = {}
     ElMessage.error('加载患者详情失败')
@@ -101,6 +116,8 @@ onMounted(() => {
         placeholder="搜索姓名/手机号"
         clearable
         style="width: 200px"
+        @input="debouncedSearch"
+        @clear="onSearch"
         @keyup.enter="onSearch"
       />
       <el-select
@@ -108,6 +125,7 @@ onMounted(() => {
         placeholder="全部状态"
         clearable
         style="width: 120px"
+        @change="onSearch"
       >
         <el-option label="正常" :value="1" />
         <el-option label="禁用" :value="0" />

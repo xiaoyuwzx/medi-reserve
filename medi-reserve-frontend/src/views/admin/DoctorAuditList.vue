@@ -52,14 +52,30 @@ onMounted(() => {
 
     <div class="table-container" v-loading="loading">
       <el-table :data="list" stripe empty-text="暂无待审核医生">
-        <el-table-column prop="name" label="姓名" min-width="100" />
+        <el-table-column label="姓名" min-width="100">
+          <template #default="{ row }">
+            {{ row.name || row.doctorName || row.realName || row.phone || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="phone" label="手机号" min-width="120" />
-        <el-table-column prop="departmentName" label="科室" min-width="120" />
-        <el-table-column prop="titleName" label="职称" min-width="100" />
-        <el-table-column prop="createdAt" label="注册时间" min-width="160" />
+        <el-table-column label="科室" min-width="120">
+          <template #default="{ row }">
+            {{ row.departmentName || row.deptName || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="职称" min-width="100">
+          <template #default="{ row }">
+            {{ row.titleName || row.title || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="注册时间" min-width="160">
+          <template #default="{ row }">
+            {{ row.createdAt || row.createTime || row.registerTime || row.createdTime || row.submitTime || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="viewDetail(row.doctorId)">
+            <el-button text type="primary" @click="viewDetail(row.doctorId || row.id)">
               查看详情
             </el-button>
           </template>

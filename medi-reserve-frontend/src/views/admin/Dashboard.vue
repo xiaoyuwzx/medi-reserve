@@ -225,13 +225,10 @@ function renderDeptPieChart(data: Record<string, unknown>[]) {
 }
 
 // ========== 全局 ==========
-function onResize() {
-  chartInstance?.resize()
-  pieInstance?.resize()
-  pieDeptInstance?.resize()
-}
+const REFRESH_INTERVAL = 60 * 1000 // 60秒自动刷新
+let refreshTimer: ReturnType<typeof setInterval> | null = null
 
-onMounted(async () => {
+async function loadAllData() {
   await loadOverview()
   nextTick(() => {
     loadTrend()
@@ -239,10 +236,29 @@ onMounted(async () => {
   })
   loadDeptRanking()
   loadDoctorRanking()
+}
+
+function onResize() {
+  chartInstance?.resize()
+  pieInstance?.resize()
+  pieDeptInstance?.resize()
+}
+
+onMounted(async () => {
+  await loadAllData()
+  refreshTimer = setInterval(() => {
+    if (!document.hidden) {
+      loadAllData()
+    }
+  }, REFRESH_INTERVAL)
   window.addEventListener('resize', onResize)
 })
 
 onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
   window.removeEventListener('resize', onResize)
   chartInstance?.dispose(); chartInstance = null
   pieDeptInstance?.dispose(); pieDeptInstance = null

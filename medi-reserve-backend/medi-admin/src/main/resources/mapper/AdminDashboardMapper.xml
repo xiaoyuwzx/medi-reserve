@@ -95,10 +95,12 @@
         COUNT(a.id) AS appointmentCount,
         COALESCE(ROUND(AVG(ev.score), 2), 0) AS avgScore
         FROM doctor doc
+        INNER JOIN doctor_audit da ON doc.id = da.doctor_id
         LEFT JOIN department dept ON doc.department_id = dept.id
         LEFT JOIN appointment a ON doc.id = a.doctor_id AND a.status IN (0,1,2)
         LEFT JOIN evaluation ev ON a.id = ev.appointment_id AND ev.status = 1
         WHERE doc.status = 1
+        AND da.audit_status = 1
         GROUP BY doc.id, doc.name, dept.name
         <choose>
             <when test="sortBy == 'score'">

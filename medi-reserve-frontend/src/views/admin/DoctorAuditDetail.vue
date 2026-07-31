@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { adminApi } from '@/api/admin'
@@ -83,13 +84,13 @@ onMounted(() => {
     <h2 class="page-title">审核详情</h2>
 
     <div class="detail-card" v-loading="loading">
-      <template v-if="detail.name">
+      <template v-if="detail.doctorName">
         <!-- 基本信息 -->
         <div class="section">
           <div class="section-title">基本信息</div>
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="姓名">{{ detail.name }}</el-descriptions-item>
-            <el-descriptions-item label="手机号">{{ detail.phone }}</el-descriptions-item>
+            <el-descriptions-item label="姓名">{{ detail.doctorName }}</el-descriptions-item>
+            <el-descriptions-item label="手机号">{{ detail.doctorPhone }}</el-descriptions-item>
             <el-descriptions-item label="身份证号">{{ detail.idCard || '-' }}</el-descriptions-item>
             <el-descriptions-item label="性别">
               {{ { 0: '未知', 1: '男', 2: '女' }[detail.gender as number] || '未知' }}
