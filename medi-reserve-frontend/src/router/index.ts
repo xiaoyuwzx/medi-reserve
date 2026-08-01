@@ -82,6 +82,13 @@ const router = createRouter({
       component: () => import('@/views/patient/Password.vue'),
       meta: { title: '修改密码' }
     },
+    // 在线问诊
+    {
+      path: '/consultation/:appointmentId',
+      name: 'ConsultationRoom',
+      component: () => import('@/views/consultation/Room.vue'),
+      meta: { title: '在线问诊' }
+    },
     // 医生端路由
     {
       path: '/doctor/login',
@@ -245,6 +252,12 @@ router.beforeEach((to) => {
     const isAuthPage = to.path === '/admin/login'
     if (!userStore.token && !isAuthPage) return '/admin/login'
     if (userStore.token && isAuthPage) return '/admin'
+    return true
+  }
+
+  // 问诊室路由守卫（需登录）
+  if (to.path.startsWith('/consultation')) {
+    if (!userStore.token) return '/patient/login'
     return true
   }
 

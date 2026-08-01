@@ -1,13 +1,15 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
+  define: {
+    global: 'window'
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': import.meta.dirname + '/src'
     }
   },
   server: {
@@ -34,6 +36,7 @@ export default defineConfig({
       '/api-websocket': {
         target: 'http://localhost:8084',
         changeOrigin: true,
+        ws: true,
         rewrite: (path) => path.replace(/^\/api-websocket/, '')
       }
     }

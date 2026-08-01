@@ -83,6 +83,13 @@ function handlePay(appointment: AppointmentListVO) {
   })
 }
 
+function handleEnterRoom(appointment: AppointmentListVO) {
+  router.push({
+    name: 'ConsultationRoom',
+    params: { appointmentId: appointment.id }
+  })
+}
+
 function handleEvaluate(appointment: AppointmentListVO) {
   router.push({
     name: 'EvaluationCreate',
@@ -152,6 +159,14 @@ onMounted(() => {
                 @click="handlePay(item)"
               >
                 去支付
+              </el-button>
+              <el-button
+                v-if="item.status === 1"
+                type="primary"
+                size="small"
+                @click="handleEnterRoom(item)"
+              >
+                进入问诊室
               </el-button>
               <el-button
                 v-if="item.status === 2"

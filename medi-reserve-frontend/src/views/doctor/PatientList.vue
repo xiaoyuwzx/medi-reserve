@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { doctorApi } from '@/api/doctor'
 import type { AppointmentListVO } from '@/api/patient/patientApi'
 
 const patients = ref<AppointmentListVO[]>([])
 const total = ref(0)
+const router = useRouter()
 const loading = ref(false)
 
 const today = () => {
@@ -50,8 +52,14 @@ function onPageChange(page: number) {
 }
 
 function handleEnterConsultation(appointmentId?: number) {
-  // 问诊室功能 WebSocket 阶段实现
-  ElMessage.info('问诊室功能开发中，敬请期待')
+  if (!appointmentId) {
+    ElMessage.warning('预约信息不完整')
+    return
+  }
+  router.push({
+    name: 'ConsultationRoom',
+    params: { appointmentId }
+  })
 }
 
 onMounted(() => {

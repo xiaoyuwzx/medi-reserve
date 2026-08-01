@@ -24,11 +24,6 @@ const doctorDetail = ref<Record<string, unknown>>({})
 
 async function loadList() {
   loading.value = true
-  console.log('🔍 DoctorManageList 搜索参数:', {
-    keyword: queryParams.keyword,
-    departmentId: queryParams.departmentId,
-    status: queryParams.status
-  })
   try {
     const params: Record<string, unknown> = {}
     if (queryParams.keyword) params.keyword = queryParams.keyword
