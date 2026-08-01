@@ -252,12 +252,20 @@ router.beforeEach((to) => {
     const isAuthPage = to.path === '/admin/login'
     if (!userStore.token && !isAuthPage) return '/admin/login'
     if (userStore.token && isAuthPage) return '/admin'
+    if (userStore.token && !['ADMIN', 'SUPER_ADMIN'].includes(userStore.role)) {
+      userStore.clearToken()
+      return '/admin/login'
+    }
     return true
   }
 
-  // 问诊室路由守卫（需登录）
+  // 问诊室路由守卫（需登录且角色为患者或医生）
   if (to.path.startsWith('/consultation')) {
     if (!userStore.token) return '/patient/login'
+    const role = userStore.role
+    if (role !== 'PATIENT' && role !== 'DOCTOR') {
+      return '/patient'
+    }
     return true
   }
 
@@ -266,6 +274,10 @@ router.beforeEach((to) => {
     const isAuthPage = ['/doctor/login', '/doctor/register'].includes(to.path)
     if (!userStore.token && !isAuthPage) return '/doctor/login'
     if (userStore.token && isAuthPage) return '/doctor'
+    if (userStore.token && userStore.role !== 'DOCTOR') {
+      userStore.clearToken()
+      return '/doctor/login'
+    }
     return true
   }
 
@@ -277,6 +289,10 @@ router.beforeEach((to) => {
 
   if (!userStore.token && !isAuthPage) return '/patient/login'
   if (userStore.token && isAuthPage) return '/patient'
+  if (userStore.token && userStore.role !== 'PATIENT') {
+    userStore.clearToken()
+    return '/patient/login'
+  }
   return true
 })
 

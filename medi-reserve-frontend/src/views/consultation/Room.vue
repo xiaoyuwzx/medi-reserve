@@ -153,6 +153,8 @@ onMounted(async () => {
 
   try {
     await connect(appointmentId)
+    // 连接成功后重新获取房间信息，更新在线人数
+    await loadRoomInfo()
     subscribeRoom(appointmentId, onRoomMessage)
     subscribeUser(onUserMessage)
     scrollToBottom()

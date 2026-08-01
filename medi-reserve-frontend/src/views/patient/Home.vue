@@ -47,7 +47,7 @@ function handleHotDoctorNavigate(doctorId: number) {
     <!-- 顶部导航 -->
     <div class="top-bar">
       <div class="welcome">
-        👋 欢迎使用 MediReserve
+        👋 欢迎使用 MediReserve 患者端
       </div>
       <el-dropdown @command="handleDropdownCommand">
         <span class="user-info">
