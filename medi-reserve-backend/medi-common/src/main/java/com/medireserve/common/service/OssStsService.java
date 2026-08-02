@@ -132,7 +132,7 @@ public class OssStsService {
         // Statement：权限声明
         Map<String, Object> statement = new HashMap<>();
         statement.put("Effect", "Allow");
-        statement.put("Action", new String[]{"oss:PutObject"}); // 只允许上传
+        statement.put("Action", new String[]{"oss:PutObject", "oss:PutObjectAcl"});
         statement.put("Resource", new String[]{resource});      // 只允许该路径
 
         policy.put("Statement", new Object[]{statement});

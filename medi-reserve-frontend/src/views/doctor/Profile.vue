@@ -63,7 +63,6 @@ function cancelEdit() {
 }
 
 async function uploadFile(file: File, type: 'certificate' | 'qualification'): Promise<string> {
-  // 1. 获取 STS 凭证
   const stsRes = await doctorApi.doctor.getStsToken()
   const stsData = stsRes as unknown as {
     accessKeyId?: string
@@ -74,7 +73,6 @@ async function uploadFile(file: File, type: 'certificate' | 'qualification'): Pr
     dir?: string
   }
 
-  // 2. 动态导入 OSS 客户端
   const OSS = (await import('ali-oss')).default
   const client = new OSS({
     endpoint: stsData.endpoint,
@@ -85,11 +83,9 @@ async function uploadFile(file: File, type: 'certificate' | 'qualification'): Pr
     secure: true
   })
 
-  // 3. 上传
   const filename = `${Date.now()}_${file.name}`
   await client.put(stsData.dir + filename, file)
 
-  // 4. 构造 URL
   return `https://${stsData.bucket}.${stsData.endpoint}/${stsData.dir}${filename}`
 }
 
@@ -135,7 +131,7 @@ async function saveProfile() {
     userStore.updateProfile(form.name, form.phone, form.idCard, form.gender)
     ElMessage.success('保存成功')
     isEditing.value = false
-    loadAuditStatus() // 刷新审核状态
+    loadAuditStatus()
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '保存失败')
   } finally {
@@ -187,52 +183,77 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 证书图片 -->
-        <div class="cert-section" v-if="auditData.certificateUrl || auditData.qualificationUrl || auditData.pendingCertificateUrl || auditData.pendingQualificationUrl">
+        <!-- 证书图片（始终显示） -->
+        <div class="cert-section">
           <div class="section-header">执业证书</div>
           <div class="cert-images">
-            <div class="cert-item" v-if="auditData.certificateUrl">
-              <div class="cert-label">当前生效</div>
+            <div class="cert-item" v-if="auditData.certificateUrl?.toString().trim()">
               <el-image
-                :src="auditData.certificateUrl as string"
+                :src="(auditData.certificateUrl as string)?.trim() || ''"
                 fit="contain"
                 style="max-width:200px;max-height:150px"
                 preview-teleported
-                :preview-src-list="[auditData.certificateUrl as string]"
-              />
+                :preview-src-list="[(auditData.certificateUrl as string)?.trim() || '']"
+              >
+                <template #error>
+                  <div class="image-error">加载失败</div>
+                </template>
+              </el-image>
+              <span class="cert-status success">✅ 当前生效</span>
             </div>
-            <div class="cert-item" v-if="auditData.pendingCertificateUrl">
-              <div class="cert-label pending">待审核</div>
+            <div class="cert-item" v-else>
+              <div class="image-placeholder">暂无图片</div>
+              <span class="cert-status info">未上传</span>
+            </div>
+            <div class="cert-item" v-if="auditData.pendingCertificateUrl?.toString().trim()">
               <el-image
-                :src="auditData.pendingCertificateUrl as string"
+                :src="(auditData.pendingCertificateUrl as string)?.trim() || ''"
                 fit="contain"
                 style="max-width:200px;max-height:150px"
                 preview-teleported
-                :preview-src-list="[auditData.pendingCertificateUrl as string]"
-              />
+                :preview-src-list="[(auditData.pendingCertificateUrl as string)?.trim() || '']"
+              >
+                <template #error>
+                  <div class="image-error">加载失败</div>
+                </template>
+              </el-image>
+              <span class="cert-status pending">⏳ 待审核</span>
             </div>
           </div>
+
           <div class="section-header" style="margin-top:16px">资格证</div>
           <div class="cert-images">
-            <div class="cert-item" v-if="auditData.qualificationUrl">
-              <div class="cert-label">当前生效</div>
+            <div class="cert-item" v-if="auditData.qualificationUrl?.toString().trim()">
               <el-image
-                :src="auditData.qualificationUrl as string"
+                :src="(auditData.qualificationUrl as string)?.trim() || ''"
                 fit="contain"
                 style="max-width:200px;max-height:150px"
                 preview-teleported
-                :preview-src-list="[auditData.qualificationUrl as string]"
-              />
+                :preview-src-list="[(auditData.qualificationUrl as string)?.trim() || '']"
+              >
+                <template #error>
+                  <div class="image-error">加载失败</div>
+                </template>
+              </el-image>
+              <span class="cert-status success">✅ 当前生效</span>
             </div>
-            <div class="cert-item" v-if="auditData.pendingQualificationUrl">
-              <div class="cert-label pending">待审核</div>
+            <div class="cert-item" v-else>
+              <div class="image-placeholder">暂无图片</div>
+              <span class="cert-status info">未上传</span>
+            </div>
+            <div class="cert-item" v-if="auditData.pendingQualificationUrl?.toString().trim()">
               <el-image
-                :src="auditData.pendingQualificationUrl as string"
+                :src="(auditData.pendingQualificationUrl as string)?.trim() || ''"
                 fit="contain"
                 style="max-width:200px;max-height:150px"
                 preview-teleported
-                :preview-src-list="[auditData.pendingQualificationUrl as string]"
-              />
+                :preview-src-list="[(auditData.pendingQualificationUrl as string)?.trim() || '']"
+              >
+                <template #error>
+                  <div class="image-error">加载失败</div>
+                </template>
+              </el-image>
+              <span class="cert-status pending">⏳ 待审核</span>
             </div>
           </div>
         </div>
@@ -267,45 +288,89 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 证件上传 -->
+        <!-- 证件上传（带新旧预览） -->
         <div class="upload-section">
-          <div class="section-header">证件资料（选填）</div>
+          <div class="section-header">证件资料</div>
 
-          <!-- 执业证书上传 -->
-          <div class="upload-item">
-            <span class="upload-label">执业证书：</span>
-            <div class="upload-content">
-              <span v-if="form.certificateUrl" class="upload-success">✅ 已上传</span>
-              <el-upload
-                :auto-upload="false"
-                :show-file-list="false"
-                accept="image/*"
-                :on-change="(uploadFile: any) => handleCertUpload(uploadFile.raw)"
-                :disabled="certUploading"
-              >
-                <el-button size="small" :loading="certUploading">
-                  {{ form.certificateUrl ? '重新上传' : '点击上传' }}
-                </el-button>
-              </el-upload>
+          <!-- 执业证书 -->
+          <div class="upload-group">
+            <div class="upload-group-title">执业证书</div>
+            <div class="upload-group-content">
+              <div class="preview-item" v-if="auditData.certificateUrl?.toString().trim()">
+                <div class="preview-label">当前证件</div>
+                <el-image
+                  :src="(auditData.certificateUrl as string)?.trim() || ''"
+                  fit="contain"
+                  style="width:120px;height:90px;border-radius:4px"
+                  preview-teleported
+                  :preview-src-list="[(auditData.certificateUrl as string)?.trim() || '']"
+                />
+              </div>
+              <div class="preview-item" v-if="form.certificateUrl">
+                <div class="preview-label preview-new">新上传</div>
+                <el-image
+                  :src="form.certificateUrl"
+                  fit="contain"
+                  style="width:120px;height:90px;border-radius:4px;border:2px solid #409eff"
+                  preview-teleported
+                  :preview-src-list="[form.certificateUrl]"
+                />
+              </div>
+              <div class="upload-btn-area">
+                <span v-if="!auditData.certificateUrl?.toString().trim() && !form.certificateUrl" class="upload-hint-text">暂无执业证书</span>
+                <el-upload
+                  :auto-upload="false"
+                  :show-file-list="false"
+                  accept="image/*"
+                  :on-change="(uploadFile: any) => handleCertUpload(uploadFile.raw)"
+                  :disabled="certUploading"
+                >
+                  <el-button size="small" :loading="certUploading">
+                    {{ form.certificateUrl ? '重新上传' : '点击上传' }}
+                  </el-button>
+                </el-upload>
+              </div>
             </div>
           </div>
 
-          <!-- 资格证上传 -->
-          <div class="upload-item">
-            <span class="upload-label">资格证：</span>
-            <div class="upload-content">
-              <span v-if="form.qualificationUrl" class="upload-success">✅ 已上传</span>
-              <el-upload
-                :auto-upload="false"
-                :show-file-list="false"
-                accept="image/*"
-                :on-change="(uploadFile: any) => handleQualUpload(uploadFile.raw)"
-                :disabled="qualUploading"
-              >
-                <el-button size="small" :loading="qualUploading">
-                  {{ form.qualificationUrl ? '重新上传' : '点击上传' }}
-                </el-button>
-              </el-upload>
+          <!-- 资格证 -->
+          <div class="upload-group">
+            <div class="upload-group-title">资格证</div>
+            <div class="upload-group-content">
+              <div class="preview-item" v-if="auditData.qualificationUrl?.toString().trim()">
+                <div class="preview-label">当前证件</div>
+                <el-image
+                  :src="(auditData.qualificationUrl as string)?.trim() || ''"
+                  fit="contain"
+                  style="width:120px;height:90px;border-radius:4px"
+                  preview-teleported
+                  :preview-src-list="[(auditData.qualificationUrl as string)?.trim() || '']"
+                />
+              </div>
+              <div class="preview-item" v-if="form.qualificationUrl">
+                <div class="preview-label preview-new">新上传</div>
+                <el-image
+                  :src="form.qualificationUrl"
+                  fit="contain"
+                  style="width:120px;height:90px;border-radius:4px;border:2px solid #409eff"
+                  preview-teleported
+                  :preview-src-list="[form.qualificationUrl]"
+                />
+              </div>
+              <div class="upload-btn-area">
+                <span v-if="!auditData.qualificationUrl?.toString().trim() && !form.qualificationUrl" class="upload-hint-text">暂无资格证</span>
+                <el-upload
+                  :auto-upload="false"
+                  :show-file-list="false"
+                  accept="image/*"
+                  :on-change="(uploadFile: any) => handleQualUpload(uploadFile.raw)"
+                  :disabled="qualUploading"
+                >
+                  <el-button size="small" :loading="qualUploading">
+                    {{ form.qualificationUrl ? '重新上传' : '点击上传' }}
+                  </el-button>
+                </el-upload>
+              </div>
             </div>
           </div>
         </div>
@@ -400,15 +465,26 @@ onMounted(() => {
   text-align: center;
 }
 
-.cert-label {
+.cert-status {
+  display: block;
+  margin-top: 6px;
   font-size: 12px;
-  color: #909399;
-  margin-bottom: 6px;
 }
 
-.cert-label.pending {
-  color: #e6a23c;
-  font-weight: 600;
+.cert-status.success { color: #67c23a; }
+.cert-status.pending { color: #e6a23c; }
+.cert-status.info { color: #909399; }
+
+.image-placeholder {
+  width: 200px;
+  height: 150px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0c4cc;
+  font-size: 13px;
 }
 
 /* 上传区 */
@@ -418,29 +494,63 @@ onMounted(() => {
   border-bottom: 1px solid #ebeef5;
 }
 
-.upload-item {
+.upload-group {
+  margin-bottom: 16px;
+}
+
+.upload-group-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.upload-group-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
-.upload-label {
-  font-size: 13px;
-  color: #606266;
-  width: 72px;
-  flex-shrink: 0;
+.preview-item {
+  text-align: center;
 }
 
-.upload-content {
+.preview-label {
+  font-size: 11px;
+  color: #909399;
+  margin-bottom: 4px;
+}
+
+.preview-label.preview-new {
+  color: #409eff;
+  font-weight: 600;
+}
+
+.upload-btn-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 90px;
+  justify-content: center;
+}
+
+.upload-hint-text {
+  font-size: 12px;
+  color: #c0c4cc;
+}
+
+.image-error {
+  width: 200px;
+  height: 150px;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.upload-success {
+  justify-content: center;
+  background: #f5f5f5;
+  color: #c0c4cc;
   font-size: 13px;
-  color: #67c23a;
+  border-radius: 4px;
 }
 
 .action-row {

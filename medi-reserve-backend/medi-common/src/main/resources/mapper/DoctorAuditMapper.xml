@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.medireserve.common.mapper.DoctorAuditMapper">
+
+    <update id="updateProfileAndSubmitCert" parameterType="map">
+        UPDATE doctor_audit
+        <set>
+            <if test="specialty != null">specialty = #{specialty},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="pendingCertificateUrl != null">pending_certificate_url = #{pendingCertificateUrl},</if>
+            <if test="pendingQualificationUrl != null">pending_qualification_url = #{pendingQualificationUrl},</if>
+            cert_audit_status = 0,
+            cert_audit_remark = NULL,
+            cert_audit_time = NULL,
+            cert_auditor_id = NULL
+        </set>
+        WHERE doctor_id = #{doctorId}
+    </update>
+
+    <!-- 审核通过：只更新有值的 pending 字段，防止覆盖原有数据 -->
+    <update id="approveCert">
+        UPDATE doctor_audit
+        SET
+            certificate_url = CASE
+                                  WHEN pending_certificate_url IS NOT NULL THEN pending_certificate_url
+                                  ELSE certificate_url
+                END,
+            qualification_url = CASE
+                                    WHEN pending_qualification_url IS NOT NULL THEN pending_qualification_url
+                                    ELSE qualification_url
+                END,
+            pending_certificate_url = NULL,
+            pending_qualification_url = NULL,
+            cert_audit_status = 1,
+            cert_audit_remark = #{remark},
+            cert_audit_time = NOW(),
+            cert_auditor_id = #{auditorId}
+        WHERE doctor_id = #{doctorId} AND cert_audit_status = 0
+    </update>
+
+    <!-- 审核驳回：清空 pending，不影响正式字段 -->
+    <update id="rejectCert">
+        UPDATE doctor_audit
+        SET
+            pending_certificate_url = NULL,
+            pending_qualification_url = NULL,
+            cert_audit_status = 2,
+            cert_audit_remark = #{remark},
+            cert_audit_time = NOW(),
+            cert_auditor_id = #{auditorId}
+        WHERE doctor_id = #{doctorId} AND cert_audit_status = 0
+    </update>
+
+</mapper>
