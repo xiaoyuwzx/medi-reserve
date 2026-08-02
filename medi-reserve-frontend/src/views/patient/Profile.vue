@@ -64,7 +64,7 @@ async function saveProfile() {
         <div class="info-grid">
           <div class="info-item">
             <span class="label">姓名</span>
-            <span class="value">{{ userStore.name || '-' }}</span>
+            <span class="value">{{ userStore.name || userStore.username || '-' }}</span>
           </div>
           <div class="info-item">
             <span class="label">手机号</span>

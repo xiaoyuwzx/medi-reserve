@@ -25,6 +25,8 @@ async function handleLogin() {
       password: password.value
     })) as unknown as Record<string, string | number>
 
+    console.log('🔍 医生登录响应:', res)
+
     userStore.setToken(res.token as string)
     userStore.setUserInfo(
       res.id as number,
