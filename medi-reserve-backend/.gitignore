@@ -40,5 +40,8 @@ build/
 
 # Docker 环境变量（包含敏感信息）
 .env
+.env.example
+.env.local
+.env.*.local
 *.log
 logs/

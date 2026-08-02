@@ -120,10 +120,10 @@ public class OssStsService {
      * @return Policy JSON 字符串
      */
     private String buildCustomPolicy(Long doctorId) {
-        // 资源路径示例：acs:oss:oss-cn-hangzhou.aliyuncs.com:medi-reserve-files/medi/doctor/123/*
-        String resource = "acs:oss:" + ossProperties.getEndpoint() + ":"
-                + ossProperties.getBucket() + "/"
-                + ossProperties.getBaseDir() + "/doctor/" + doctorId + "/*";
+        // 资源路径示例：acs:oss:oss-cn-wuhan-lr:medi-reserve-files/medi/doctor/1/*
+        String resource = "acs:oss:*:*:" + ossProperties.getBucket()
+                + "/" + ossProperties.getBaseDir()
+                + "/doctor/" + doctorId + "/*";
 
         // ====== 2. 构建 Policy 结构 ======
         Map<String, Object> policy = new HashMap<>();
